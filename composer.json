@@ -1,0 +1,31 @@
+{
+    "name": "mmamedov/pagecache",
+    "type": "library",
+    "description": "PageCache is a lightweight PHP library for full page cache. It uses various strategies to differentiate among separate versions of the same page.",
+    "keywords": ["cache", "page cache", "full page cache", "file based cache", "php cache", "php page cache"],
+    "homepage": "https://github.com/mmamedov/PageCache",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Muhammed Mamedov",
+            "email": "mm@turkmenweb.net",
+            "homepage": "http://www.turkmenweb.net",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.5.0"
+    },
+    "require-dev": {
+        "mobiledetect/mobiledetectlib": "^2.8"
+    },
+    "suggest": {
+        "mobiledetect/mobiledetectlib": "Allows separate cache versions for mobile pages"
+    },
+    "autoload": {
+        "psr-4": {
+            "PageCache\\": "src/"
+        }
+    }
+
+}
