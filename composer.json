@@ -3,7 +3,7 @@
     "type": "library",
     "description": "PageCache is a lightweight PHP library for full page cache. It uses various strategies to differentiate among separate versions of the same page.",
     "keywords": ["cache", "page cache", "full page cache", "file based cache", "php cache", "php page cache"],
-    "homepage": "https://github.com/mmamedov/PageCache",
+    "homepage": "https://github.com/mmamedov/page-cache",
     "license": "MIT",
     "authors": [
         {
