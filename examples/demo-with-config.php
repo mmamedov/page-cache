@@ -27,6 +27,6 @@ $cache->init();
     call, note that time doesn't change on refresh: <?php echo date('H:i:s'); ?>.</h3>
 <br><br>
 <h4>Check examples/cache/ directory to see cached content.
-    Erase this file to regenerate cache, or it will automatically be regenerated in 20 minutes.</h4>
+    Erase this file to regenerate cache, or it will automatically be regenerated in 10 minutes, as per conf.php</h4>
 </body>
 </html>
