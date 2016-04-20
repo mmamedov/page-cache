@@ -4,6 +4,13 @@ Full-page PHP Caching library
 ----
 PageCache is a lightweight PHP library for full page cache, works out of the box with zero configuration. Use it when you need a simple yet powerfull file based PHP caching solution. Page caching for mobile devices is built-in.
 
+Install PHP PageCache and start caching your PHP's browser output code using Composer:
+```
+composer require mmamedov/page-cache
+```
+Once PageCache is installed, include Composer's autoload.php file, or implement your own autoloader. Composer autoloader is recommended.
+
+
 No Database calls
 ----
 Once page is cached, there are no more database calls needed! Even if your page contains many database calls and complex logic, it will be executed once and cached for period you specify. No more overload!
