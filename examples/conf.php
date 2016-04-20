@@ -17,7 +17,8 @@
 $config = array(
 
     //generated cache files less than this many bytes, are considered invalid and are regenerated
-    'min_cache_file_size' => 1000,
+    //adjust accordingly
+    'min_cache_file_size' => 10,
 
     // set true to enable loging, not recommended for production use, only for debugging
     'enable_log' => false,

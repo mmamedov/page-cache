@@ -13,27 +13,31 @@ namespace PageCache;
 
 use PageCache\Strategy;
 
+/**
+ *
+ * PageCache is the main class, create PageCache object and call init() to start caching
+ *
+ */
 class PageCache
 {
     private $cache_path;
     private $cache_expire;
+    //full path of active cache file
     private $file;
     private $log_file_path;
     private $enable_log;
     private $strategy;
     private $config;
-    private $config_file_path;
-
     //regenerate cache if cached content is less that this many bytes (some error occured)
     private $min_cache_file_size;
-
     //make sure only one instance of PageCache is created
     private static $ins = null;
+
 
     /**
      * PageCache constructor.
      */
-    public function __construct($config_file_path=null)
+    public function __construct($config_file_path = null)
     {
         if (isset(PageCache::$ins)) {
             throw new \Exception('PageCache already created.');
@@ -47,8 +51,7 @@ class PageCache
             include $config_file_path;
 
             $this->parseConfig($config);
-        }
-        else{
+        } else {
             /**
              * config file not found, set defaults
              */
@@ -58,7 +61,6 @@ class PageCache
 
             //min file size is 10 bytes, generated files less than this value are invalid, renegerated
             $this->min_cache_file_size = 10;
-
         }
 
         PageCache::$ins = true;
@@ -69,10 +71,10 @@ class PageCache
 
     /**
      * Initialize cache.
+     * If you need to set configuration options, do so before calling this method.
      */
     public function init()
     {
-
         $this->log(array('msg' => "\n" . date('d/m/Y H:i:s') . ' init() uri:' . $_SERVER['REQUEST_URI'] . '; script:' . $_SERVER['SCRIPT_NAME'] . '; query:' . $_SERVER['QUERY_STRING']));
 
         $this->generateCacheFile();
@@ -80,7 +82,6 @@ class PageCache
         $this->display();
 
         ob_start(array($this, 'createPage'));
-
     }
 
     /**
@@ -90,11 +91,10 @@ class PageCache
      */
     private function display()
     {
-
         $file = $this->file;
 
         if (!file_exists($file) || (filemtime($file) < (time() - $this->cache_expire)) || filesize($file) < $this->min_cache_file_size) {
-            $this->log(array('msg' => 'File not found.'));
+            $this->log(array('msg' => 'File not found or cache expired or min_cache_file_size not met.'));
             return;
         }
 
@@ -114,7 +114,6 @@ class PageCache
      */
     private function createPage($content)
     {
-
         $file = $this->file;
 
         $fp = fopen($file, 'w');
@@ -137,7 +136,6 @@ class PageCache
         return $content;
     }
 
-
     /**
      * Caching strategy - expected file name for this current page.
      *
@@ -155,6 +153,10 @@ class PageCache
      */
     private function generateCacheFile()
     {
+        //cache file name already generated?
+        if(!empty($this->file)) {
+            return;
+        }
 
         $fname = $this->strategy->strategy();
 
@@ -167,14 +169,68 @@ class PageCache
     }
 
     /**
-     * Location of cache files.
+     * Clear cache for current page, if this page was cached before.
+     */
+    public function clearPageCache(){
+
+        //if cache file name not set yet, get it
+        if(empty($this->file)){
+            $this->generateCacheFile();
+        }
+
+        /**
+         * Cache file name is now available, check if cache file exists.
+         * If init() wasn't called on this page before, there won't be any cache saved, so we check with file_exists.
+         */
+        if(file_exists($this->file)){
+            $this->log(array('msg'=>'PageCache: page cache file found, deleting now.'));
+            unlink($this->file);
+        }
+    }
+
+    /**
+     * Return current page cache as a string or false on error, if this page was cached before.
+     */
+    public function getPageCache(){
+
+        //if cache file name not set yet, get it
+        if(empty($this->file)){
+            $this->generateCacheFile();
+        }
+
+        if( false!== $str = file_get_contents($this->file)){
+            return $str;
+        }
+        else {
+            $this->log(array('msg'=>'PageCache: getPageCache() could not open cache file'));
+        }
+
+        return false;
+    }
+
+    /**
+     * Get current page's cache file name.
+     *
+     * @return string cache file
+     */
+    public function getFile(){
+
+        //if cache file name not set yet, get it
+        if(empty($this->file)){
+            $this->generateCacheFile();
+        }
+
+        return $this->file;
+    }
+
+    /**
+     * Location of cache files directory.
      *
      * @param $path string full path of cache files
      * @throws \Exception
      */
     public function setPath($path)
     {
-
         //path writable?
         if (empty($path) || !is_writable($path)) {
             throw new \Exception('PageCache: cache path not writable.');
@@ -183,9 +239,14 @@ class PageCache
         $this->cache_path = $path;
     }
 
+    /**
+     * Time in seconds for cache to expire
+     *
+     * @param $seconds int seconds
+     * @throws \Exception
+     */
     public function setExpiration($seconds)
     {
-
         if ($seconds < 0) {
             throw new \Exception('PageCache: invalid expiration value, < 0.');
         }
@@ -194,7 +255,7 @@ class PageCache
     }
 
     /**
-     * Set Log file path
+     * Set Log file path.
      *
      * @param $path string log file path
      *
@@ -205,18 +266,20 @@ class PageCache
     }
 
     /**
-     * Enable loging
+     * Enable logging.
      */
     public function enableLog()
     {
         $this->enable_log = true;
     }
 
+    /**
+     * Disable logging.
+     */
     public function disableLog()
     {
         $this->enable_log = false;
     }
-
 
     /**
      * When generated cache file is less that this size, it is considered as invalid (will be regenerated on next call)
@@ -234,9 +297,8 @@ class PageCache
      * @param array $config
      * @throws \Exception min params not set
      */
-    public function parseConfig(array $config)
+    private function parseConfig(array $config)
     {
-
         $this->config = $config;
 
         if (!isset($this->config['min_cache_file_size']) || !isset($this->config['enable_log'])) {
@@ -282,7 +344,7 @@ class PageCache
      * @param array $params loging values
      * @throws \Exception
      */
-    public function log(array $params)
+    private function log(array $params)
     {
         if ($this->enable_log !== true) {
             return;

@@ -2,7 +2,7 @@
 
 Full-page PHP Caching library
 ----
-PageCache is a lightweight PHP library for full page cache, works out of the box with zero configuration. Use it when you need a simple yet powerfull file based PHP caching solution. 
+PageCache is a lightweight PHP library for full page cache, works out of the box with zero configuration. Use it when you need a simple yet powerfull file based PHP caching solution. Page caching for mobile devices is built-in.
 
 No Database calls
 ----
@@ -83,3 +83,19 @@ $config = array(
     'cache_path' => __DIR__ . '/tmp/cache/'
 );
 ```
+
+API - PageCache class 
+---------------------
+The following are public methods of PageCache class that you could call from your application. Check out examples for code samples.
+
+- init():void - initiate cache, this should be your last method to call on PageCache object.
+- setStrategy(\PageCache\StrategyInterface):void - set cache file strategy. Built-in strategies are DefaultStrategy() and MobileStrategy(). Define your own if needed.
+- clearPageCache():void - Clear cache for current page, if this page was cached before.
+- getPageCache():bool - Return current page cache as a string or false on error, if this page was cached before.
+- getFile():string - Get current page's cache file name.
+- setPath(string):void - Location of cache files directory.
+- setExpiration(int):void - Time in seconds for cache to expire.
+- logFilePath(string):void - Set Log file path.
+- enableLog():void - Enable logging.
+- disableLog():void - Disable logging.
+
