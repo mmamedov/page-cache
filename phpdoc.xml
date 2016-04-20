@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<phpdoc>
+    <title>PageCache</title>
+    <parser>
+        <target>phpdocs/output</target>
+    </parser>
+    <transformer>
+        <target>phpdocs/output</target>
+    </transformer>
+    <files>
+        <directory>src</directory>
+        <ignore>tests/*</ignore>
+        <ignore>Tests/*</ignore>
+    </files>
+</phpdoc>
