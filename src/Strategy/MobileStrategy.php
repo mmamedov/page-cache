@@ -51,7 +51,7 @@ class MobileStrategy implements StrategyInterface
         $this->session_support = $session_support;
         $session_str = $this->process_session();
 
-        return md5($_SERVER['REQUEST_URI'] . $_SERVER['SCRIPT_NAME'] . $_SERVER['QUERY_STRING']) . $session_str . $ends;
+        return md5($_SERVER['REQUEST_URI'] . $_SERVER['SCRIPT_NAME'] . $_SERVER['QUERY_STRING']. $session_str)  . $ends;
     }
 
     /**
