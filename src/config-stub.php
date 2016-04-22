@@ -44,8 +44,7 @@ $config = array(
     //cache directory location (mind the trailing slash "/")
     'cache_path' => __DIR__ . '/tmp/cache/',
 
-    //Wession support, if you have a login area or similar.
-    //When pages change according to some Session value, although URL remains the same
+    //Use session support, if you have a login area or similar, when page content changes according to some Session value, although URL remains the same
     //disabled by default
     'use_session'=>false
 

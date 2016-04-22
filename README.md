@@ -21,6 +21,8 @@ Why another PHP Caching class?
 ----
 It is not intended for everyone, only for those who wants to include a couple lines of code on top of their dynamic PHP pages and be able to cache them fully. No worrying about cache file name setup for each URL, no worries about your dynamically generated URL parameters and changing URLs. PageCache detects those changed and caches accordingly.
 
+PageCache also detect $_SESSION changes and caches those pages correctly. This is useful if you have user authentication enabled on your site, and page contents change per user login while URL remains the same.
+
 Lots of caching solutions focus on keyword-based approach, where you need to setup a keyword for your content (be it a full page cache, or a variable, etc.). There are great packages for keyword based approach. One could also use a more complex solution like a cache proxy, Varnish. PageCache on the other hand is a simple full page only caching solution, that does exactly what its name says - generates page cache in PHP.   
 
 How PageCache works
@@ -49,7 +51,9 @@ Caching Strategies
 ------------------
 PageCache uses various strategies to differentiate among separate versions of the same page. 
 
-`DefaultStrategy()` is the default behaviour of PageCache. It caches pages and generated cache filenames using this PHP code: `md5($_SERVER['REQUEST_URI'] . $_SERVER['SCRIPT_NAME'] . $_SERVER['QUERY_STRING'])`. You could create your own naming strategy and pass it to PageCache:
+All PageCache Strategies support sessions. See PageCache [cache page with sessions](examples/demo-session-support.php) example.
+
+`DefaultStrategy()` is the default behaviour of PageCache. It caches pages and generated cache filenames using this PHP code: `md5($_SERVER['REQUEST_URI'] . $_SERVER['SCRIPT_NAME'] . $_SERVER['QUERY_STRING'] . $session_str)`. You could create your own naming strategy and pass it to PageCache:
 
 ```php
 $cache = new PageCache\PageCache();
@@ -87,7 +91,11 @@ $config = array(
     'log_file_path' => __DIR__ . '/log/cache.log',
 
     //cache directory location (mind the trailing slash "/")
-    'cache_path' => __DIR__ . '/tmp/cache/'
+    'cache_path' => __DIR__ . '/tmp/cache/',
+    
+    //Use session support, if you have a login area or similar, when page content changes 
+    //according to some Session value, although URL remains the same
+    'use_session'=> false
 );
 ```
 
@@ -105,4 +113,6 @@ The following are public methods of PageCache class that you could call from you
 - logFilePath(string):void - Set Log file path.
 - enableLog():void - Enable logging.
 - disableLog():void - Disable logging.
+- enableSession():void - Enable session support
+- disableSession():void - Disable session support
 
