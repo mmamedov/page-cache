@@ -17,6 +17,8 @@ use PageCache\StrategyInterface;
  *
  * MobileStrategy uses "serbanghita/Mobile-Detect" package and provides a different cached version for mobile devices.
  *
+ * Use enableSession() to enable session support
+ *
  * If you are displaying a different version of your page for mobile devices use:
  *      $cache->setStrategy(new \PageCache\MobileStrategy() );
  *
@@ -24,6 +26,8 @@ use PageCache\StrategyInterface;
 class MobileStrategy implements StrategyInterface
 {
     private $MobileDetect;
+    private $session_support;
+
 
     public function __construct()
     {
@@ -33,29 +37,53 @@ class MobileStrategy implements StrategyInterface
     /**
      * Sets a "-mob" ending to cache files for visitors coming from mobile devices (phones but not tablets)
      *
+     * @param $session_support boolean set to true for session support
      * @return string file name
      */
-    public function strategy()
+    public function strategy($session_support = false)
     {
         $ends = '';
         if ($this->currentMobile()) {
             $ends = '-mob';
         }
 
-        return md5($_SERVER['REQUEST_URI'] . $_SERVER['SCRIPT_NAME'] . $_SERVER['QUERY_STRING']) . $ends;
+        //when session support is enabled add that to file name
+        $this->session_support = $session_support;
+        $session_str = $this->process_session();
+
+        return md5($_SERVER['REQUEST_URI'] . $_SERVER['SCRIPT_NAME'] . $_SERVER['QUERY_STRING']) . $session_str . $ends;
     }
 
+    /**
+     * Whether curernt page was accessed from a mobile phone
+     *
+     * @return bool true for phones, else false
+     */
     private function currentMobile()
     {
         if (empty($this->MobileDetect) || !($this->MobileDetect instanceof \Mobile_Detect)) {
             return false;
         }
 
+        //for phones only, not tablets
+        //create your own Strategy if needed, and change this functionality
         if ($this->MobileDetect->isMobile() && !$this->MobileDetect->isTablet()) {
             return true;
         } else {
             return false;
         }
+    }
+
+    public function process_session()
+    {
+        $out = null;
+
+        if ($this->session_support) {
+            $out = print_r($_SESSION, true);
+        }
+
+        return $out;
+
     }
 
 }

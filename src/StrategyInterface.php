@@ -18,6 +18,18 @@ namespace PageCache;
  */
 interface StrategyInterface
 {
-    public function strategy();
+    /**
+     * Sets cache file name
+     *
+     * @param $session_support boolean set to true if session pages are cached
+     * @return mixed string cache file name
+     */
+    public function strategy($session_support);
 
+    /**
+     * When session support is enabled, processes session variables.
+     *
+     * @return mixed string session vars
+     */
+    public function process_session();
 }

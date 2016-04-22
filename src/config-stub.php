@@ -27,17 +27,26 @@
 $config = array(
 
     //generated cache files less than this many bytes, are considered invalid and are regenerated
-    'min_cache_file_size' => 2000,
+    //default 10
+    'min_cache_file_size' => 10,
 
     // set true to enable loging, not recommended for production use, only for debugging
+    //default false
     'enable_log' => false,
 
     //current page's cache expiration in seconds
+    //default 20 minutes
     'expiration' => 20 * 60,
 
     //log file location, enable_log must be true for loging to work
-    'log_file_path' => __DIR__ . '/../../log/cache.log',
+    'log_file_path' => __DIR__ . '/log/cache.log',
 
     //cache directory location (mind the trailing slash "/")
-    'cache_path' => __DIR__ . '/../../tmp/cache/'
+    'cache_path' => __DIR__ . '/tmp/cache/',
+
+    //Wession support, if you have a login area or similar.
+    //When pages change according to some Session value, although URL remains the same
+    //disabled by default
+    'use_session'=>false
+
 );

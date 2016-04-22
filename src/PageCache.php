@@ -32,7 +32,7 @@ class PageCache
     private $min_cache_file_size;
     //make sure only one instance of PageCache is created
     private static $ins = null;
-
+    private $use_session;
 
     /**
      * PageCache constructor.
@@ -61,6 +61,9 @@ class PageCache
 
             //min file size is 10 bytes, generated files less than this value are invalid, renegerated
             $this->min_cache_file_size = 10;
+
+            //do not use $_SESSION in cache
+            $this->use_session = false;
         }
 
         PageCache::$ins = true;
@@ -148,7 +151,7 @@ class PageCache
 
     /**
      *
-     * Generates cache file name based on URL (and mobiledetect when enabled)
+     * Generates cache file name based on URL, Strategy, and use_session config var
      *
      */
     private function generateCacheFile()
@@ -158,7 +161,12 @@ class PageCache
             return;
         }
 
-        $fname = $this->strategy->strategy();
+        //session support enabled?
+        $session_support = false;
+        if($this->use_session)
+            $session_support = true;
+
+        $fname = $this->strategy->strategy($session_support);
 
         $hashDirectory = new HashDirectory($fname, $this->cache_path);
         $dir_str = $hashDirectory->getHash();
@@ -292,6 +300,21 @@ class PageCache
     }
 
     /**
+     * Use sessions when caching page.
+     * For the same URL session enabled page might be displayed differently, when for example user has logged in.
+     */
+    public function enableSession(){
+        $this->use_session = true;
+    }
+
+    /**
+     * Do not use sessions when caching page.
+     */
+    public function disableSession(){
+        $this->use_session = false;
+    }
+
+    /**
      * Parses conf.php files and sets parameters for this object
      *
      * @param array $config
@@ -334,6 +357,11 @@ class PageCache
             }
 
             $this->cache_path = $this->config['cache_path'];
+        }
+
+        //use $_SESSION while caching or not
+        if(isset($this->config['use_session'])){
+            $this->use_session = boolval($this->config['use_session']);
         }
 
     }
