@@ -21,7 +21,7 @@ Why another PHP Caching class?
 ----
 It is not intended for everyone, only for those who wants to include a couple lines of code on top of their dynamic PHP pages and be able to cache them fully. No worrying about cache file name setup for each URL, no worries about your dynamically generated URL parameters and changing URLs. PageCache detects those changed and caches accordingly.
 
-PageCache also detect $_SESSION changes and caches those pages correctly. This is useful if you have user authentication enabled on your site, and page contents change per user login while URL remains the same.
+PageCache also detects $_SESSION changes and caches those pages correctly. This is useful if you have user authentication enabled on your site, and page contents change per user login while URL remains the same.
 
 Lots of caching solutions focus on keyword-based approach, where you need to setup a keyword for your content (be it a full page cache, or a variable, etc.). There are great packages for keyword based approach. One could also use a more complex solution like a cache proxy, Varnish. PageCache on the other hand is a simple full page only caching solution, that does exactly what its name says - generates page cache in PHP.   
 
