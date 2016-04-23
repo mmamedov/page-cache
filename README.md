@@ -95,7 +95,10 @@ $config = array(
     
     //Use session support, if you have a login area or similar, when page content changes 
     //according to some Session value, although URL remains the same
-    'use_session'=> false
+    'use_session'=> false,
+    
+    //$_SESSION[] keys to exclude from caching, see examples/demo-session-exclude-keys.php
+    'session_exclude_keys'=>array()    
 );
 ```
 
@@ -115,4 +118,26 @@ The following are public methods of PageCache class that you could call from you
 - disableLog():void - Disable logging.
 - enableSession():void - Enable session support
 - disableSession():void - Disable session support
+- sessionExcludeKeys(array):void - Exclude $_SESSION key(s) from caching strategies 
 
+Caching pages using Sessions (i.e. User Login enabled applications)
+-------------------------------------------------------------------
+PageCache makes it simple to maintain a full page cache in PHP while using sessions.
+
+For PageCache to be aware of your $_SESSION, in config file or in your PHP file you must enable session support.
+In your PHP file, before calling `init()` call `$cache->enableSession()`. That's it! Now your session pages will be cached seperately for your different session values. 
+
+Another handy method is `sessionExcludeKeys()`. Check out [Session exclude keys](examples/demo-session-exclude-keys.php) example for code.
+
+When to use `sessionExcludeKeys()`: For example let's assume that your application changes $_SESSION['count'] variable, but that doesn't reflect on the page content.
+Exclude this variable, otherwise PageCache will generate seperate cache files for each value of $_SESSION['count] session variable. To exclude 'count' session variable:
+```php
+    // ...
+    $cache->sessionExcludeKeys(array('count'));
+    // ...
+    $cache->init();
+```
+
+That's it!
+
+Check out [PageCache examples](examples/) folder for sample code.
