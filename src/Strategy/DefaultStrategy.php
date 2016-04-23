@@ -11,6 +11,7 @@
 
 namespace PageCache\Strategy;
 
+use PageCache\SessionHandler;
 use PageCache\StrategyInterface;
 
 /**
@@ -26,24 +27,12 @@ class DefaultStrategy implements StrategyInterface
      * @param $session_support boolean set to true for session support
      * @return string md5
      */
-    public function strategy($session_support = false)
+    public function strategy()
     {
         //when session support is enabled add that to file name
-        $this->session_support = $session_support;
-        $session_str = $this->process_session();
+        $session_str = SessionHandler::process();
 
-        return md5($_SERVER['REQUEST_URI'] . $_SERVER['SCRIPT_NAME'] . $_SERVER['QUERY_STRING'] . $session_str);
+        return md5( $_SERVER['REQUEST_URI'] . $_SERVER['SCRIPT_NAME'] . $_SERVER['QUERY_STRING'] . $session_str );
     }
 
-    public function process_session()
-    {
-        $out = null;
-
-        if ($this->session_support) {
-            $out = print_r($_SESSION, true);
-        }
-
-        return $out;
-
-    }
 }

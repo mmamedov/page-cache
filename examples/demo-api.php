@@ -62,7 +62,7 @@ $cache->init();
 ?>
 <html>
 <body>
-<h1>Example #4 - Full API. Call to all methods of PageCache.</h1>
+<h1>Example #4 - API. Call to some methods of PageCache.</h1>
 <h3>This is a demo PageCache page that is going to be cached. Refresh to see changes.</h3>
 <h3 style="color: red">Demo with conf.php configuration file usage, see source code for this file.</h3>
 <h3>This is a dynamic PHP <i>date('H:i:s')</i>

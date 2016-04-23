@@ -11,6 +11,7 @@
 
 namespace PageCache\Strategy;
 
+use PageCache\SessionHandler;
 use PageCache\StrategyInterface;
 
 /**
@@ -37,10 +38,9 @@ class MobileStrategy implements StrategyInterface
     /**
      * Sets a "-mob" ending to cache files for visitors coming from mobile devices (phones but not tablets)
      *
-     * @param $session_support boolean set to true for session support
      * @return string file name
      */
-    public function strategy($session_support = false)
+    public function strategy()
     {
         $ends = '';
         if ($this->currentMobile()) {
@@ -48,10 +48,9 @@ class MobileStrategy implements StrategyInterface
         }
 
         //when session support is enabled add that to file name
-        $this->session_support = $session_support;
-        $session_str = $this->process_session();
+        $session_str = SessionHandler::process();
 
-        return md5($_SERVER['REQUEST_URI'] . $_SERVER['SCRIPT_NAME'] . $_SERVER['QUERY_STRING']. $session_str)  . $ends;
+        return md5( $_SERVER['REQUEST_URI'] . $_SERVER['SCRIPT_NAME'] . $_SERVER['QUERY_STRING']. $session_str )  . $ends;
     }
 
     /**
@@ -72,18 +71,6 @@ class MobileStrategy implements StrategyInterface
         } else {
             return false;
         }
-    }
-
-    public function process_session()
-    {
-        $out = null;
-
-        if ($this->session_support) {
-            $out = print_r($_SESSION, true);
-        }
-
-        return $out;
-
     }
 
 }

@@ -13,6 +13,10 @@
  * enableSession() is useful if you are going to cache a dynamic PHP application where you use $_SESSION
  * for various things, like user login and etc.
  *
+ *
+ * NOTE: If you want to cache only URLs before user login or other session manipulations, you could put
+ * PageCache call inside if(!isset($_SESSION[..])) { //run PageCache only on pages without certain Session variable }
+ *
  */
 
 require_once __DIR__ . '/../vendor/autoload.php';
@@ -20,24 +24,35 @@ require_once __DIR__ . '/../vendor/autoload.php';
 /**
  * session is started only when "Enable session" button is pressed
  */
+
 if (isset($_POST['withsessions']) && $_POST['withsessions'] == '1') {
     session_start();
+
     //sample session data
     $_SESSION['demo_session'] = array('my val1', 'my val2');
     $_SESSION['user'] = 12;
     $_SESSION['login'] = true;
-
 }
 
-
 $cache = new PageCache\PageCache();
+
+//cache path
 $cache->setPath(__DIR__ . '/cache/');
 
+//Disable line below and you will see only 1 cache file generated,
+// no differentiation between session and without session calls
+//
 //use session support in cache
+//
 $cache->enableSession();
 
 //do disable session cache uncomment this line, or comment line above and see
 //$cache->disableSession();
+
+//enable log
+//$cache->enableLog();
+//$cache->logFilePath(__DIR__.'/log/cache.log');
+
 
 //start cache;
 $cache->init();

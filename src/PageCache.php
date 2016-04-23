@@ -32,7 +32,6 @@ class PageCache
     private $min_cache_file_size;
     //make sure only one instance of PageCache is created
     private static $ins = null;
-    private $use_session;
 
     /**
      * PageCache constructor.
@@ -62,8 +61,8 @@ class PageCache
             //min file size is 10 bytes, generated files less than this value are invalid, renegerated
             $this->min_cache_file_size = 10;
 
-            //do not use $_SESSION in cache
-            $this->use_session = false;
+            //do not use $_SESSION in cache, by default
+            SessionHandler::disable();
         }
 
         PageCache::$ins = true;
@@ -151,7 +150,7 @@ class PageCache
 
     /**
      *
-     * Generates cache file name based on URL, Strategy, and use_session config var
+     * Generates cache file name based on URL, Strategy, and SessionHandler
      *
      */
     private function generateCacheFile()
@@ -161,12 +160,7 @@ class PageCache
             return;
         }
 
-        //session support enabled?
-        $session_support = false;
-        if($this->use_session)
-            $session_support = true;
-
-        $fname = $this->strategy->strategy($session_support);
+        $fname = $this->strategy->strategy();
 
         $hashDirectory = new HashDirectory($fname, $this->cache_path);
         $dir_str = $hashDirectory->getHash();
@@ -304,15 +298,29 @@ class PageCache
      * For the same URL session enabled page might be displayed differently, when for example user has logged in.
      */
     public function enableSession(){
-        $this->use_session = true;
+        SessionHandler::enable();
     }
 
     /**
      * Do not use sessions when caching page.
      */
     public function disableSession(){
-        $this->use_session = false;
+        SessionHandler::disable();
     }
+
+    /**
+     * Exclude $_SESSION key(s) from caching strategies.
+     * 
+     * When to use: Your application changes $_SESSION['count'] variable, but that doesn't reflect on the page
+     *              content. Exclude this variable, otherwise PageCache will generate seperate cache files for each
+     *              value of $_SESSION['count] session variable.
+     *
+     * @param array $keys $_SESSION keys to exclude from caching strategies
+     */
+    public function sessionExclude(array $keys){
+            SessionHandler::excludeKeys($keys);
+    }
+
 
     /**
      * Parses conf.php files and sets parameters for this object
@@ -361,7 +369,12 @@ class PageCache
 
         //use $_SESSION while caching or not
         if(isset($this->config['use_session'])){
-            $this->use_session = boolval($this->config['use_session']);
+            SessionHandler::setStatus($this->config['use_session']);
+        }
+
+        //session exclude key
+        if (isset($this->config['session_exclude_keys']) && !empty($this->config['session_exclude_keys'])) {
+            SessionHandler::excludeKeys($this->config['session_exclude_keys']);
         }
 
     }

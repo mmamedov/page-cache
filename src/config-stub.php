@@ -46,6 +46,15 @@ $config = array(
 
     //Use session support, if you have a login area or similar, when page content changes according to some Session value, although URL remains the same
     //disabled by default
-    'use_session'=>false
+    'use_session'=>false,
+
+     /**
+      * Exclude $_SESSION key(s) from caching strategies.
+      *
+      * When to use: Your application changes $_SESSION['count'] variable, but that doesn't reflect on the page
+      *              content. Exclude this variable, otherwise PageCache will generate seperate cache files for each
+      *              value of $_SESSION['count] session variable.
+      */
+    'session_exclude_keys'=>array()
 
 );
