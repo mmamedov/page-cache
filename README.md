@@ -133,6 +133,7 @@ When to use `sessionExcludeKeys()`: For example let's assume that your applicati
 Exclude this variable, otherwise PageCache will generate seperate cache files for each value of $_SESSION['count] session variable. To exclude 'count' session variable:
 ```php
     // ...
+    $cache->enableSession();
     $cache->sessionExcludeKeys(array('count'));
     // ...
     $cache->init();
