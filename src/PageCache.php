@@ -175,18 +175,22 @@ class PageCache
      */
     public function clearPageCache(){
 
+
         //if cache file name not set yet, get it
-        if(empty($this->file)){
-            $this->generateCacheFile();
+        if(!empty($this->file)){
+            $filepath = $this->file;
+        }
+        else{
+            $filepath = $this->getFilePath();
         }
 
         /**
          * Cache file name is now available, check if cache file exists.
          * If init() wasn't called on this page before, there won't be any cache saved, so we check with file_exists.
          */
-        if(file_exists($this->file)){
+        if(file_exists($filepath)){
             $this->log(array('msg'=>'PageCache: page cache file found, deleting now.'));
-            unlink($this->file);
+            unlink($filepath);
         }
     }
 
@@ -196,34 +200,71 @@ class PageCache
     public function getPageCache(){
 
         //if cache file name not set yet, get it
-        if(empty($this->file)){
-            $this->generateCacheFile();
+        if(!empty($this->file)){
+            $filepath = $this->file;
+        }
+        else{
+            $filepath = $this->getFilePath();
         }
 
-        if( false!== $str = file_get_contents($this->file)){
+        if( false!== $str = file_get_contents($filepath)){
             return $str;
         }
         else {
-            $this->log(array('msg'=>'PageCache: getPageCache() could not open cache file'));
+            $this->log(array('msg'=>'PageCache: getPageCache() could not open cache file '.$filepath));
         }
 
         return false;
     }
 
     /**
-     * Get current page's cache file name.
+     * Checks if current page is in cache.
+     *
+     * @return bool true if page has a valid cache file saved, false if not
+     */
+    public function isCached(){
+        //if cache file name not set yet, get it
+        if(!empty($this->file)){
+            $filepath = $this->file;
+        }
+        else{
+            $filepath = $this->getFilePath();
+        }
+
+        if(file_exists($filepath) && filesize($filepath)>=$this->min_cache_file_size){
+            return true;
+        }
+        else
+            return false;
+    }
+
+    /**
+     * Get current page's cache file name. At this point file itself might or might not have been created.
      *
      * @return string cache file
      */
     public function getFile(){
 
-        //if cache file name not set yet, get it
-        if(empty($this->file)){
-            $this->generateCacheFile();
-        }
-
-        return $this->file;
+        //call strategy
+        return $this->strategy->strategy();
     }
+
+    /**
+     * Get full path for current page's filename. At this point file itself might or might not have been created.
+     *
+     * Filename is created the same way as getFile()
+     *
+     * @return array array(filename, directory)
+     */
+    public function getFilePath(){
+
+        $fname = $this->getFile();
+        $subdir = HashDirectory::getLocation($fname);
+
+        return $this->cache_path.$subdir.$fname;
+    }
+
+
 
     /**
      * Location of cache files directory.

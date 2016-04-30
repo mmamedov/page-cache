@@ -57,6 +57,8 @@ $cache->enableSession();
 //start cache;
 $cache->init();
 
+echo 'Everything below is cached, including this line<hr>';
+
 ?>
 <html xmlns="http://www.w3.org/1999/html">
 <head>

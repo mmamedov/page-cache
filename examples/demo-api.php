@@ -16,9 +16,24 @@ $config_file = __DIR__.'/conf.php';
 //pass config file
 $cache = new PageCache\PageCache($config_file);
 
+//getfilepath
+echo 'Cache filepath, getFilePath(): '.$cache->getFilePath().'<br/>';
+echo '<hr/>';
+
 //get file name
-echo 'Cache file name: '.$cache->getFile();
+echo 'Cache file name, getFile(): '.$cache->getFile();
 echo '<hr>';
+
+//cache present already?
+echo 'isChached(): ';
+if($cache->isCached()){
+    echo 'cache exists';
+}
+else{
+    echo 'cache does not exist';
+}
+echo '<hr>';
+
 
 //get cache file contents
 echo 'Cache file contents: <br/>';
@@ -63,7 +78,7 @@ $cache->init();
 <html>
 <body>
 <h1>Example #4 - API. Call to some methods of PageCache.</h1>
-<h3>This is a demo PageCache page that is going to be cached. Refresh to see changes.</h3>
+<h3>This is a demo PageCache page that is going to be cached. <span style="color: green;">Refresh browser to see changes.</span></h3>
 <h3 style="color: red">Demo with conf.php configuration file usage, see source code for this file.</h3>
 <h3>This is a dynamic PHP <i>date('H:i:s')</i>
     call, note that time doesn't change on refresh: <?php echo date('H:i:s'); ?>.</h3>

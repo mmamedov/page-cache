@@ -19,7 +19,7 @@ This is a very efficient and simple method, to cache your most visited dynamic p
 
 Why another PHP Caching class?
 ----
-It is not intended for everyone, only for those who wants to include a couple lines of code on top of their dynamic PHP pages and be able to cache them fully. No worrying about cache file name setup for each URL, no worries about your dynamically generated URL parameters and changing URLs. PageCache detects those changed and caches accordingly.
+Short answer - simplicity. If you want to include a couple lines of code on top of your dynamic PHP pages and be able to cache them fully, then PageCache is for you. No worrying about cache file name setup for each URL, no worries about your dynamically generated URL parameters and changing URLs. PageCache detects those changed and caches accordingly.
 
 PageCache also detects $_SESSION changes and caches those pages correctly. This is useful if you have user authentication enabled on your site, and page contents change per user login while URL remains the same.
 
@@ -29,8 +29,7 @@ How PageCache works
 ----
 It uses various strategies to differentiate among separate versions of the same page. 
 
-PageCache doesn't ask you for a keyword, it automatically generates them based on Strategies. You can define your own naming strategy, for example to incorporate logged in users into your applications. In this situations, URL might remain same, while content of the page will be different for each logged in user.
-
+PageCache doesn't ask you for a keyword, it automatically generates them based on Strategies. You can define your own naming strategy, based on your application needs.
 
 ```php
 <?php
@@ -102,8 +101,8 @@ $config = array(
 );
 ```
 
-API - PageCache class 
----------------------
+API - PageCache 
+---------------
 The following are public methods of PageCache class that you could call from your application. Check out examples for code samples.
 
 - init():void - initiate cache, this should be your last method to call on PageCache object.
@@ -119,6 +118,9 @@ The following are public methods of PageCache class that you could call from you
 - enableSession():void - Enable session support
 - disableSession():void - Disable session support
 - sessionExcludeKeys(array):void - Exclude $_SESSION key(s) from caching strategies 
+- getFilePath():string - Get full path for current page's filename. At this point file itself might or might not have been created.
+- isCached():bool - Checks if current page is in cache, true if exists false if not cached yet.
+
 
 Caching pages using Sessions (i.e. User Login enabled applications)
 -------------------------------------------------------------------

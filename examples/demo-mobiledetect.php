@@ -18,11 +18,17 @@
  */
 require_once __DIR__.'/../vendor/autoload.php';
 
+use PageCache\PageCache;
+use PageCache\Strategy\MobileStrategy;
 /**
  * PageCache setup
  */
-$cache = new PageCache\PageCache($config_file);
-$cache->setStrategy( new \PageCache\Strategy\MobileStrategy() );
+$config_file = __DIR__.'/conf.php';
+$cache = new PageCache($config_file);
+$cache->setStrategy( new MobileStrategy() );
+//enable session support if needed, check demos and README for details
+//uncomment for session support
+//$cache->enableSession();
 $cache->init();
 
 /**
@@ -37,7 +43,7 @@ function isMobile(){
     //make it static, not created on subsequent calls in the same page
     static $mobileDetect;
 
-    $mobileDetect = new \Mobile_Detect();
+    $mobileDetect = new Mobile_Detect();
 
     /**
      * Check for mobile devices, that are not tables. We want phones only.

@@ -25,11 +25,17 @@ if (isset($_POST['withsessions'])) {
     }
 }
 
+echo '<fieldset style="background-color: #eee; padding: 10px;">var_dump($_SESSION) call, before init(), so this content is not cached. 
+        Notice how with each button click below actual session value changes, but since it is excluded from tracking,
+        same cache for different session values is generated: ';
+var_dump($_SESSION);
+echo 'var_dump ends. All below is cached.</fieldset>';
+
 $cache = new PageCache\PageCache( __DIR__.'/conf.php' );
 $cache->enableSession();
 
 //exclude $_SESSION['exc'] from cache strategy.
-//Comment line below, and cached version for each 'excl' session variable will be saved
+//Comment line below, and cached version for each 'excl' session variable will be saved in a different cache file
 $cache->sessionExclude(array('excl'));
 
 //init
@@ -78,7 +84,7 @@ if (isset($_SESSION['excl'])) {
 }
 
 echo '<br><b>Generated cache file name: </b><fieldset>'
-        .basename($cache->getFile())
+        .($cache->getFile())
         .'</fieldset>';
 ?>
 

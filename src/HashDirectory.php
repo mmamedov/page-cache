@@ -81,4 +81,24 @@ class HashDirectory
         return;
     }
 
+    /**
+     * Get subdirectories for location of where cache file would be placed
+     *
+     * @param $filename
+     * @return null|string null when filename is empty, or 2 subdirectories where filename would be located.
+     */
+    public static function getLocation($filename){
+
+        if(empty($filename))
+            return null;
+
+        $val1 = ord($filename[1]);
+        $val2 = ord($filename[3]);
+
+        //normalize to 99
+        $val1 = $val1 % 99;
+        $val2 = $val2 % 99;
+
+        return $val1 . '/' . $val2 . '/';
+    }
 }
