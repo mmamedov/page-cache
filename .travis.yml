@@ -9,3 +9,7 @@ script:
 branches:
     only:
       - master
+
+before_script:
+  - phpenv config-rm xdebug.ini
+  - composer install -o
