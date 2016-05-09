@@ -4,7 +4,7 @@ php:
   - '5.6'
 
 script:
-  - phpunit -v -c phpunit.xml
+  - vendor/bin/phpunit -v -c phpunit.xml
 
 branches:
     only:
