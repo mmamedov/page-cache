@@ -23,7 +23,8 @@ class DefaultStrategyTest extends \PHPUnit_Framework_TestCase
 
         SessionHandler::disable();
 
-        $md5 = md5($_SERVER['REQUEST_URI'] . $_SERVER['SCRIPT_NAME'] . $_SERVER['QUERY_STRING']);
+        $uri = empty($_SERVER['REQUEST_URI'])? '':$_SERVER['REQUEST_URI'];
+        $md5 = md5( $uri . $_SERVER['SCRIPT_NAME'] . $_SERVER['QUERY_STRING']);
         $this->assertEquals($md5, $strategy->strategy());
 
         SessionHandler::enable();

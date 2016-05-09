@@ -32,7 +32,8 @@ class MobileStrategyTest extends \PHPUnit_Framework_TestCase
 
         //expected string, with -mob in the end
         SessionHandler::disable();
-        $md5 = md5($_SERVER['REQUEST_URI'] . $_SERVER['SCRIPT_NAME'] . $_SERVER['QUERY_STRING']) . '-mob';
+        $uri = empty($_SERVER['REQUEST_URI'])? '':$_SERVER['REQUEST_URI'];
+        $md5 = md5( $uri . $_SERVER['SCRIPT_NAME'] . $_SERVER['QUERY_STRING']) . '-mob';
 
         $this->assertTrue($mobilestub instanceof \Mobile_Detect);
         $this->assertTrue($strategy instanceof StrategyInterface);
