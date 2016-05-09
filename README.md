@@ -101,26 +101,26 @@ $config = array(
 );
 ```
 
-API - PageCache 
----------------
+API - PageCache class public methods
+------------------------------------
 The following are public methods of PageCache class that you could call from your application. Check out examples for code samples.
 
 - init():void - initiate cache, this should be your last method to call on PageCache object.
 - setStrategy(\PageCache\StrategyInterface):void - set cache file strategy. Built-in strategies are DefaultStrategy() and MobileStrategy(). Define your own if needed.
 - clearPageCache():void - Clear cache for current page, if this page was cached before.
-- getPageCache():bool - Return current page cache as a string or false on error, if this page was cached before.
-- getFile():string - Get current page's cache file name.
 - setPath(string):void - Location of cache files directory.
 - setExpiration(int):void - Time in seconds for cache to expire.
 - logFilePath(string):void - Set Log file path.
 - enableLog():void - Enable logging.
 - disableLog():void - Disable logging.
-- enableSession():void - Enable session support
-- disableSession():void - Disable session support
-- sessionExcludeKeys(array):void - Exclude $_SESSION key(s) from caching strategies 
-- getFilePath():string - Get full path for current page's filename. At this point file itself might or might not have been created.
+- enableSession():void - Enable session support.
+- disableSession():void - Disable session support.
+- sessionExclude(array):void - Exclude $_SESSION key(s) from caching strategies 
 - isCached():bool - Checks if current page is in cache, true if exists false if not cached yet.
-
+- getFilePath():string - Get full path for current page's filename. At this point file itself might or might not have been created.
+- getFile():string - Get current page's cache file name.
+- getPageCache():bool - Return current page cache as a string or false on error, if this page was cached before.
+- getSessionExclude():array|null - Get excluded $_SESSION keys.
 
 Caching pages using Sessions (i.e. User Login enabled applications)
 -------------------------------------------------------------------

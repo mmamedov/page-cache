@@ -78,11 +78,10 @@ class PageCache
     public function init()
     {
         $this->log(array('msg' => "\n" . date('d/m/Y H:i:s') . ' init() uri:' . $_SERVER['REQUEST_URI'] . '; script:' . $_SERVER['SCRIPT_NAME'] . '; query:' . $_SERVER['QUERY_STRING']));
-
         $this->generateCacheFile();
-
         $this->display();
 
+        //array to handle current namespace
         ob_start(array($this, 'createPage'));
     }
 
@@ -156,7 +155,7 @@ class PageCache
     private function generateCacheFile()
     {
         //cache file name already generated?
-        if(!empty($this->file)) {
+        if (!empty($this->file)) {
             return;
         }
 
@@ -173,14 +172,14 @@ class PageCache
     /**
      * Clear cache for current page, if this page was cached before.
      */
-    public function clearPageCache(){
+    public function clearPageCache()
+    {
 
 
         //if cache file name not set yet, get it
-        if(!empty($this->file)){
+        if (!empty($this->file)) {
             $filepath = $this->file;
-        }
-        else{
+        } else {
             $filepath = $this->getFilePath();
         }
 
@@ -188,8 +187,8 @@ class PageCache
          * Cache file name is now available, check if cache file exists.
          * If init() wasn't called on this page before, there won't be any cache saved, so we check with file_exists.
          */
-        if(file_exists($filepath)){
-            $this->log(array('msg'=>'PageCache: page cache file found, deleting now.'));
+        if (file_exists($filepath)) {
+            $this->log(array('msg' => 'PageCache: page cache file found, deleting now.'));
             unlink($filepath);
         }
     }
@@ -197,21 +196,20 @@ class PageCache
     /**
      * Return current page cache as a string or false on error, if this page was cached before.
      */
-    public function getPageCache(){
+    public function getPageCache()
+    {
 
         //if cache file name not set yet, get it
-        if(!empty($this->file)){
+        if (!empty($this->file)) {
             $filepath = $this->file;
-        }
-        else{
+        } else {
             $filepath = $this->getFilePath();
         }
 
-        if( false!== $str = file_get_contents($filepath)){
+        if (false !== $str = file_get_contents($filepath)) {
             return $str;
-        }
-        else {
-            $this->log(array('msg'=>'PageCache: getPageCache() could not open cache file '.$filepath));
+        } else {
+            $this->log(array('msg' => 'PageCache: getPageCache() could not open cache file ' . $filepath));
         }
 
         return false;
@@ -222,20 +220,20 @@ class PageCache
      *
      * @return bool true if page has a valid cache file saved, false if not
      */
-    public function isCached(){
+    public function isCached()
+    {
         //if cache file name not set yet, get it
-        if(!empty($this->file)){
+        if (!empty($this->file)) {
             $filepath = $this->file;
-        }
-        else{
+        } else {
             $filepath = $this->getFilePath();
         }
 
-        if(file_exists($filepath) && filesize($filepath)>=$this->min_cache_file_size){
+        if (file_exists($filepath) && filesize($filepath) >= $this->min_cache_file_size) {
             return true;
-        }
-        else
+        } else {
             return false;
+        }
     }
 
     /**
@@ -243,8 +241,8 @@ class PageCache
      *
      * @return string cache file
      */
-    public function getFile(){
-
+    public function getFile()
+    {
         //call strategy
         return $this->strategy->strategy();
     }
@@ -256,15 +254,13 @@ class PageCache
      *
      * @return array array(filename, directory)
      */
-    public function getFilePath(){
-
+    public function getFilePath()
+    {
         $fname = $this->getFile();
         $subdir = HashDirectory::getLocation($fname);
 
-        return $this->cache_path.$subdir.$fname;
+        return $this->cache_path . $subdir . $fname;
     }
-
-
 
     /**
      * Location of cache files directory.
@@ -338,31 +334,42 @@ class PageCache
      * Use sessions when caching page.
      * For the same URL session enabled page might be displayed differently, when for example user has logged in.
      */
-    public function enableSession(){
+    public function enableSession()
+    {
         SessionHandler::enable();
     }
 
     /**
      * Do not use sessions when caching page.
      */
-    public function disableSession(){
+    public function disableSession()
+    {
         SessionHandler::disable();
     }
 
     /**
      * Exclude $_SESSION key(s) from caching strategies.
-     * 
+     *
      * When to use: Your application changes $_SESSION['count'] variable, but that doesn't reflect on the page
      *              content. Exclude this variable, otherwise PageCache will generate seperate cache files for each
      *              value of $_SESSION['count] session variable.
      *
      * @param array $keys $_SESSION keys to exclude from caching strategies
      */
-    public function sessionExclude(array $keys){
-            SessionHandler::excludeKeys($keys);
+    public function sessionExclude(array $keys)
+    {
+        SessionHandler::excludeKeys($keys);
     }
 
-
+    /**
+     * Get excluded $_SESSION keys
+     *
+     * @return array|null
+     */
+    public function getSessionExclude()
+    {
+        return SessionHandler::getExcludeKeys();
+    }
     /**
      * Parses conf.php files and sets parameters for this object
      *
@@ -409,7 +416,7 @@ class PageCache
         }
 
         //use $_SESSION while caching or not
-        if(isset($this->config['use_session'])){
+        if (isset($this->config['use_session'])) {
             SessionHandler::setStatus($this->config['use_session']);
         }
 

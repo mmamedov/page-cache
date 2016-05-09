@@ -60,7 +60,6 @@ class HashDirectory
      */
     private function createSubDirs($dir1, $dir2)
     {
-
         //dir1 not exists, create both
         if (!is_dir($this->dir . $dir1)) {
             mkdir($this->dir . $dir1);
@@ -87,10 +86,11 @@ class HashDirectory
      * @param $filename
      * @return null|string null when filename is empty, or 2 subdirectories where filename would be located.
      */
-    public static function getLocation($filename){
-
-        if(empty($filename))
+    public static function getLocation($filename)
+    {
+        if (empty($filename)) {
             return null;
+        }
 
         $val1 = ord($filename[1]);
         $val2 = ord($filename[3]);

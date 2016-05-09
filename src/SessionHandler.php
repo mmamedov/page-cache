@@ -22,12 +22,17 @@ class SessionHandler{
     //session support status
     private static $status = false;
     //session keys to exclude
-    private static $exclude_keys;
+    private static $exclude_keys = null;
 
+    /**
+     * Serialize session. Exclude $_SESSION[key], if key is defined in excludeKeys()
+     *
+     *
+     * @return string
+     */
     public static function process(){
 
         $out = null;
-        $tmp = array();
 
         //session handler enabled
         if (self::$status)
@@ -46,14 +51,18 @@ class SessionHandler{
                 }
             }
 
-            $out = print_r($tmp, true);
+            $out = serialize($tmp);
         }
 
         return $out;
     }
 
-    public static function excludeKeys(array $sess_key){
-        self::$exclude_keys = $sess_key;
+    public static function excludeKeys(array $sess_keys){
+        self::$exclude_keys = $sess_keys;
+    }
+
+    public static function getExcludeKeys(){
+        return self::$exclude_keys;
     }
 
     public static function enable(){

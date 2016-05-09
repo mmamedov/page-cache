@@ -21,10 +21,7 @@ use PageCache\StrategyInterface;
  */
 class DefaultStrategy implements StrategyInterface
 {
-    private $session_support;
-
     /**
-     * @param $session_support boolean set to true for session support
      * @return string md5
      */
     public function strategy()

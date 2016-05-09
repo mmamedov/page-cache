@@ -27,12 +27,20 @@ use PageCache\StrategyInterface;
 class MobileStrategy implements StrategyInterface
 {
     private $MobileDetect;
-    private $session_support;
 
-
-    public function __construct()
+    /**
+     * $mobileDetect object can be passed as a parameter. Useful for testing.
+     *
+     * MobileStrategy constructor.
+     * @param \Mobile_Detect|null $mobileDetect
+     */
+    public function __construct(\Mobile_Detect $mobileDetect=null)
     {
-        $this->MobileDetect = new \Mobile_Detect;
+        if(is_null($mobileDetect))
+            $this->MobileDetect = new \Mobile_Detect;
+        else{
+            $this->MobileDetect = $mobileDetect;
+        }
     }
 
     /**
@@ -50,7 +58,7 @@ class MobileStrategy implements StrategyInterface
         //when session support is enabled add that to file name
         $session_str = SessionHandler::process();
 
-        return md5( $_SERVER['REQUEST_URI'] . $_SERVER['SCRIPT_NAME'] . $_SERVER['QUERY_STRING']. $session_str )  . $ends;
+        return md5($_SERVER['REQUEST_URI'] . $_SERVER['SCRIPT_NAME'] . $_SERVER['QUERY_STRING'] . $session_str) . $ends;
     }
 
     /**

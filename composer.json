@@ -26,6 +26,11 @@
         "psr-4": {
             "PageCache\\": "src/"
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "PageCache\\Test\\": "tests/"
+        }
     }
 
 }

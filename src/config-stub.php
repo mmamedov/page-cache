@@ -49,11 +49,12 @@ $config = array(
     'use_session'=>false,
 
      /**
-      * Exclude $_SESSION key(s) from caching strategies.
+      * Exclude $_SESSION key(s) from caching strategies. Pass session name as keys to the array.
       *
       * When to use: Your application changes $_SESSION['count'] variable, but that doesn't reflect on the page
       *              content. Exclude this variable, otherwise PageCache will generate seperate cache files for each
       *              value of $_SESSION['count] session variable.
+      *              Example: 'session_exclude_keys'=>array('count')
       */
     'session_exclude_keys'=>array()
 
