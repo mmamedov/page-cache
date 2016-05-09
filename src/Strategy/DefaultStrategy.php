@@ -30,7 +30,8 @@ class DefaultStrategy implements StrategyInterface
         $session_str = SessionHandler::process();
 
         $uri = empty($_SERVER['REQUEST_URI'])? '':$_SERVER['REQUEST_URI'];
-        return md5( $uri . $_SERVER['SCRIPT_NAME'] . $_SERVER['QUERY_STRING'] . $session_str );
+        $query = empty($_SERVER['QUERY_STRING'])? '':$_SERVER['QUERY_STRING'];
+        return md5( $uri . $_SERVER['SCRIPT_NAME'] . $query . $session_str );
     }
 
 }
