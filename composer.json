@@ -17,8 +17,7 @@
         "php": ">=5.5.0"
     },
     "require-dev": {
-        "mobiledetect/mobiledetectlib": "^2.8",
-        "phpunit/phpunit": "5.3.*"
+        "mobiledetect/mobiledetectlib": "^2.8"
     },
     "suggest": {
         "mobiledetect/mobiledetectlib": "Allows separate cache versions for mobile pages"

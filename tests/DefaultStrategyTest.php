@@ -16,6 +16,13 @@ use PageCache\StrategyInterface;
 
 class DefaultStrategyTest extends \PHPUnit_Framework_TestCase
 {
+//    public function setUp()
+//    {
+//        if(session_status() === PHP_SESSION_NONE){
+//            session_start();
+//        }
+//    }
+
     public function testStrategy()
     {
         $strategy = new DefaultStrategy();
@@ -26,7 +33,7 @@ class DefaultStrategyTest extends \PHPUnit_Framework_TestCase
         $uri = empty($_SERVER['REQUEST_URI'])? '':$_SERVER['REQUEST_URI'];
         $query = empty($_SERVER['QUERY_STRING'])? '':$_SERVER['QUERY_STRING'];
         $md5 = md5( $uri . $_SERVER['SCRIPT_NAME'] . $query);
-        
+
         $this->assertEquals($md5, $strategy->strategy());
 
         SessionHandler::enable();
