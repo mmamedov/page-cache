@@ -26,7 +26,7 @@ $config = array(
     // set true to enable loging, not recommended for production use, only for debugging
     'enable_log' => false,
 
-    //current page's cache expiration in seconds
+    //current page's cache expiration in seconds. Set to 10 minutes:
     'expiration' => 10 * 60,
 
     //log file location, enable_log must be true for loging to work
@@ -35,6 +35,9 @@ $config = array(
     //cache directory location (mind the trailing slash "/")
     'cache_path' => __DIR__ . '/cache/',
 
+    /**
+     * Use session or not
+     */
     'use_session' => false,
 
     /**
@@ -46,5 +49,17 @@ $config = array(
      *              value of $_SESSION['count] session variable.
      *              Example: 'session_exclude_keys'=>array('count')
      */
-    'session_exclude_keys'=>array()
+    'session_exclude_keys' => array(),
+
+    /**
+     *
+     * Locking mechanism to use when writing cache files. Default is LOCK_EX | LOCK_NB, which locks for
+     * exclusive write while being non-blocking. Set whatever you want.
+     * Read for details (http://php.net/manual/en/function.flock.php)
+     *
+     * Set file_lock = false to disable file locking.
+     */
+    'file_lock' => LOCK_EX | LOCK_NB
+
+
 );

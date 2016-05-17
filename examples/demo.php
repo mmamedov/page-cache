@@ -8,7 +8,18 @@
 
 require_once __DIR__.'/../vendor/autoload.php';
 
-$cache = new PageCache\PageCache();
+/**
+ * When not specified using a config file or by calling methods, the following parameters are set automatically:
+ *
+ * cache_expire = 1200 seconds
+ * min_cache_file_size = 10
+ * file_lock = LOCK_EX | LOCK_NB
+ * use_session = false
+ *
+ */
+use PageCache\PageCache;
+
+$cache = new PageCache();
 $cache->setPath(__DIR__.'/cache/');
 $cache->init();
 

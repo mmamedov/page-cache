@@ -17,7 +17,8 @@ namespace PageCache;
  * For different session values different cache files created. This behaviour is disabled by default.
  *
  */
-class SessionHandler{
+class SessionHandler
+{
 
     //session support status
     private static $status = false;
@@ -30,22 +31,21 @@ class SessionHandler{
      *
      * @return string
      */
-    public static function process(){
+    public static function process()
+    {
 
         $out = null;
 
         //session handler enabled
-        if (self::$status)
-        {
+        if (self::$status) {
             //get session into array
             $tmp = $_SESSION;
 
             //remove excluded keys if were set, and if session is set
-            if( !empty(self::$exclude_keys) && isset($_SESSION) && !empty($_SESSION))
-            {
+            if (!empty(self::$exclude_keys) && isset($_SESSION) && !empty($_SESSION)) {
 
-                foreach(self::$exclude_keys as $key){
-                    if(isset($tmp[$key])){
+                foreach (self::$exclude_keys as $key) {
+                    if (isset($tmp[$key])) {
                         unset($tmp[$key]);
                     }
                 }
@@ -57,28 +57,36 @@ class SessionHandler{
         return $out;
     }
 
-    public static function excludeKeys(array $sess_keys){
+    public static function excludeKeys(array $sess_keys)
+    {
         self::$exclude_keys = $sess_keys;
     }
 
-    public static function getExcludeKeys(){
+    public static function getExcludeKeys()
+    {
         return self::$exclude_keys;
     }
 
-    public static function enable(){
+    public static function enable()
+    {
         self::$status = true;
     }
 
-    public static function disable(){
+    public static function disable()
+    {
         self::$status = false;
     }
 
-    public static function getStatus(){
+    public static function getStatus()
+    {
         return self::$status;
     }
 
-    public static function setStatus($status){
-        self::$status = boolval($status);
+    public static function setStatus($status)
+    {
+        if ($status === true || $status === false) {
+            self::$status = $status;
+        }
     }
 
 }

@@ -26,36 +26,64 @@
  */
 $config = array(
 
-    //generated cache files less than this many bytes, are considered invalid and are regenerated
-    //default 10
+    /**
+     * Minimum cache file size.
+     * Generated cache files less than this many bytes, are considered invalid and are regenerated
+     * Default 10
+     */
     'min_cache_file_size' => 10,
 
-    // set true to enable loging, not recommended for production use, only for debugging
-    //default false
+    /**
+     * Set true to enable loging, not recommended for production use, only for debugging
+     * Default: false
+     *
+     * Effects both internal logger, and any external PSR-3 logger (if any) activated via setLogger() method
+     */
     'enable_log' => false,
 
-    //current page's cache expiration in seconds
-    //default 20 minutes
-    'expiration' => 20 * 60,
-
-    //log file location, enable_log must be true for loging to work
+    /**
+     * Internal log file location, enable_log must be true for loging to work
+     * When external loger is provided via setLogger(), internal logging is disabled.
+     */
     'log_file_path' => __DIR__ . '/log/cache.log',
 
-    //cache directory location (mind the trailing slash "/")
+    /**
+     * Current page's cache expiration in seconds.
+     * Default: 20 minutes, 1200 seconds.
+     */
+    'expiration' => 1200,
+
+    /**
+     * Cache directory location (mind the trailing slash "/").
+     * Cache files are saved here.
+     */
     'cache_path' => __DIR__ . '/tmp/cache/',
 
-    //Use session support, if you have a login area or similar, when page content changes according to some Session value, although URL remains the same
-    //disabled by default
-    'use_session'=>false,
+    /**
+     * Use session support, if you have a login area or similar.
+     * When page content changes according to some Session value, although URL remains the same.
+     * Disabled by default.
+     */
+    'use_session' => false,
 
-     /**
-      * Exclude $_SESSION key(s) from caching strategies. Pass session name as keys to the array.
-      *
-      * When to use: Your application changes $_SESSION['count'] variable, but that doesn't reflect on the page
-      *              content. Exclude this variable, otherwise PageCache will generate seperate cache files for each
-      *              value of $_SESSION['count] session variable.
-      *              Example: 'session_exclude_keys'=>array('count')
-      */
-    'session_exclude_keys'=>array()
+    /**
+     * Exclude $_SESSION key(s) from caching strategies. Pass session name as keys to the array.
+     *
+     * When to use: Your application changes $_SESSION['count'] variable, but that doesn't reflect on the page
+     *              content. Exclude this variable, otherwise PageCache will generate seperate cache files for each
+     *              value of $_SESSION['count] session variable.
+     *              Example: 'session_exclude_keys'=>array('count')
+     */
+    'session_exclude_keys' => array(),
+
+    /**
+     *
+     * Locking mechanism to use when writing cache files. Default is LOCK_EX | LOCK_NB, which locks for
+     * exclusive write while being non-blocking. Set whatever you want.
+     * Read for details (http://php.net/manual/en/function.flock.php)
+     *
+     * Set file_lock = false to disable file locking.
+     */
+    'file_lock' => LOCK_EX | LOCK_NB
 
 );

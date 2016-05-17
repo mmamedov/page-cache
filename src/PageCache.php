@@ -11,6 +11,7 @@
 
 namespace PageCache;
 
+use PageCache\Storage\FileSystem;
 use PageCache\Strategy;
 
 /**
@@ -20,18 +21,84 @@ use PageCache\Strategy;
  */
 class PageCache
 {
+    /**
+     * Cache directory
+     *
+     * @var string
+     */
     private $cache_path;
+
+    /**
+     * Cache expiration in seconds
+     *
+     * @var int
+     */
     private $cache_expire;
-    //full path of active cache file
+
+    /**
+     * Full path of the current cache file
+     *
+     * @var string
+     */
     private $file;
+
+    /**
+     * Enable logging
+     *
+     * @var bool
+     */
+    private $enable_log = false;
+
+    /**
+     * File path for internal log file
+     *
+     * @var string
+     */
     private $log_file_path;
-    private $enable_log;
+
+    /**
+     * StrategyInterface for cache naming strategy
+     *
+     * @var StrategyInterface
+     */
     private $strategy;
+
+    /**
+     * Configuration array
+     *
+     * @var array
+     */
     private $config;
-    //regenerate cache if cached content is less that this many bytes (some error occured)
+
+    /**
+     * File locking preference for flock() function.
+     * Default is a non-blocking exclusive write lock: LOCK_EX | LOCK_NB
+     * When false, file locking is disabled.
+     *
+     * @var false|int
+     */
+    private $file_lock;
+
+    /**
+     * Regenerate cache if cached content is less that this many bytes (some error occured)
+     *
+     * @var int
+     */
     private $min_cache_file_size;
-    //make sure only one instance of PageCache is created
+
+    /**
+     * Make sure only one instance of PageCache is created
+     *
+     * @var bool
+     */
     private static $ins = null;
+
+    /**
+     * When logging is enabled, defines a PSR logging library for logging exceptions and errors.
+     *
+     * @var \Psr\Log\LoggerInterface
+     */
+    private $logger = null;
 
     /**
      * PageCache constructor.
@@ -50,7 +117,9 @@ class PageCache
             include $config_file_path;
 
             $this->parseConfig($config);
+
         } else {
+
             /**
              * config file not found, set defaults
              */
@@ -60,6 +129,9 @@ class PageCache
 
             //min file size is 10 bytes, generated files less than this value are invalid, renegerated
             $this->min_cache_file_size = 10;
+
+            //file lock
+            $this->file_lock = LOCK_EX | LOCK_NB;
 
             //do not use $_SESSION in cache, by default
             SessionHandler::disable();
@@ -77,7 +149,7 @@ class PageCache
      */
     public function init()
     {
-        $this->log(array('msg' => "\n" . date('d/m/Y H:i:s') . ' init() uri:' . $_SERVER['REQUEST_URI'] . '; script:' . $_SERVER['SCRIPT_NAME'] . '; query:' . $_SERVER['QUERY_STRING']));
+        $this->log('init() uri:' . $_SERVER['REQUEST_URI'] . '; script:' . $_SERVER['SCRIPT_NAME'] . '; query:' . $_SERVER['QUERY_STRING'].'.');
         $this->generateCacheFile();
         $this->display();
 
@@ -95,46 +167,48 @@ class PageCache
         $file = $this->file;
 
         if (!file_exists($file) || (filemtime($file) < (time() - $this->cache_expire)) || filesize($file) < $this->min_cache_file_size) {
-            $this->log(array('msg' => 'File not found or cache expired or min_cache_file_size not met.'));
+            $this->log('Cache file not found or cache expired or min_cache_file_size not met.');
             return;
         }
 
-        $this->log(array('msg' => 'File found for cache output.'));
+        $this->log('Cache file found.');
 
-        readfile($file);
-
-        //stop execution
-        exit();
+        //Read file, output cache. If error occured, ob_start() will be called next in PageCache
+        if (@readfile($file) !== false) {
+            //stop execution
+            exit();
+        }
     }
 
     /**
      * Write page to cache, and display it.
+     * When write is unsuccessful, string content is returned.
      *
      * @param $content string from ob_start
      * @return string page content
      */
     private function createPage($content)
     {
-        $file = $this->file;
+        $storage = new FileSystem($content);
 
-        $fp = fopen($file, 'w');
-
-        //open cache file
-        if ($fp === false) {
-            //file open,create error
-            $this->log(array('msg' => 'fopen() file open error.'));
-        } else {
-            //write to cache file
-            if (fwrite($fp, $content) === false) {
-                //file write error
-                $this->log(array('msg' => 'fwrite() file write error.'));
-            }
-            fclose($fp);
+        try {
+            $storage->setFileLock($this->file_lock);
+            $storage->setFilepath($this->file);
+        } catch (\Exception $e) {
+            $this->log('FileSystem Exception', $e);
         }
 
-        $this->log(array('msg' => 'Cache saved OK: ' . $this->file));
+        $result = $storage->writeAttempt();
 
+        if ($result !== FileSystem::OK) {
+            $this->log('FileSystem writeAttempt not an OK result: ' . $result);
+        }
+
+        /**
+         * Return page content
+         */
         return $content;
+
     }
 
     /**
@@ -159,14 +233,18 @@ class PageCache
             return;
         }
 
-        $fname = $this->strategy->strategy();
+        try {
+            $fname = $this->strategy->strategy();
 
-        $hashDirectory = new HashDirectory($fname, $this->cache_path);
-        $dir_str = $hashDirectory->getHash();
+            $hashDirectory = new HashDirectory($fname, $this->cache_path);
+            $dir_str = $hashDirectory->getHash();
 
-        $this->file = $this->cache_path . $dir_str . $fname;
+            $this->file = $this->cache_path . $dir_str . $fname;
+        } catch (\Exception $e) {
+            $this->log('generateCacheFile() Exception', $e);
+        }
 
-        $this->log(array('msg' => 'Cache file: ' . $this->file));
+        $this->log('Cache file: ' . $this->file);
     }
 
     /**
@@ -174,8 +252,6 @@ class PageCache
      */
     public function clearPageCache()
     {
-
-
         //if cache file name not set yet, get it
         if (!empty($this->file)) {
             $filepath = $this->file;
@@ -187,8 +263,7 @@ class PageCache
          * Cache file name is now available, check if cache file exists.
          * If init() wasn't called on this page before, there won't be any cache saved, so we check with file_exists.
          */
-        if (file_exists($filepath)) {
-            $this->log(array('msg' => 'PageCache: page cache file found, deleting now.'));
+        if (file_exists($filepath) && is_file($filepath)) {
             unlink($filepath);
         }
     }
@@ -198,7 +273,6 @@ class PageCache
      */
     public function getPageCache()
     {
-
         //if cache file name not set yet, get it
         if (!empty($this->file)) {
             $filepath = $this->file;
@@ -206,10 +280,9 @@ class PageCache
             $filepath = $this->getFilePath();
         }
 
-        if (false !== $str = file_get_contents($filepath)) {
+        //suppress E_WARNING of file_get_contents, when file not found
+        if (false !== $str = @file_get_contents($filepath)) {
             return $str;
-        } else {
-            $this->log(array('msg' => 'PageCache: getPageCache() could not open cache file ' . $filepath));
         }
 
         return false;
@@ -272,7 +345,8 @@ class PageCache
     {
         //path writable?
         if (empty($path) || !is_writable($path)) {
-            throw new \Exception('PageCache: cache path not writable.');
+            $this->log('Cache path not writable.');
+            throw new \Exception('setPath() - Cache path not writable: ' . $path);
         }
 
         $this->cache_path = $path;
@@ -286,22 +360,12 @@ class PageCache
      */
     public function setExpiration($seconds)
     {
-        if ($seconds < 0) {
-            throw new \Exception('PageCache: invalid expiration value, < 0.');
+        if ($seconds < 0 || !is_numeric($seconds)) {
+            $this->log('Invalid expiration value, < 0: ' . $seconds);
+            throw new \Exception('Invalid expiration value, < 0.');
         }
 
         $this->cache_expire = intval($seconds);
-    }
-
-    /**
-     * Set Log file path.
-     *
-     * @param $path string log file path
-     *
-     */
-    public function logFilePath($path)
-    {
-        $this->log_file_path = $path;
     }
 
     /**
@@ -345,6 +409,8 @@ class PageCache
     public function disableSession()
     {
         SessionHandler::disable();
+
+        return true;
     }
 
     /**
@@ -355,10 +421,13 @@ class PageCache
      *              value of $_SESSION['count] session variable.
      *
      * @param array $keys $_SESSION keys to exclude from caching strategies
+     * @return bool
      */
     public function sessionExclude(array $keys)
     {
         SessionHandler::excludeKeys($keys);
+
+        return true;
     }
 
     /**
@@ -370,26 +439,24 @@ class PageCache
     {
         return SessionHandler::getExcludeKeys();
     }
+
     /**
      * Parses conf.php files and sets parameters for this object
      *
      * @param array $config
      * @throws \Exception min params not set
+     * @return true
      */
     private function parseConfig(array $config)
     {
         $this->config = $config;
 
-        if (!isset($this->config['min_cache_file_size']) || !isset($this->config['enable_log'])) {
-            throw new \Exception('PageCache config:  min_cache_file_size or enable_log params not set.');
-        }
-
-        //minimum cache file size bytes
         $this->min_cache_file_size = intval($this->config['min_cache_file_size']);
 
-        $this->enable_log = boolval($this->config['enable_log']);
+        if (isset($this->config['enable_log']) && $this->isBool($this->config['enable_log'])) {
+            $this->enable_log = $this->config['enable_log'];
+        }
 
-        //cache expiration in seconds
         if (isset($this->config['expiration'])) {
 
             if ($this->config['expiration'] < 0) {
@@ -399,24 +466,24 @@ class PageCache
             $this->cache_expire = intval($this->config['expiration']);
         }
 
-        //path of log file, has effect only if log in enabled.
-        if (isset($this->config['log_file_path'])) {
-            $this->log_file_path = $this->config['log_file_path'];
-        }
-
         //path to store cache files
         if (isset($this->config['cache_path'])) {
 
             //path writable?
             if (empty($this->config['cache_path']) || !is_writable($this->config['cache_path'])) {
-                throw new \Exception('PageCache config: cache path not writable ');
+                throw new \Exception('PageCache config: cache path not writable or empty');
             }
 
             $this->cache_path = $this->config['cache_path'];
         }
 
+        //log file path
+        if (isset($this->config['log_file_path']) && !empty($this->config['log_file_path'])) {
+            $this->log_file_path = $this->config['log_file_path'];
+        }
+
         //use $_SESSION while caching or not
-        if (isset($this->config['use_session'])) {
+        if (isset($this->config['use_session']) && $this->isBool($this->config['use_session'])) {
             SessionHandler::setStatus($this->config['use_session']);
         }
 
@@ -425,29 +492,72 @@ class PageCache
             SessionHandler::excludeKeys($this->config['session_exclude_keys']);
         }
 
+        //File Locking
+        if (isset($this->config['file_lock']) && !empty($this->config['file_lock'])) {
+            $this->file_lock = $this->config['file_lock'];
+        }
+
+        return true;
     }
 
     /**
-     * Logs to a file specified in log_file_path, only when loging is enabled
+     * Set logger
      *
-     * @param array $params loging values
-     * @throws \Exception
+     * @param \Psr\Log\LoggerInterface $logger
      */
-    private function log(array $params)
+    public function setLogger($logger)
     {
-        if ($this->enable_log !== true) {
-            return;
-        }
-
-        if (!isset($params['msg'])) {
-            throw new \Exception('PageCache: log msg missing');
-        }
-
-        if (empty($this->log_file_path)) {
-            throw new \Exception('PageCache: log file path empty');
-        }
-
-        error_log($params['msg'] . "\n", 3, $this->log_file_path, null);
+        $this->logger = $logger;
     }
+
+    /**
+     * Log message using PSR Logger (if enabled)
+     *
+     * @param string $msg
+     * @param null|\Exception $exception
+     * @return bool
+     */
+    private function log($msg, $exception = null)
+    {
+        if (!$this->enable_log) {
+            return false;
+        }
+
+        /**
+         * if an external Logger is available
+         */
+        if (isset($this->logger)) {
+
+            /** @var \Psr\Log\LoggerInterface */
+            $this->logger->debug($msg, array('Exception', $exception));
+
+        } else {
+
+            //internal simple log
+            if (!empty($this->log_file_path)) {
+                error_log('['.date('Y-m-d H:i:s').'] '.$msg. (empty($exception)? '':' {Exception: '.$exception->getMessage().'}') . "\n", 3, $this->log_file_path, null);
+            }
+
+        }
+
+        return true;
+    }
+
+    /**
+     * Checks if given variable is a boolean value.
+     * For PHP < 5.5 (boolval alternative)
+     *
+     * @param mixed $var
+     * @return bool true if is boolean, false if is not
+     */
+    private function isBool($var)
+    {
+        if ($var === true || $var === false) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 
 }

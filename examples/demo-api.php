@@ -16,6 +16,9 @@ $config_file = __DIR__.'/conf.php';
 //pass config file
 $cache = new PageCache\PageCache($config_file);
 
+//enable log, by default disabled in conf.php
+$cache->enableLog();
+
 //getfilepath
 echo 'Cache filepath, getFilePath(): '.$cache->getFilePath().'<br/>';
 echo '<hr/>';
@@ -34,15 +37,13 @@ else{
 }
 echo '<hr>';
 
-
 //get cache file contents
 echo 'Cache file contents: <br/>';
 $str= $cache->getPageCache();
 var_dump($str);
 echo '<hr/>';
 
-//enable log, by default disabled in conf.php
-$cache->enableLog();
+
 
 //Clear cache for this page
 //
