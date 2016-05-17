@@ -9,3 +9,4 @@ docs/
 /examples/cache/*
 !examples/cache/.gitkeep
 /tests/tmp/*
+!tests/tmp/.gitkeep
