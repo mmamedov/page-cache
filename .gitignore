@@ -8,3 +8,4 @@ docs/
 !examples/log/.gitkeep
 /examples/cache/*
 !examples/cache/.gitkeep
+/tests/tmp/*
