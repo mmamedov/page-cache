@@ -34,11 +34,11 @@ class MobileStrategy implements StrategyInterface
      * MobileStrategy constructor.
      * @param \Mobile_Detect|null $mobileDetect
      */
-    public function __construct(\Mobile_Detect $mobileDetect=null)
+    public function __construct(\Mobile_Detect $mobileDetect = null)
     {
-        if(is_null($mobileDetect))
+        if (is_null($mobileDetect)) {
             $this->MobileDetect = new \Mobile_Detect;
-        else{
+        } else {
             $this->MobileDetect = $mobileDetect;
         }
     }
@@ -58,13 +58,13 @@ class MobileStrategy implements StrategyInterface
         //when session support is enabled add that to file name
         $session_str = SessionHandler::process();
 
-        $uri = empty($_SERVER['REQUEST_URI'])? '':$_SERVER['REQUEST_URI'];
-        $query = empty($_SERVER['QUERY_STRING'])? '':$_SERVER['QUERY_STRING'];
-        return md5( $uri . $_SERVER['SCRIPT_NAME'] . $query . $session_str) . $ends;
+        $uri = empty($_SERVER['REQUEST_URI']) ? '' : $_SERVER['REQUEST_URI'];
+        $query = empty($_SERVER['QUERY_STRING']) ? '' : $_SERVER['QUERY_STRING'];
+        return md5($uri . $_SERVER['SCRIPT_NAME'] . $query . $session_str) . $ends;
     }
 
     /**
-     * Whether curernt page was accessed from a mobile phone
+     * Whether current page was accessed from a mobile phone
      *
      * @return bool true for phones, else false
      */
@@ -82,5 +82,4 @@ class MobileStrategy implements StrategyInterface
             return false;
         }
     }
-
 }

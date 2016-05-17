@@ -14,24 +14,23 @@ session_start();
 session_destroy();
 
 if (isset($_POST['withsessions'])) {
-
-    if($_POST['withsessions'] == '1'){
-        $_SESSION['excl']=1;
+    if ($_POST['withsessions'] == '1') {
+        $_SESSION['excl'] = 1;
         $_SESSION['PageCache'] = 'PHP full page caching';
-    }
-    elseif($_POST['withsessions'] == '2'){
-        $_SESSION['excl']=555;
+    } elseif ($_POST['withsessions'] == '2') {
+        $_SESSION['excl'] = 555;
         $_SESSION['PageCache'] = 'PHP full page caching';
     }
 }
 
-echo '<fieldset style="background-color: #eee; padding: 10px;">var_dump($_SESSION) call, before init(), so this content is not cached. 
+echo '<fieldset style="background-color: #eee; padding: 10px;">var_dump($_SESSION) call, before init(), 
+        so this content is not cached. 
         Notice how with each button click below actual session value changes, but since it is excluded from tracking,
         same cache for different session values is generated: ';
 var_dump($_SESSION);
 echo 'var_dump ends. All below is cached.</fieldset>';
 
-$cache = new PageCache\PageCache( __DIR__.'/conf.php' );
+$cache = new PageCache\PageCache(__DIR__ . '/conf.php');
 $cache->enableSession();
 
 //exclude $_SESSION['exc'] from cache strategy.
@@ -46,16 +45,34 @@ $cache->init();
 <html xmlns="http://www.w3.org/1999/html">
 <head>
     <style type="text/css">
-        button { margin:0; padding: 10px;font-weight: bold; }
-        fieldset{ margin-bottom: 10px; background-color: #eee; }
-        form {float:left; margin:0; margin-right: 20px; padding: 20px; }
+        button {
+            margin: 0;
+            padding: 10px;
+            font-weight: bold;
+        }
+
+        fieldset {
+            margin-bottom: 10px;
+            background-color: #eee;
+        }
+
+        form {
+            float: left;
+            margin: 0;
+            margin-right: 20px;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
 <h1>Demo using Session Support + Exclude Session Keys</h1>
-Click on the links below to see how PageCache works with session exclude. Although page URL doesn't change, PageCache is able to cache 2 different version of this page based on Session variables.
-Session key 'exc' changes, but PageCache ignores it and produces only a single cached page. If you don't call excludeKeys(), 2 versions of the page will be generated. <br>
-<br/>Whichever button you press first, it will be cached, while other won't - because 'excl' parameter doesn't effect cache. <br/>But you will still get 2 caches of this page because $_SESSION['PageCache'] is being set, and this change is being recorded.
+Click on the links below to see how PageCache works with session exclude. Although page URL doesn't change, PageCache is
+able to cache 2 different version of this page based on Session variables.
+Session key 'exc' changes, but PageCache ignores it and produces only a single cached page. If you don't call
+excludeKeys(), 2 versions of the page will be generated. <br>
+<br/>Whichever button you press first, it will be cached, while other won't - because 'excl' parameter doesn't effect
+cache. <br/>But you will still get 2 caches of this page because $_SESSION['PageCache'] is being set, and this change is
+being recorded.
 <br/><br>
 <fieldset>
     <form>
@@ -67,7 +84,7 @@ Session key 'exc' changes, but PageCache ignores it and produces only a single c
     </form>
     <form method="post" action="">
         <input type="hidden" value="2" name="withsessions">
-        <button type="submit">Set $_SESSION['excl'] = 555 </button>
+        <button type="submit">Set $_SESSION['excl'] = 555</button>
     </form>
 
     <br class="clear"/><br/>
@@ -84,8 +101,8 @@ if (isset($_SESSION['excl'])) {
 }
 
 echo '<br><b>Generated cache file name: </b><fieldset>'
-        .($cache->getFile())
-        .'</fieldset>';
+    . ($cache->getFile())
+    . '</fieldset>';
 ?>
 
 <br>

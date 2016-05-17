@@ -30,7 +30,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "PageCache\\Test\\": "tests/"
+            "PageCache\\Tests\\": "tests/"
         }
     }
 

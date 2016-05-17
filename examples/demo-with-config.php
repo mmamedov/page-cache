@@ -8,10 +8,10 @@
  *
  */
 
-require_once __DIR__.'/../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 //PageCache configuration in a file
-$config_file = __DIR__.'/conf.php';
+$config_file = __DIR__ . '/conf.php';
 
 //pass config file
 $cache = new PageCache\PageCache($config_file);

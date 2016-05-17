@@ -16,16 +16,18 @@
 /**
  * Composer autoload, or use any other means
  */
-require_once __DIR__.'/../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
+
 
 use PageCache\PageCache;
 use PageCache\Strategy\MobileStrategy;
+
 /**
  * PageCache setup
  */
-$config_file = __DIR__.'/conf.php';
+$config_file = __DIR__ . '/conf.php';
 $cache = new PageCache($config_file);
-$cache->setStrategy( new MobileStrategy() );
+$cache->setStrategy(new MobileStrategy());
 //enable session support if needed, check demos and README for details
 //uncomment for session support
 //$cache->enableSession();
@@ -39,21 +41,20 @@ $cache->init();
  *                          : https://packagist.org/packages/mobiledetect/mobiledetectlib
  *
  */
-function isMobile(){
-    //make it static, not created on subsequent calls in the same page
-    static $mobileDetect;
+function isMobileDevice()
+{
+    $mobileDetect = null;
 
-    $mobileDetect = new Mobile_Detect();
+    $mobileDetect = new \Mobile_Detect();
 
     /**
      * Check for mobile devices, that are not tables. We want phones only.
      * If you need ALL mobile devices use this:   if($mobileDetect->isMobile())
      *
      */
-    if($mobileDetect->isMobile() && !$mobileDetect->isTablet()){
+    if ($mobileDetect->isMobile() && !$mobileDetect->isTablet()) {
         return true;
-    }
-    else{
+    } else {
         return false;
     }
 }
@@ -63,28 +64,30 @@ function isMobile(){
 <html>
 <body>
 <h1>Example #3</h1>
-<h3 style="color: red">This is a basic MobileStrategy() PageCache page that is going to be cached, uses optional Mobile_Detect package</h3>
+<h3 style="color: red">This is a basic MobileStrategy() PageCache page that is going to be cached, uses optional
+    Mobile_Detect package</h3>
 <p style="border:1px solid #ccc;">
     Visit this page with a desktop browser on your computer, and then using a mobile phone.<br/>
-    You will notice 2 files inside cache/ directory, one regular cache file and the other same file but with "-mob" added to it.
+    You will notice 2 files inside cache/ directory, one regular cache file and the other same file but with "-mob"
+    added to it.
 </p>
 <?php
 /**
  *  Cache for Mobile Phones only
  */
-    if(isMobile()) {
-?>
-        <h3>This section will be displayed on mobile phones only</h3>
-<?php
-    }
-    else {
-        /**
-         * Cache the desktop version
-         */
-?>
-        <h3>This section will be displayed on desktop devices, but not on mobile phones</h3>
+if (isMobileDevice()) {
+    ?>
+    <h3>This section will be displayed on mobile phones only</h3>
+    <?php
+} else {
+    /**
+     * Cache the desktop version
+     */
+    ?>
+    <h3>This section will be displayed on desktop devices, but not on mobile phones</h3>
 
-<?php } ?>
+    <?php
+} ?>
 
 <h3>This is a dynamic PHP <i>date('H:i:s')</i>
     call, note that time doesn't change on refresh: <?php echo date('H:i:s'); ?>.</h3>

@@ -55,7 +55,7 @@ class HashDirectory
      *
      * @param $dir1 string directory
      * @param $dir2 string directory
-     * @return;
+     * @return null;
      * @throws \Exception directories not created
      */
     private function createSubDirs($dir1, $dir2)
@@ -64,7 +64,6 @@ class HashDirectory
         if (!is_dir($this->dir . $dir1)) {
             mkdir($this->dir . $dir1);
             mkdir($this->dir . $dir1 . '/' . $dir2);
-
         } else {
             //dir1 exists
             if (!is_dir($this->dir . $dir1 . '/' . $dir2)) {
@@ -74,10 +73,11 @@ class HashDirectory
 
         //check
         if (!is_dir($this->dir . $dir1 . '/' . $dir2)) {
-            throw new \Exception('PageCache: HashDirectory - ' . $dir1 . '/' . $dir2 . ' cache directory could not be created');
+            throw new \Exception('PageCache: HashDirectory - ' . $dir1 . '/' . $dir2
+                . ' cache directory could not be created');
         }
 
-        return;
+        return null;
     }
 
     /**

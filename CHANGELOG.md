@@ -2,11 +2,14 @@ PageCache ChangeLog
 ===================
 
 ### 1.3.0 (Work in progress)
+
+* PSR-2 coding style adopted (php-cs-fixer and phpcs are being used)
 * File locking mechanism using flock(). Single write - many reads of the same cache file.
 * Stampede protection (Dog pile effect) added.
 * PSR-3 Logger integration (PageCache already comes with a simple logging support). 
 * Storage support added. This will enable to store cache not only in files. Currently FileSystem only.
 * More tests added. 
+* PSR-0 support removed from php-cs-fixer (As of 2014-10-21 PSR-0 has been marked as deprecated. PSR-4 is now recommended as an alternative.)
 
 ### 1.2.3 (2016-05-10)
 

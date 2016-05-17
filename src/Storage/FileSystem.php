@@ -20,7 +20,7 @@ namespace PageCache\Storage;
  */
 class FileSystem
 {
-    //content to be writen into a file
+    //content to be written into a file
     private $content = null;
 
     //file lock to be used when writing
@@ -79,7 +79,7 @@ class FileSystem
 
         /**
          * Open the file for writing only. If the file does not exist, it is created.
-         * If it exists, it is not truncated (as opposed to 'w'). File pointer is moved to begining.
+         * If it exists, it is not truncated (as opposed to 'w'). File pointer is moved to beginning.
          *
          * "c" is needed instead of "w", because if lock is not acquired, old version of the file is returned.
          * If "w" option is used, file is truncated no matter what, and empty file is returned.
@@ -93,7 +93,7 @@ class FileSystem
         /**
          * File locking disabled?
          */
-        if($this->file_lock === false){
+        if ($this->file_lock === false) {
             ftruncate($fp, 0);
             if (fwrite($fp, $this->content) === false) {
                 $result = self::ERROR_WRITE;
@@ -110,7 +110,8 @@ class FileSystem
          *
          * Recommended is: LOCK_EX | LOCK_NB.
          * LOCK_EX to acquire an exclusive lock (writer).
-         * LOCK_NB - prevents flock() from blocking while locking (so that others could still read (but not write) while lock is active)
+         * LOCK_NB - prevents flock() from blocking while locking, so that others could still read
+         * (but not write) while lock is active
          */
         if (flock($fp, $this->file_lock)) {
 
@@ -126,10 +127,9 @@ class FileSystem
 
             //release lock
             flock($fp, LOCK_UN);
-
         } else {
             /**
-             * Lock wasn't granted.
+             * Lock was not granted.
              */
 
             $result = self::ERROR_LOCK;

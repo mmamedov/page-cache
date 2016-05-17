@@ -19,7 +19,7 @@ class MobileStrategyTest extends \PHPUnit_Framework_TestCase
     {
         //MobileDetection stub, to simulate a mobile device
         $mobilestub = $this->getMockBuilder('Mobile_Detect')
-                           ->setMethods( array('isMobile','isTablet') )
+                           ->setMethods(array('isMobile', 'isTablet'))
                            ->getMock();
 
         $mobilestub->method('isMobile')
@@ -34,7 +34,7 @@ class MobileStrategyTest extends \PHPUnit_Framework_TestCase
         SessionHandler::disable();
         $uri = empty($_SERVER['REQUEST_URI'])? '':$_SERVER['REQUEST_URI'];
         $query = empty($_SERVER['QUERY_STRING'])? '':$_SERVER['QUERY_STRING'];
-        $md5 = md5( $uri . $_SERVER['SCRIPT_NAME'] . $query) . '-mob';
+        $md5 = md5($uri . $_SERVER['SCRIPT_NAME'] . $query) . '-mob';
 
         $this->assertTrue($mobilestub instanceof \Mobile_Detect);
         $this->assertTrue($strategy instanceof StrategyInterface);

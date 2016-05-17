@@ -34,7 +34,7 @@ $config = array(
     'min_cache_file_size' => 10,
 
     /**
-     * Set true to enable loging, not recommended for production use, only for debugging
+     * Set true to enable logging, not recommended for production use, only for debugging
      * Default: false
      *
      * Effects both internal logger, and any external PSR-3 logger (if any) activated via setLogger() method

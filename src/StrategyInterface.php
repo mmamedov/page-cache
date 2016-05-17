@@ -24,5 +24,4 @@ interface StrategyInterface
      * @return mixed string cache file name
      */
     public function strategy();
-
 }

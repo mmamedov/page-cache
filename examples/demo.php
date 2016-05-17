@@ -6,7 +6,7 @@
  *
  */
 
-require_once __DIR__.'/../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 /**
  * When not specified using a config file or by calling methods, the following parameters are set automatically:
@@ -20,7 +20,7 @@ require_once __DIR__.'/../vendor/autoload.php';
 use PageCache\PageCache;
 
 $cache = new PageCache();
-$cache->setPath(__DIR__.'/cache/');
+$cache->setPath(__DIR__ . '/cache/');
 $cache->init();
 
 ?>

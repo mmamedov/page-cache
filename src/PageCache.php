@@ -80,7 +80,7 @@ class PageCache
     private $file_lock;
 
     /**
-     * Regenerate cache if cached content is less that this many bytes (some error occured)
+     * Regenerate cache if cached content is less that this many bytes (some error occurred)
      *
      * @var int
      */
@@ -102,6 +102,8 @@ class PageCache
 
     /**
      * PageCache constructor.
+     * @param null|string $config_file_path
+     * @throws \Exception
      */
     public function __construct($config_file_path = null)
     {
@@ -117,7 +119,6 @@ class PageCache
             include $config_file_path;
 
             $this->parseConfig($config);
-
         } else {
 
             /**
@@ -127,7 +128,7 @@ class PageCache
             //in 20 minutes cache expires
             $this->cache_expire = 1200;
 
-            //min file size is 10 bytes, generated files less than this value are invalid, renegerated
+            //min file size is 10 bytes, generated files less than this value are invalid, regenerated
             $this->min_cache_file_size = 10;
 
             //file lock
@@ -149,7 +150,8 @@ class PageCache
      */
     public function init()
     {
-        $this->log('init() uri:' . $_SERVER['REQUEST_URI'] . '; script:' . $_SERVER['SCRIPT_NAME'] . '; query:' . $_SERVER['QUERY_STRING'].'.');
+        $this->log(__METHOD__ . ' uri:' . $_SERVER['REQUEST_URI']
+            . '; script:' . $_SERVER['SCRIPT_NAME'] . '; query:' . $_SERVER['QUERY_STRING'] . '.');
         $this->generateCacheFile();
         $this->display();
 
@@ -166,14 +168,17 @@ class PageCache
     {
         $file = $this->file;
 
-        if (!file_exists($file) || (filemtime($file) < (time() - $this->cache_expire)) || filesize($file) < $this->min_cache_file_size) {
-            $this->log('Cache file not found or cache expired or min_cache_file_size not met.');
+        if (!file_exists($file)
+            || (filemtime($file) < (time() - $this->cache_expire))
+            || filesize($file) < $this->min_cache_file_size
+        ) {
+            $this->log(__METHOD__ . ' Cache file not found or cache expired or min_cache_file_size not met.');
             return;
         }
 
-        $this->log('Cache file found.');
+        $this->log(__METHOD__ . ' Cache file found.');
 
-        //Read file, output cache. If error occured, ob_start() will be called next in PageCache
+        //Read file, output cache. If error occurred, ob_start() will be called next in PageCache
         if (@readfile($file) !== false) {
             //stop execution
             exit();
@@ -195,20 +200,19 @@ class PageCache
             $storage->setFileLock($this->file_lock);
             $storage->setFilepath($this->file);
         } catch (\Exception $e) {
-            $this->log('FileSystem Exception', $e);
+            $this->log(__METHOD__ . ' FileSystem Exception', $e);
         }
 
         $result = $storage->writeAttempt();
 
         if ($result !== FileSystem::OK) {
-            $this->log('FileSystem writeAttempt not an OK result: ' . $result);
+            $this->log(__METHOD__ . ' FileSystem writeAttempt not an OK result: ' . $result);
         }
 
         /**
          * Return page content
          */
         return $content;
-
     }
 
     /**
@@ -241,10 +245,10 @@ class PageCache
 
             $this->file = $this->cache_path . $dir_str . $fname;
         } catch (\Exception $e) {
-            $this->log('generateCacheFile() Exception', $e);
+            $this->log(__METHOD__ . ' Exception', $e);
         }
 
-        $this->log('Cache file: ' . $this->file);
+        $this->log(__METHOD__ . ' Cache file: ' . $this->file);
     }
 
     /**
@@ -345,7 +349,7 @@ class PageCache
     {
         //path writable?
         if (empty($path) || !is_writable($path)) {
-            $this->log('Cache path not writable.');
+            $this->log(__METHOD__ . ' Cache path not writable.');
             throw new \Exception('setPath() - Cache path not writable: ' . $path);
         }
 
@@ -361,7 +365,7 @@ class PageCache
     public function setExpiration($seconds)
     {
         if ($seconds < 0 || !is_numeric($seconds)) {
-            $this->log('Invalid expiration value, < 0: ' . $seconds);
+            $this->log(__METHOD__ . ' Invalid expiration value, < 0: ' . $seconds);
             throw new \Exception('Invalid expiration value, < 0.');
         }
 
@@ -458,7 +462,6 @@ class PageCache
         }
 
         if (isset($this->config['expiration'])) {
-
             if ($this->config['expiration'] < 0) {
                 throw new \Exception('PageCache config: invalid expiration value, < 0.');
             }
@@ -468,7 +471,6 @@ class PageCache
 
         //path to store cache files
         if (isset($this->config['cache_path'])) {
-
             //path writable?
             if (empty($this->config['cache_path']) || !is_writable($this->config['cache_path'])) {
                 throw new \Exception('PageCache config: cache path not writable or empty');
@@ -530,14 +532,17 @@ class PageCache
 
             /** @var \Psr\Log\LoggerInterface */
             $this->logger->debug($msg, array('Exception', $exception));
-
         } else {
-
             //internal simple log
             if (!empty($this->log_file_path)) {
-                error_log('['.date('Y-m-d H:i:s').'] '.$msg. (empty($exception)? '':' {Exception: '.$exception->getMessage().'}') . "\n", 3, $this->log_file_path, null);
+                error_log(
+                    '[' . date('Y-m-d H:i:s') . '] '
+                    . $msg . (empty($exception) ? '' : ' {Exception: ' . $exception->getMessage() . '}') . "\n",
+                    3,
+                    $this->log_file_path,
+                    null
+                );
             }
-
         }
 
         return true;
@@ -558,6 +563,4 @@ class PageCache
             return false;
         }
     }
-
-
 }

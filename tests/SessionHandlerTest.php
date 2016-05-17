@@ -50,7 +50,6 @@ class SesssionHandlerTest extends \PHPUnit_Framework_TestCase
 
         SessionHandler::excludeKeys(array('1', '2', 'another'));
         $this->assertCount(3, SessionHandler::getExcludeKeys());
-
     }
 
     /**
@@ -84,5 +83,4 @@ class SesssionHandlerTest extends \PHPUnit_Framework_TestCase
     {
         SessionHandler::excludeKeys('stringval');
     }
-
 }

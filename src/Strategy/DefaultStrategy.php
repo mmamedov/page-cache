@@ -31,7 +31,6 @@ class DefaultStrategy implements StrategyInterface
 
         $uri = empty($_SERVER['REQUEST_URI'])? '':$_SERVER['REQUEST_URI'];
         $query = empty($_SERVER['QUERY_STRING'])? '':$_SERVER['QUERY_STRING'];
-        return md5( $uri . $_SERVER['SCRIPT_NAME'] . $query . $session_str );
+        return md5($uri . $_SERVER['SCRIPT_NAME'] . $query . $session_str);
     }
-
 }

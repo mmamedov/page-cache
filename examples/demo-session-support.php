@@ -63,14 +63,29 @@ echo 'Everything below is cached, including this line<hr>';
 <html xmlns="http://www.w3.org/1999/html">
 <head>
     <style type="text/css">
-        button { margin:0; padding: 10px;font-weight: bold; }
-        fieldset{ margin-bottom: 10px; background-color: #eee; }
-        form {float:left; margin:0; margin-right: 20px; padding: 20px; }
+        button {
+            margin: 0;
+            padding: 10px;
+            font-weight: bold;
+        }
+
+        fieldset {
+            margin-bottom: 10px;
+            background-color: #eee;
+        }
+
+        form {
+            float: left;
+            margin: 0;
+            margin-right: 20px;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
 <h1>Demo using Session Support</h1>
-Click on the links below to see how PageCache works with sessions. Although page URL doesn't change, PageCache is able to cache 2 different version of this page based on Session variables.
+Click on the links below to see how PageCache works with sessions. Although page URL doesn't change, PageCache is able
+to cache 2 different version of this page based on Session variables.
 <br/><br>
 <fieldset>
     <form method="post" action="">
@@ -89,12 +104,10 @@ Click on the links below to see how PageCache works with sessions. Although page
  * Print session data if present
  */
 if (isset($_SESSION['demo_session'])) {
-
     echo '<b>SESSION IS ENABLED. Session contents:</b> <fieldset><pre>';
     print_r($_SESSION);
     echo '</pre></fieldset>';
-}
-else{
+} else {
     echo '<fieldset>No session data</fieldset>';
 }
 

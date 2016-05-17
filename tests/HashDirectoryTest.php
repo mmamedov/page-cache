@@ -23,7 +23,7 @@ class HashDirectoryTest extends \PHPUnit_Framework_TestCase
     {
         $this->dir = __DIR__.'/tmp/';
         $this->filename = '18a3938de0087a87d3530084cd46edf4';
-        $this->hd = new HashDirectory( $this->filename , $this->dir );
+        $this->hd = new HashDirectory($this->filename, $this->dir);
     }
 
     public function tearDown()
@@ -31,14 +31,16 @@ class HashDirectoryTest extends \PHPUnit_Framework_TestCase
         unset($this->hd);
 
         //delete directories
-        if(is_dir($this->dir.'56/51'))
+        if (is_dir($this->dir.'56/51')) {
             rmdir($this->dir.'56/51');
-        if(is_dir($this->dir.'56'))
+        }
+        if (is_dir($this->dir.'56')) {
             rmdir($this->dir.'56');
+        }
     }
 
-    public function testGetHash(){
-
+    public function testGetHash()
+    {
         $val1 = ord('8'); //56
         $val2 = ord('3'); //51
 
@@ -52,12 +54,10 @@ class HashDirectoryTest extends \PHPUnit_Framework_TestCase
         $this->assertFileExists($this->dir.'56/51');
 
         $this->assertEquals($returned, $this->hd->getLocation($this->filename));
-
     }
 
-    public function testGetLocation() {
-
-        $this->assertEquals( '56/51/' ,$this->hd->getLocation($this->filename) );
+    public function testGetLocation()
+    {
+        $this->assertEquals('56/51/', $this->hd->getLocation($this->filename));
     }
-
 }

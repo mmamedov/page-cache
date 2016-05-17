@@ -33,7 +33,6 @@ class SessionHandler
      */
     public static function process()
     {
-
         $out = null;
 
         //session handler enabled
@@ -43,7 +42,6 @@ class SessionHandler
 
             //remove excluded keys if were set, and if session is set
             if (!empty(self::$exclude_keys) && isset($_SESSION) && !empty($_SESSION)) {
-
                 foreach (self::$exclude_keys as $key) {
                     if (isset($tmp[$key])) {
                         unset($tmp[$key]);
@@ -88,5 +86,4 @@ class SessionHandler
             self::$status = $status;
         }
     }
-
 }

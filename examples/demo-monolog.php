@@ -6,7 +6,7 @@
  *
  */
 
-require_once __DIR__.'/../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 /**
  * When not specified using a config file or by calling methods, the following parameters are set automatically:
@@ -23,14 +23,14 @@ use Monolog\Handler\StreamHandler;
 
 //Setup PageCache
 $cache = new PageCache();
-$cache->setPath(__DIR__.'/cache/');
+$cache->setPath(__DIR__ . '/cache/');
 
 //Enable logging
 $cache->enableLog();
 
 //Monolog setup. More info on https://github.com/Seldaek/monolog
 $logger = new Logger('PageCache');
-$logger->pushHandler(new StreamHandler( __DIR__.'/log/monolog.log', Logger::DEBUG));
+$logger->pushHandler(new StreamHandler(__DIR__ . '/log/monolog.log', Logger::DEBUG));
 
 //pass Monolog to PageCache
 $cache->setLogger($logger);
