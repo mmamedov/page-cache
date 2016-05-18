@@ -81,11 +81,12 @@ class SesssionHandlerTest extends \PHPUnit_Framework_TestCase
      */
     public function testExceptionArray()
     {
+        SessionHandler::excludeKeys('stringval');
+    }
+
+    protected function onNotSuccessfulTest($e)
+    {
         //PHP 7 scalar exception fix
-        try {
-            SessionHandler::excludeKeys('stringval');
-        } catch (\Throwable $e) {
-            throw new \Exception($e);
-        }
+        parent::onNotSuccessfulTest($e);
     }
 }
