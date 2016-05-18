@@ -8,7 +8,7 @@
  * file that was distributed with this source code.
  */
 
-namespace PageCache\Tests;
+namespace PageCache\Tests\Strategy;
 
 use PageCache\SessionHandler;
 use PageCache\Strategy\DefaultStrategy;

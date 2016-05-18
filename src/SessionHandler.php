@@ -19,15 +19,21 @@ namespace PageCache;
  */
 class SessionHandler
 {
-
-    //session support status
+    /**
+     * Session support enabled/disabled
+     * @var bool
+     */
     private static $status = false;
-    //session keys to exclude
+
+    /**
+     * Session keys to exclude
+     *
+     * @var null|array
+     */
     private static $exclude_keys = null;
 
     /**
      * Serialize session. Exclude $_SESSION[key], if key is defined in excludeKeys()
-     *
      *
      * @return string
      */
@@ -55,9 +61,26 @@ class SessionHandler
         return $out;
     }
 
+    /**
+     * Exclude keys from session
+     *
+     * @param array $sess_keys
+     */
     public static function excludeKeys(array $sess_keys)
     {
         self::$exclude_keys = $sess_keys;
+    }
+
+    /**
+     * Enable or disable Session support
+     *
+     * @param bool $status
+     */
+    public static function setStatus($status)
+    {
+        if ($status === true || $status === false) {
+            self::$status = $status;
+        }
     }
 
     public static function getExcludeKeys()
@@ -65,11 +88,17 @@ class SessionHandler
         return self::$exclude_keys;
     }
 
+    /**
+     * Enable session support
+     */
     public static function enable()
     {
         self::$status = true;
     }
 
+    /**
+     * Disable session support
+     */
     public static function disable()
     {
         self::$status = false;
@@ -78,12 +107,5 @@ class SessionHandler
     public static function getStatus()
     {
         return self::$status;
-    }
-
-    public static function setStatus($status)
-    {
-        if ($status === true || $status === false) {
-            self::$status = $status;
-        }
     }
 }

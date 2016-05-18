@@ -22,6 +22,8 @@ use PageCache\StrategyInterface;
 class DefaultStrategy implements StrategyInterface
 {
     /**
+     * Generate cache filename
+     *
      * @return string md5
      */
     public function strategy()
@@ -31,6 +33,7 @@ class DefaultStrategy implements StrategyInterface
 
         $uri = empty($_SERVER['REQUEST_URI'])? '':$_SERVER['REQUEST_URI'];
         $query = empty($_SERVER['QUERY_STRING'])? '':$_SERVER['QUERY_STRING'];
+
         return md5($uri . $_SERVER['SCRIPT_NAME'] . $query . $session_str);
     }
 }

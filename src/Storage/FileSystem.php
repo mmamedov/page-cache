@@ -20,13 +20,25 @@ namespace PageCache\Storage;
  */
 class FileSystem
 {
-    //content to be written into a file
+    /**
+     * Content to be written into a file
+     *
+     * @var string
+     */
     private $content = null;
 
-    //file lock to be used when writing
+    /**
+     * File lock to be used when writing. Support default PHP flock() parameters.
+     *
+     * @var int
+     */
     private $file_lock = null;
 
-    //file path where to write
+    /**
+     * File path where to write
+     *
+     * @var string
+     */
     private $filepath = null;
 
     /**
@@ -114,7 +126,6 @@ class FileSystem
          * (but not write) while lock is active
          */
         if (flock($fp, $this->file_lock)) {
-
             /**
              * since "c" was used with fopen, file is not truncated. Truncate manually.
              */
@@ -148,17 +159,27 @@ class FileSystem
      */
     public function setFileLock($file_lock)
     {
-        if (!isset($file_lock)) {
-            throw new \Exception(__CLASS__ . ' file lock not set');
+        if (empty($file_lock)) {
+            throw new \Exception(__CLASS__ . ' file lock can not be empty');
         }
         $this->file_lock = $file_lock;
     }
 
+    /**
+     * Get file lock value
+     *
+     * @return int|null
+     */
     public function getFileLock()
     {
         return $this->file_lock;
     }
 
+    /**
+     * Get filepath of file to be written
+     *
+     * @return null|string
+     */
     public function getFilepath()
     {
         return $this->filepath;
@@ -170,11 +191,12 @@ class FileSystem
      * @param string $filepath cache file path
      * @throws \Exception
      */
-    public function setFilepath($filepath)
+    public function setFilePath($filepath)
     {
         if (!isset($filepath) || empty($filepath)) {
             throw new \Exception(__CLASS__ . ' file path not set or empty');
         }
+
         $this->filepath = $filepath;
     }
 }

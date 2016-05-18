@@ -1,5 +1,4 @@
 <?php
-
 /**
  * This file is part of the PageCache package.
  *
@@ -33,7 +32,7 @@ class PageCache
      *
      * @var int
      */
-    private $cache_expire;
+    private $cache_expire = 1200;
 
     /**
      * Full path of the current cache file
@@ -77,14 +76,14 @@ class PageCache
      *
      * @var false|int
      */
-    private $file_lock;
+    private $file_lock = LOCK_EX | LOCK_NB;
 
     /**
      * Regenerate cache if cached content is less that this many bytes (some error occurred)
      *
      * @var int
      */
-    private $min_cache_file_size;
+    private $min_cache_file_size = 10;
 
     /**
      * Make sure only one instance of PageCache is created
@@ -102,6 +101,7 @@ class PageCache
 
     /**
      * PageCache constructor.
+     *
      * @param null|string $config_file_path
      * @throws \Exception
      */
@@ -120,20 +120,7 @@ class PageCache
 
             $this->parseConfig($config);
         } else {
-
-            /**
-             * config file not found, set defaults
-             */
-
-            //in 20 minutes cache expires
-            $this->cache_expire = 1200;
-
-            //min file size is 10 bytes, generated files less than this value are invalid, regenerated
-            $this->min_cache_file_size = 10;
-
-            //file lock
-            $this->file_lock = LOCK_EX | LOCK_NB;
-
+            //config file not found, set defaults
             //do not use $_SESSION in cache, by default
             SessionHandler::disable();
         }
@@ -198,7 +185,7 @@ class PageCache
 
         try {
             $storage->setFileLock($this->file_lock);
-            $storage->setFilepath($this->file);
+            $storage->setFilePath($this->file);
         } catch (\Exception $e) {
             $this->log(__METHOD__ . ' FileSystem Exception', $e);
         }
@@ -562,5 +549,53 @@ class PageCache
         } else {
             return false;
         }
+    }
+
+    /**
+     * @return false|int
+     */
+    public function getFileLock()
+    {
+        return $this->file_lock;
+    }
+
+    /**
+     * @return int
+     */
+    public function getCacheExpire()
+    {
+        return $this->cache_expire;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCachePath()
+    {
+        return $this->cache_path;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLogFilePath()
+    {
+        return $this->log_file_path;
+    }
+
+    /**
+     * @return int
+     */
+    public function getMinCacheFileSize()
+    {
+        return $this->min_cache_file_size;
+    }
+
+    /**
+     * @return StrategyInterface
+     */
+    public function getStrategy()
+    {
+        return $this->strategy;
     }
 }

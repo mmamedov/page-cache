@@ -18,17 +18,33 @@ namespace PageCache;
  */
 class HashDirectory
 {
+    /**
+     * Filename
+     *
+     * @var string
+     */
     private $file;
+
+    /**
+     * Directory where filename will be stored.
+     * Subdirectories are going to be created inside this directory, if necessary.
+     *
+     * @var string
+     */
     private $dir;
 
     public function __construct($file, $dir)
     {
+        if (!@is_dir($dir)) {
+            throw new \Exception(__CLASS__.' dir in constructor is not a directory');
+        }
+        
         $this->dir = $dir;
         $this->file = $file;
     }
 
     /**
-     *  Based on incoming string (filename) return 2 directories to store cache file
+     *  Based on incoming string (filename) return 2 directories to store cache file.
      *  If directories(one or both) not present create whichever is not there yet.
      *
      * @return string with two directory names like '10/55/', ready to be appended to cache_dir
@@ -61,19 +77,19 @@ class HashDirectory
     private function createSubDirs($dir1, $dir2)
     {
         //dir1 not exists, create both
-        if (!is_dir($this->dir . $dir1)) {
+        if (!@is_dir($this->dir . $dir1)) {
             mkdir($this->dir . $dir1);
             mkdir($this->dir . $dir1 . '/' . $dir2);
         } else {
             //dir1 exists
-            if (!is_dir($this->dir . $dir1 . '/' . $dir2)) {
+            if (!@is_dir($this->dir . $dir1 . '/' . $dir2)) {
                 mkdir($this->dir . $dir1 . '/' . $dir2);
             }
         }
 
         //check
-        if (!is_dir($this->dir . $dir1 . '/' . $dir2)) {
-            throw new \Exception('PageCache: HashDirectory - ' . $dir1 . '/' . $dir2
+        if (!@is_dir($this->dir . $dir1 . '/' . $dir2)) {
+            throw new \Exception(__CLASS__.' ' . $dir1 . '/' . $dir2
                 . ' cache directory could not be created');
         }
 
