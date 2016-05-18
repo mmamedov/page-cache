@@ -8,8 +8,13 @@ Install PHP PageCache and start caching your PHP's browser output code using Com
 ```
 composer require mmamedov/page-cache
 ```
+Or manually add to your composer.json file:
+```json
+"require": {
+    "mmamedov/page-cache": "^1.3"
+}
+```
 Once PageCache is installed, include Composer's autoload.php file, or implement your own autoloader. Composer autoloader is recommended.
-
 
 No Database calls
 ----
@@ -27,9 +32,8 @@ Lots of caching solutions focus on keyword-based approach, where you need to set
 
 How PageCache works
 ----
-It uses various strategies to differentiate among separate versions of the same page. 
-
-PageCache doesn't ask you for a keyword, it automatically generates them based on Strategies. You can define your own naming strategy, based on your application needs.
+PageCache doesn't ask you for a keyword, it automatically generates them based on Strategies implementing StrategyInterface. You can define your own naming strategy, based on your application needs.
+Strategy class is responsible for generating a unique key for current request, key becomes file name for the cache file (if FileSystem storage is used).
 
 ```php
 <?php
@@ -40,11 +44,9 @@ $cache->init();
 
 //rest of your PHP page code, everything below will be cached
 ```
-
 For more examples see code inside [PageCache examples](examples/) directory.
 
 For those who wonder, cache is saved into path specified in config file or using API, inside directories based on file hash. Based on the hash of the filename, 2 subdirectories will be created (if not created already), this is to avoid numerous files in a single cache directory. 
-
 
 Caching Strategies
 ------------------
