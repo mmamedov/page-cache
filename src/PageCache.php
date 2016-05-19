@@ -71,12 +71,12 @@ class PageCache
 
     /**
      * File locking preference for flock() function.
-     * Default is a non-blocking exclusive write lock: LOCK_EX | LOCK_NB
+     * Default is a non-blocking exclusive write lock: LOCK_EX | LOCK_NB = 6
      * When false, file locking is disabled.
      *
      * @var false|int
      */
-    private $file_lock = LOCK_EX | LOCK_NB;
+    private $file_lock = 6;
 
     /**
      * Regenerate cache if cached content is less that this many bytes (some error occurred)

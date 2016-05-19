@@ -17,11 +17,13 @@ class HashDirectoryTest extends \PHPUnit_Framework_TestCase
 
     private $dir;
     private $filename;
+
+    /** @var  HashDirectory */
     private $hd;
 
     public function setUp()
     {
-        $this->dir = __DIR__.'/tmp/';
+        $this->dir = __DIR__ . '/tmp/';
         $this->filename = '18a3938de0087a87d3530084cd46edf4';
         $this->hd = new HashDirectory($this->filename, $this->dir);
     }
@@ -31,11 +33,18 @@ class HashDirectoryTest extends \PHPUnit_Framework_TestCase
         unset($this->hd);
 
         //delete directories
-        if (is_dir($this->dir.'56/51')) {
-            rmdir($this->dir.'56/51');
+        if (is_dir($this->dir . '56/51')) {
+            rmdir($this->dir . '56/51');
         }
-        if (is_dir($this->dir.'56')) {
-            rmdir($this->dir.'56');
+        if (is_dir($this->dir . '56')) {
+            rmdir($this->dir . '56');
+        }
+
+        if (is_dir($this->dir . '51/48')) {
+            rmdir($this->dir . '51/48');
+        }
+        if (is_dir($this->dir . '51')) {
+            rmdir($this->dir . '51');
         }
     }
 
@@ -51,13 +60,30 @@ class HashDirectoryTest extends \PHPUnit_Framework_TestCase
         $returned = $val1 . '/' . $val2 . '/';
 
         $this->assertEquals($returned, $this->hd->getHash());
-        $this->assertFileExists($this->dir.'56/51');
-
+        $this->assertFileExists($this->dir . '56/51');
         $this->assertEquals($returned, $this->hd->getLocation($this->filename));
+
+        //new object
+        $newFilename = '93f0938de0087a87d3530084cd46edf4';
+        $newHd = new HashDirectory($newFilename, $this->dir);
+
+        $this->assertFileNotExists($this->dir . '51/48');
+        $this->assertEquals('51/48/', $newHd->getHash());
+        $this->assertAttributeEquals('93f0938de0087a87d3530084cd46edf4', 'file', $newHd);
+        $this->assertFileExists($this->dir . '51/48');
     }
 
     public function testGetLocation()
     {
         $this->assertEquals('56/51/', $this->hd->getLocation($this->filename));
     }
+
+    /**
+     * @expectedException \Exception
+     */
+    public function testConstructorException()
+    {
+        $new = new HashDirectory('false file', 'false directory');
+    }
+    
 }
