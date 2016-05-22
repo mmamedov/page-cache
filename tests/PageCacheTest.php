@@ -121,16 +121,13 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
 
         //manually end output buffering. file cache must exist
         ob_end_flush();
-        echo $pc->getFilePath();
+
+        //cache exists now
         $this->assertTrue($pc->isCached());
-
-        $this->assertTrue($this->root->hasChild('53/54'));
-
         $this->assertTrue(
-            file_exists(vfsStream::url('tmpdir/53/54/c5b668c8d6823d73cec943a321bb852a')),
+            file_exists($pc->getFilePath()),
             __METHOD__ . ' after init cache file does not exist'
         );
-
         $this->assertEquals($output, file_get_contents($pc->getFilePath()), 'Cache file contents not as expected.');
     }
 
