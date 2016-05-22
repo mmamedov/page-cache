@@ -10,4 +10,4 @@ docs/
 !examples/cache/.gitkeep
 /tests/tmp/*
 !tests/tmp/.gitkeep
-!/tests/tmp/cache/.gitkeep
+!tests/tmp/cache/.gitkeep
