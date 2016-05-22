@@ -19,7 +19,6 @@ use PageCache\Strategy;
 
 class PageCacheTest extends \PHPUnit_Framework_TestCase
 {
-
     /** @var  vfsStreamDirectory */
     private $root;
 
@@ -79,13 +78,17 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
         $this->assertAttributeInstanceOf('PageCache\Strategy\DefaultStrategy', 'strategy', $pc);
     }
 
-    /**
-     * @expectedException \PHPUnit_Framework_Error
-     */
     public function testSetStrategyException()
     {
         $pc = new PageCache();
-        $pc->setStrategy(new \stdClass());
+        try {
+            $pc->setStrategy(new \stdClass());
+            $this->expectException('PHPUnit_Framework_Error');
+        } catch (\Throwable $e) {
+            // echo '~~~~As expected PHP7 throws Throwable.';
+        } catch (\Exception $e) {
+            // echo '~~~~As expected PHP5 throws Exception.';
+        }
     }
 
     public function testGenerateCacheFile()
@@ -102,6 +105,8 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
 
     public function testIsCached()
     {
+        $this->setServerParameters();
+
         $pc = new PageCache(__DIR__ . '/config_test.php');
         $pc->setPath(vfsStream::url('tmpdir') . '/');
 
@@ -116,13 +121,13 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
 
         //manually end output buffering. file cache must exist
         ob_end_flush();
-
+        echo $pc->getFilePath();
         $this->assertTrue($pc->isCached());
 
-        $this->assertTrue($this->root->hasChild('2/3'));
+        $this->assertTrue($this->root->hasChild('53/54'));
 
         $this->assertTrue(
-            file_exists(vfsStream::url('tmpdir/2/3/3e0fd4282118342be0036ee1133866d4')),
+            file_exists(vfsStream::url('tmpdir/53/54/c5b668c8d6823d73cec943a321bb852a')),
             __METHOD__ . ' after init cache file does not exist'
         );
 
@@ -337,5 +342,16 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
     {
         $pc = new PageCache();
         $this->assertInstanceOf('PageCache\Strategy\DefaultStrategy', $pc->getStrategy());
+    }
+
+    private function setServerParameters()
+    {
+        if (!isset($_SERVER['REQUEST_URI'])) {
+            $_SERVER['REQUEST_URI'] = $_SERVER['PHP_SELF'];
+        }
+
+        if (!isset($_SERVER['QUERY_STRING'])) {
+            $_SERVER['QUERY_STRING'] = '/';
+        }
     }
 }
