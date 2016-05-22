@@ -13,4 +13,5 @@ branches:
 
 before_script:
   - phpenv config-rm xdebug.ini
+  - chmod -R 744 /home/travis/build/mmamedov/page-cache/tests/tmp
   - composer install -o
