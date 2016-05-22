@@ -26,6 +26,7 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
     public function setUp()
     {
         date_default_timezone_set('UTC');
+        $this->setServerParameters();
         $this->root = vfsStream::setup('tmpdir');
     }
 
@@ -130,8 +131,6 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
 
     public function testIsCached()
     {
-        $this->setServerParameters();
-
         $pc = new PageCache(__DIR__ . '/config_test.php');
         $pc->setPath(vfsStream::url('tmpdir') . '/');
 
