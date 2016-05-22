@@ -11,6 +11,7 @@
 namespace PageCache\Tests;
 
 use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
 use org\bovigo\vfs\vfsStreamDirectory;
 use org\bovigo\vfs\vfsStream;
 use PageCache\PageCache;
@@ -24,6 +25,7 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
 
     public function setUp()
     {
+        date_default_timezone_set('UTC');
         $this->root = vfsStream::setup('tmpdir');
     }
 
@@ -58,14 +60,17 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
 
     public function testInit()
     {
-    }
+        $pc = new PageCache();
+        $pc->setPath(vfsStream::url('tmpdir') . '/');
+        $pc->init();
+        $output = 'Testing output for clearPageCache()';
+        echo $output;
 
-    public function testDisplay()
-    {
-    }
-
-    public function testCreatePage()
-    {
+        $this->assertFalse($pc->isCached());
+        $this->assertFileNotExists($pc->getFilePath());
+        ob_end_flush();
+        $this->assertFileExists($pc->getFilePath());
+        $this->assertTrue($pc->isCached());
     }
 
     public function testSetStrategy()
@@ -91,16 +96,36 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-    public function testGenerateCacheFile()
-    {
-    }
-
     public function testClearPageCache()
     {
+        $pc = new PageCache(__DIR__ . '/config_test.php');
+        $pc->setPath(vfsStream::url('tmpdir') . '/');
+        $this->assertFalse(file_exists($pc->getFilePath()), 'file exists');
+
+        $pc->init();
+        $output = 'Testing output for clearPageCache()';
+        echo $output;
+        ob_end_flush();
+        $this->assertTrue(file_exists($pc->getFilePath()), 'file does not exist');
+
+        $pc->clearPageCache();
+        $this->assertFalse(file_exists($pc->getFilePath()), 'file exists');
     }
 
     public function testGetPageCache()
     {
+        $pc = new PageCache();
+        $result = $pc->getPageCache();
+        $this->assertSame(false, $result);
+        $pc->destroy();
+
+        $pc = new PageCache(__DIR__ . '/config_test.php');
+        $pc->setPath(vfsStream::url('tmpdir') . '/');
+        $pc->init();
+        $output = 'Testing output for getPageCache()';
+        echo $output;
+        ob_end_flush();
+        $this->assertEquals($output, $pc->getPageCache());
     }
 
     public function testIsCached()
@@ -266,6 +291,35 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
 
     public function testLog()
     {
+        $pc = new PageCache();
+        $pc->enableLog();
+        $pc->setPath(vfsStream::url('tmpdir') . '/');
+        $pc->setLogFilePath(vfsStream::url('tmpdir') . '/log.txt');
+        $pc->init();
+        $output = 'testLog() method testing, output testing.';
+        echo $output;
+        ob_end_flush();
+
+        $this->assertContains('PageCache\PageCache::init', file_get_contents(vfsStream::url('tmpdir') . '/log.txt'));
+    }
+
+    public function testLogWithMonolog()
+    {
+        $pc = new PageCache();
+        $pc->enableLog();
+        $pc->setLogFilePath(vfsStream::url('tmpdir') . '/log.txt'); //internal logger, should be ignored
+
+        $logger = new Logger('PageCache');
+        $logger->pushHandler(new StreamHandler(vfsStream::url('tmpdir') . '/monolog.log', Logger::DEBUG));
+        $pc->setLogger($logger);
+
+        $pc->init();
+        ob_end_flush();
+        $this->assertContains(
+            'PageCache\PageCache::init',
+            file_get_contents(vfsStream::url('tmpdir') . '/monolog.log')
+        );
+        $this->assertFalse(file_exists(vfsStream::url('tmpdir') . '/log.txt'));
     }
 
     public function testDestroy()

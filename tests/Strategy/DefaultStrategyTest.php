@@ -16,13 +16,6 @@ use PageCache\StrategyInterface;
 
 class DefaultStrategyTest extends \PHPUnit_Framework_TestCase
 {
-    //    public function setUp()
-//    {
-//        if(session_status() === PHP_SESSION_NONE){
-//            session_start();
-//        }
-//    }
-
     public function testStrategy()
     {
         $strategy = new DefaultStrategy();
