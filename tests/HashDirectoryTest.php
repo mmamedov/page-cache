@@ -85,5 +85,4 @@ class HashDirectoryTest extends \PHPUnit_Framework_TestCase
     {
         $new = new HashDirectory('false file', 'false directory');
     }
-    
 }

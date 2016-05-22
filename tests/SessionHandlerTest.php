@@ -12,9 +12,14 @@ namespace PageCache\Tests;
 
 use PageCache\SessionHandler;
 
-class SesssionHandlerTest extends \PHPUnit_Framework_TestCase
+class SessionHandlerTest extends \PHPUnit_Framework_TestCase
 {
     public function setUp()
+    {
+        SessionHandler::disable();
+    }
+
+    public function tearDown()
     {
         SessionHandler::disable();
     }
@@ -27,33 +32,38 @@ class SesssionHandlerTest extends \PHPUnit_Framework_TestCase
     /**
      * @depends testGetStatus
      */
-    public function testEnableDisable()
+    public function testEnableDisableStatus()
     {
         SessionHandler::enable();
         $this->assertTrue(SessionHandler::getStatus());
+        $this->assertAttributeEquals(true, 'status', SessionHandler::class);
 
         SessionHandler::disable();
         $this->assertFalse(SessionHandler::getStatus());
-
+        $this->assertAttributeEquals(false, 'status', SessionHandler::class);
 
         SessionHandler::setStatus(true);
         $this->assertTrue(SessionHandler::getStatus());
+        $this->assertAttributeEquals(true, 'status', SessionHandler::class);
 
         SessionHandler::setStatus(false);
         $this->assertFalse(SessionHandler::getStatus());
+        $this->assertAttributeEquals(false, 'status', SessionHandler::class);
     }
 
     public function testExcludeKeys()
     {
         SessionHandler::excludeKeys(array('count'));
         $this->assertEquals(array('count'), SessionHandler::getExcludeKeys());
+        $this->assertAttributeEquals(array('count'), 'exclude_keys', SessionHandler::class);
 
         SessionHandler::excludeKeys(array('1', '2', 'another'));
         $this->assertCount(3, SessionHandler::getExcludeKeys());
+        $this->assertAttributeEquals(array('1', '2', 'another'), 'exclude_keys', SessionHandler::class);
     }
 
     /**
-     * @depends testEnableDisable
+     * @depends testEnableDisableStatus
      * @depends testExcludeKeys
      */
     public function testProcess()
@@ -65,12 +75,12 @@ class SesssionHandlerTest extends \PHPUnit_Framework_TestCase
 
         SessionHandler::enable();
         $this->assertContains('somevar', SessionHandler::process());
+        $this->assertEquals(serialize($_SESSION), SessionHandler::process());
 
         $_SESSION['process'] = 'ignorethis';
+        $this->assertEquals(serialize($_SESSION), SessionHandler::process());
 
-        $serialized = serialize($_SESSION);
-        $this->assertEquals($serialized, SessionHandler::process());
-
+        SessionHandler::excludeKeys(array('NonExistingSessionVariable'));
         SessionHandler::excludeKeys(array('process'));
         $process = SessionHandler::process();
         $this->assertEquals(array('testing' => 'somevar'), unserialize($process));
@@ -82,10 +92,9 @@ class SesssionHandlerTest extends \PHPUnit_Framework_TestCase
             SessionHandler::excludeKeys('stringvalue is not scalar array');
             $this->expectException('PHPUnit_Framework_Error');
         } catch (\Throwable $e) {
-           // echo '~~~~As expected PHP7 throws Throwable.';
+            // echo '~~~~As expected PHP7 throws Throwable.';
         } catch (\Exception $e) {
-           // echo '~~~~As expected PHP5 throws Exception.';
+            // echo '~~~~As expected PHP5 throws Exception.';
         }
-
     }
 }

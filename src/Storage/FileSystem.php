@@ -30,7 +30,7 @@ class FileSystem
     /**
      * File lock to be used when writing. Support default PHP flock() parameters.
      *
-     * @var int
+     * @var int|null
      */
     private $file_lock = null;
 
@@ -85,7 +85,7 @@ class FileSystem
     {
         $result = self::OK;
 
-        if (empty($this->file_lock) || empty($this->filepath)) {
+        if (empty($this->filepath)) {
             return self::ERROR;
         }
 
@@ -105,7 +105,7 @@ class FileSystem
         /**
          * File locking disabled?
          */
-        if ($this->file_lock === false) {
+        if (empty($this->file_lock)) {
             ftruncate($fp, 0);
             if (fwrite($fp, $this->content) === false) {
                 $result = self::ERROR_WRITE;

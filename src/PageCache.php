@@ -340,6 +340,10 @@ class PageCache
             throw new \Exception('setPath() - Cache path not writable: ' . $path);
         }
 
+        if (substr($path, -1) != '/') {
+            throw new \Exception('setPath() - / trailing slash is expected at the end of cache_path.');
+        }
+
         $this->cache_path = $path;
     }
 
@@ -458,6 +462,10 @@ class PageCache
 
         //path to store cache files
         if (isset($this->config['cache_path'])) {
+            if (substr($this->config['cache_path'], -1) != '/') {
+                throw new \Exception('PageCache config: / trailing slash is expected at the end of cache_path.');
+            }
+
             //path writable?
             if (empty($this->config['cache_path']) || !is_writable($this->config['cache_path'])) {
                 throw new \Exception('PageCache config: cache path not writable or empty');
@@ -552,6 +560,17 @@ class PageCache
     }
 
     /**
+     * Destroy PageCache instance
+     */
+    public static function destroy()
+    {
+        if (isset(PageCache::$ins)) {
+            PageCache::$ins = null;
+            SessionHandler::reset();
+        }
+    }
+
+    /**
      * @return false|int
      */
     public function getFileLock()
@@ -560,17 +579,39 @@ class PageCache
     }
 
     /**
+     * @param false|int $file_lock
+     */
+    public function setFileLock($file_lock)
+    {
+        $this->file_lock = $file_lock;
+    }
+
+
+    /**
+     * Kept for BC. Same as getExpiration()
+     *
+     * @deprecated Use getExpiration() instead
      * @return int
      */
-    public function getCacheExpire()
+    public function getCacheExpiration()
     {
         return $this->cache_expire;
     }
 
     /**
+     * Get cach expiration in seconds
+     *
+     * @return int
+     */
+    public function getExpiration()
+    {
+        return $this->getCacheExpiration();
+    }
+
+    /**
      * @return string
      */
-    public function getCachePath()
+    public function getPath()
     {
         return $this->cache_path;
     }
@@ -581,6 +622,16 @@ class PageCache
     public function getLogFilePath()
     {
         return $this->log_file_path;
+    }
+
+    /**
+     * @param string $log_file_path
+     */
+    public function setLogFilePath($log_file_path)
+    {
+        if (!empty($log_file_path)) {
+            $this->log_file_path = $log_file_path;
+        }
     }
 
     /**

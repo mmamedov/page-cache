@@ -108,4 +108,10 @@ class SessionHandler
     {
         return self::$status;
     }
+
+    public static function reset()
+    {
+        self::$exclude_keys=null;
+        self::$status=false;
+    }
 }

@@ -9,7 +9,9 @@ PageCache ChangeLog
 * PSR-3 Logger integration (PageCache already comes with a simple logging support). 
 * Storage support added. This will enable to store cache not only in files. Currently FileSystem only.
 * PSR-0 support removed from php-cs-fixer (PSR-0 is deprecated)
-* More tests added. 
+* vfsStream adopted for mocking virtual file system in PHPUnit tests.
+* Tests for PageCache class added. 
+* Added testing for PHP 7 on Travis.
 
 ### 1.2.3 (2016-05-10)
 
