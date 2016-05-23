@@ -1,13 +1,13 @@
 PageCache ChangeLog
 ===================
 
-### 1.3.0 (Work in progress)
+### 1.3.0 (2016-05-23)
 
 * PSR-2 coding style adopted (php-cs-fixer and phpcs are being used)
 * File locking mechanism using flock(). Single write - many reads of the same cache file.
-* Stampede protection (Dog pile effect) added.
+* Cache stampede protection (dog-piling effect) added, file lock and logarithmic random early and late expiration.
 * PSR-3 Logger integration (PageCache already comes with a simple logging support). 
-* Storage support added. This will enable to store cache not only in files. Currently FileSystem only.
+* Storage support added. Currently FileSystem only.
 * PSR-0 support removed from php-cs-fixer (PSR-0 is deprecated)
 * vfsStream adopted for mocking virtual file system in PHPUnit tests.
 * Tests for PageCache class added. 
