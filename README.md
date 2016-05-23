@@ -152,9 +152,14 @@ Using random logarithmic calculations, producing sometimes negative and at times
 for each client hitting the same URL at the same time is going to be different. While some clients might still get
 the same cache expiration value as others, overall distribution of cache expiration value among clients is random.
 
-Making pages expire randomly at most 6 seconds before or after actual cache expiration of the page, ensure that we have
+Making pages expire randomly at most 6 seconds before or after actual cache expiration of the page, ensures that we have
 less clients trying to regenerate cache content. File locking already takes care of simultaneous writes of cache page, 
 random expiration takes it a step further minimizing the number of such required attempts. 
+
+To give an example, consider you have set expiration to 10 minutes `setExpiration(600)`. Page will expire for some clients
+in 594 seconds, for some in 606 seconds, and for some in 600 seconds. Actual page expiration is going to be anywhere 
+in between 594 and 606 seconds inclusive, this is randomly calculated. Expiration value is not an integer internally, so
+there are a lot more of random expiration values than you can think of. 
 
 
 That's it!
