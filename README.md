@@ -46,7 +46,8 @@ $cache->init();
 ```
 For more examples see code inside [PageCache examples](examples/) directory.
 
-For those who wonder, cache is saved into path specified in config file or using API, inside directories based on file hash. Based on the hash of the filename, 2 subdirectories will be created (if not created already), this is to avoid numerous files in a single cache directory. 
+For those who wonder, cache is saved into path specified in config file or using API, inside directories based on file hash. 
+Based on the hash of the filename, 2 subdirectories will be created (if not created already), this is to avoid numerous files in a single cache directory. 
 
 Caching Strategies
 ------------------
@@ -54,11 +55,16 @@ PageCache uses various strategies to differentiate among separate versions of th
 
 All PageCache Strategies support sessions. See PageCache [cache page with sessions](examples/demo-session-support.php) example.
 
-`DefaultStrategy()` is the default behaviour of PageCache. It caches pages and generated cache filenames using this PHP code: `md5($_SERVER['REQUEST_URI'] . $_SERVER['SCRIPT_NAME'] . $_SERVER['QUERY_STRING'] . $session_str)`. You could create your own naming strategy and pass it to PageCache:
+`DefaultStrategy()` is the default behaviour of PageCache. It caches pages and generated cache filenames using this PHP code: 
+```php
+md5($_SERVER['REQUEST_URI'] . $_SERVER['SCRIPT_NAME'] . $_SERVER['QUERY_STRING'] . $session_str)`
+```
+String `$session_str` is a serialized $_SESSION variable, with some keys ignored/or not based on whether session support is enabled or if sessionExclude() was called. 
 
+You could create your own naming strategy and pass it to PageCache:
 ```php
 $cache = new PageCache\PageCache();
-$cache->setStrategy( new MyOwnStrategy() );
+$cache->setStrategy(new MyOwnStrategy());
 ```
 
 Included with the PageCache is the `MobileStrategy()` based on [Mobile_Detect](https://github.com/serbanghita/Mobile-Detect) . It is useful if you are serving the same URL differently accross devices. See [cache_mobiledetect.php PageCache example](examples/cache_mobiledetect.php) file for demo using MobileDetect._
@@ -80,14 +86,15 @@ All available configuration options are documented in [config-stub](src/config-s
 
 API - PageCache class public methods
 ------------------------------------
-The following are public methods of PageCache class that you could call from your application. Check out examples for code samples.
+The following are public methods of PageCache class that you could call from your application. This is not a complete list. Check out examples and source code for more.
 
 - init():void - initiate cache, this should be your last method to call on PageCache object.
 - setStrategy(\PageCache\StrategyInterface):void - set cache file strategy. Built-in strategies are DefaultStrategy() and MobileStrategy(). Define your own if needed.
 - clearPageCache():void - Clear cache for current page, if this page was cached before.
 - setPath(string):void - Location of cache files directory.
-- setExpiration(int):void - Time in seconds for cache to expire.
+- setExpiration(int):void - Time in seconds for cache to expire. (Actual expiration will vary +/- 0..6 seconds. Read "Random early and late expiration" section below.)
 - logFilePath(string):void - Set Log file path.
+- setLogger(\Psr\Log\LoggerInterface):void - Set PSR-3 compliant logger.
 - enableLog():void - Enable logging.
 - disableLog():void - Disable logging.
 - enableSession():void - Enable session support.
@@ -98,7 +105,9 @@ The following are public methods of PageCache class that you could call from you
 - getFile():string - Get current page's cache file name.
 - getPageCache():bool - Return current page cache as a string or false on error, if this page was cached before.
 - getSessionExclude():array|null - Get excluded $_SESSION keys.
-... docs for more methods to be completed
+- setFileLock(false|int) - Set PHP file locking mechanism for cache file writing. Disable locking by setting it to false. 
+
+Check source code for more available methods. 
 
 Caching pages using Sessions (i.e. User Login enabled applications)
 -------------------------------------------------------------------
@@ -119,6 +128,36 @@ Exclude this variable, otherwise PageCache will generate seperate cache files fo
     $cache->init();
 ```
 
+Cache Stampede (dog-piling) protection
+-----------------------
+Under a heavy load or when multiple calls to the web server are made to the same URL when it has been expired, there might occur a condition
+where system might become unresponsive or when all clients will try to regenerate cache of the same page. This effect is
+called [cache stampede](https://en.wikipedia.org/wiki/Cache_stampede).
+
+PageCache uses 2 strategies to defeat cache stampede, and even when thousands request are made to the same page system
+continues to function normally.
+
+###### File Lock mechanism
+By default PageCache sets file lock to `LOCK_EX | LOCK_NB`, which means that only 1 process will be able to write into
+a cache file. During that write, all other processes will read old version of the file. This ensures that no user is 
+presented with a blank page, and that all users receive a cached version of the URL - without exceptions.
+
+This eliminates possibility of cache stampede, since there can only be a single write to a file, even though thousands 
+of clients have reached a page when it has expired (one client generates new cache and sees the new cached version, 
+the rest will receive old version). Number of users hitting page when it has expired is also reduced by random 
+early and late expiration.
+
+###### Random early and late expiration
+Using random logarithmic calculations, producing sometimes negative and at times positive results, cache expiration
+for each client hitting the same URL at the same time is going to be different. While some clients might still get
+the same cache expiration value as others, overall distribution of cache expiration value among clients is random.
+
+Making pages expire randomly at most 6 seconds before or after actual cache expiration of the page, ensure that we have
+less clients trying to regenerate cache content. File locking already takes care of simultaneous writes of cache page, 
+random expiration takes it a step further minimizing the number of such required attempts. 
+
+
 That's it!
 
 Check out [PageCache examples](examples/) folder for sample code.
+

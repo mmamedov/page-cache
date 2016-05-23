@@ -149,6 +149,13 @@ class PageCache
     /**
      * Fetch cache and display it.
      *
+     * Cache expiration is cache_expire seconds +/- a random value of seconds, from -6 to 6.
+     *
+     * So although expiration is set for example 200 seconds, it is not guaranteed that it will expire in exactly
+     * that many seconds. It could expire at 200 seconds, but also could expire in 206 seconds, or 194 seconds, or
+     * anywhere in between 206 and 194 seconds. This is done to better deal with cache stampede, and improve cache
+     * hit rate.
+     *
      * If cache file not found or not valid, function returns, and init() continues with cache generation(createPage())
      */
     private function display()
@@ -156,7 +163,7 @@ class PageCache
         $file = $this->file;
 
         if (!file_exists($file)
-            || (filemtime($file) < (time() - $this->cache_expire))
+            || (filemtime($file) < (time() - $this->cache_expire + log10(rand(10, 1000)) * rand(-2, 2)))
             || filesize($file) < $this->min_cache_file_size
         ) {
             $this->log(__METHOD__ . ' Cache file not found or cache expired or min_cache_file_size not met.');
