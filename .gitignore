@@ -11,3 +11,4 @@ docs/
 /tests/tmp/*
 !tests/tmp/.gitkeep
 !tests/tmp/cache/.gitkeep
+coverage/

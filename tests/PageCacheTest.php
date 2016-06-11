@@ -276,6 +276,17 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
         $this->assertAttributeSame($config['file_lock'], 'file_lock', $pc);
     }
 
+    /**
+     * Config enable log not boolean(ignored), expiration negative -> throws exception
+     */
+    public function testWrongParseConfig()
+    {
+        $this->setExpectedException('\Exception');
+        $pc = new PageCache(__DIR__ . '/config_wrong_test.php');
+
+        $this->assertAttributeEmpty('enable_log', $pc);
+    }
+
     public function testSetLogger()
     {
         $pc = new PageCache();

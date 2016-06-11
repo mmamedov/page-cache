@@ -469,6 +469,7 @@ class PageCache
 
         //path to store cache files
         if (isset($this->config['cache_path'])) {
+            // @codeCoverageIgnoreStart
             if (substr($this->config['cache_path'], -1) != '/') {
                 throw new \Exception('PageCache config: / trailing slash is expected at the end of cache_path.');
             }
@@ -479,6 +480,7 @@ class PageCache
             }
 
             $this->cache_path = $this->config['cache_path'];
+            // @codeCoverageIgnoreEnd
         }
 
         //log file path
@@ -493,7 +495,9 @@ class PageCache
 
         //session exclude key
         if (isset($this->config['session_exclude_keys']) && !empty($this->config['session_exclude_keys'])) {
+            // @codeCoverageIgnoreStart
             SessionHandler::excludeKeys($this->config['session_exclude_keys']);
+            // @codeCoverageIgnoreEnd
         }
 
         //File Locking
