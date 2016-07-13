@@ -12,10 +12,8 @@
 namespace PageCache;
 
 /**
- *
  * SessionHandler is responsible for caching based on $_SESSION.
  * For different session values different cache files created. This behaviour is disabled by default.
- *
  */
 class SessionHandler
 {

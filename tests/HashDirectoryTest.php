@@ -11,7 +11,15 @@
 namespace PageCache\Tests;
 
 use PageCache\HashDirectory;
+use org\bovigo\vfs\vfsStream;
 
+/**
+ * HasDirectory creates directories based on cache filename to be used in storage
+ * Virtual directory structure is used in testing
+ *
+ * Class HashDirectoryTest
+ * @package PageCache\Tests
+ */
 class HashDirectoryTest extends \PHPUnit_Framework_TestCase
 {
 
@@ -23,7 +31,11 @@ class HashDirectoryTest extends \PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        $this->dir = __DIR__ . '/tmp/';
+        //setup virtual dir
+        vfsStream::setup('tmpdir');
+        $this->dir = vfsStream::url('tmpdir').'/';
+
+        //dummy file name for testing
         $this->filename = '18a3938de0087a87d3530084cd46edf4';
         $this->hd = new HashDirectory($this->filename, $this->dir);
     }
@@ -31,21 +43,6 @@ class HashDirectoryTest extends \PHPUnit_Framework_TestCase
     public function tearDown()
     {
         unset($this->hd);
-
-        //delete directories
-        if (is_dir($this->dir . '56/51')) {
-            rmdir($this->dir . '56/51');
-        }
-        if (is_dir($this->dir . '56')) {
-            rmdir($this->dir . '56');
-        }
-
-        if (is_dir($this->dir . '51/48')) {
-            rmdir($this->dir . '51/48');
-        }
-        if (is_dir($this->dir . '51')) {
-            rmdir($this->dir . '51');
-        }
     }
 
     public function testGetHash()
@@ -78,11 +75,33 @@ class HashDirectoryTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('56/51/', $this->hd->getLocation($this->filename));
     }
 
+    public function testGetLocationEmptyFilename()
+    {
+        $this->assertNull($this->hd->getLocation(''));
+    }
+
+    public function testCreateSubDirsWithExistingDirectory()
+    {
+        //lets create first dir ->56, and leave 51 uncreated
+        mkdir($this->dir.'56');
+        $this->assertNotEmpty($this->hd->getHash());
+    }
+
+    /**
+     * @expectedException \Exception
+     */
+    public function testCreateSubDirsWithException()
+    {
+        //make cache directory non writable, this will prevent from them being created
+        chmod($this->dir, '000');
+        $this->hd->getHash();
+    }
+
     /**
      * @expectedException \Exception
      */
     public function testConstructorException()
     {
-        $new = new HashDirectory('false file', 'false directory');
+        new HashDirectory('false file', 'false directory');
     }
 }

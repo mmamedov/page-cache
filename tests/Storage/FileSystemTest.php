@@ -11,9 +11,35 @@
 namespace PageCache\Tests\Storage;
 
 use PageCache\Storage\FileSystem;
+use org\bovigo\vfs\vfsStream;
+use org\bovigo\vfs\vfsStreamDirectory;
 
+
+/**
+ * FileSystem is a file storage for cache.
+ * Virtual directory structure is used in testing
+ *
+ * Class FileSystemTest
+ * @package PageCache\Tests\Storage
+ */
 class FileSystemTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * @var  vfsStreamDirectory
+     */
+    private $virtualRoot;
+
+    public function setUp()
+    {
+        $this->virtualRoot = vfsStream::setup('fileSystemDir');
+    }
+
+    private function getVirtualDirectory()
+    {
+        //setup virtual dir
+        return vfsStream::url('fileSystemDir/');
+    }
+
     public function testConstructor()
     {
         $fs = new FileSystem('somevalue');
@@ -102,8 +128,7 @@ class FileSystemTest extends \PHPUnit_Framework_TestCase
 
     public function testWriteAttempt()
     {
-        $fpath = __DIR__ . '/../tmp/testfiletowrite.txt';
-        $this->deleteFile($fpath);
+        $fpath = $this->getVirtualDirectory() . 'testfiletowrite.txt';
 
         $fs = new FileSystem('content');
         $result = $fs->writeAttempt();
@@ -118,14 +143,11 @@ class FileSystemTest extends \PHPUnit_Framework_TestCase
         $this->assertFileExists($fpath);
         $this->assertEquals('content', file_get_contents($fpath));
 
-        //clean up
-        $this->deleteFile($fpath);
     }
 
     public function testWriteAttemptWithLock()
     {
-        $fpath = __DIR__ . '/../tmp/testfiletowriteWithLock.txt';
-        $this->deleteFile($fpath);
+        $fpath = $this->getVirtualDirectory() . 'testfiletowriteWithLock.txt';
 
         $fs = new FileSystem('content written with lock');
         $fs->setFilePath($fpath);
@@ -146,13 +168,29 @@ class FileSystemTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(FileSystem::OK, $result3);
         $this->assertEquals('content written with lock', file_get_contents($fpath));
 
-        //clean up
-        $this->deleteFile($fpath);
+    }
+
+    /**
+     * When directory/file are not writable and writeAttempt is being made.
+     */
+    public function testWriteAttemptForErrorOpen()
+    {
+        $fpath = $this->getVirtualDirectory() . 'SomeNewFile';
+
+        //make base directory not writable
+        chmod($this->getVirtualDirectory(), 0111);
+
+        $fs = new FileSystem('write attempt');
+        $fs->setFilePath($fpath);
+
+        //@supress warning from fopen not being able to open file
+        $this->assertEquals(FileSystem::ERROR_OPEN, @$fs->writeAttempt());
     }
 
     public function testPHPflock()
     {
-        $fpath = __DIR__ . '/../tmp/testfiletowriteWithLock.txt';
+        $fpath = $this->getVirtualDirectory() . 'testfiletowriteWithLock.txt';
+
         $fp = fopen($fpath, 'c');
 
         flock($fp, LOCK_EX);
@@ -167,10 +205,21 @@ class FileSystemTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-    private function deleteFile($file)
+    public function testPHPflockBlocking()
     {
-        if (file_exists($file)) {
-            unlink($file);
-        }
+        $fpath = $this->getVirtualDirectory() . 'testfiletowriteWithLock.txt';
+
+        $fp = fopen($fpath, 'c');
+        flock($fp, LOCK_EX);
+
+        $new_fp = fopen($fpath, 'c');
+
+        //since $fp, has Exclusive lock, no one else should have it
+        $this->assertFalse(flock($new_fp, LOCK_EX));
+
+        //release lock
+        flock($fp, LOCK_UN);
+        //now it should work
+        $this->assertTrue(flock($new_fp, LOCK_EX));
     }
 }

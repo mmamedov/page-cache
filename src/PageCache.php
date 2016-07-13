@@ -116,6 +116,7 @@ class PageCache
          */
         if (!is_null($config_file_path) && file_exists($config_file_path)) {
             $config = null;
+            /** @noinspection PhpIncludeInspection */
             include $config_file_path;
 
             $this->parseConfig($config);
@@ -616,7 +617,7 @@ class PageCache
      */
     public function getExpiration()
     {
-        return $this->getCacheExpiration();
+        return $this->cache_expire;
     }
 
     /**
