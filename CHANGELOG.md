@@ -1,6 +1,10 @@
 PageCache ChangeLog
 ===================
 
+### 1.3.1 (in progress)
+* New storage options. Now you can store cache not only in files.
+* More updates coming 
+
 ### 1.3.0 (2016-05-23)
 
 * PSR-2 coding style adopted (php-cs-fixer and phpcs are being used)
