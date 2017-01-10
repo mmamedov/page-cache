@@ -212,8 +212,7 @@ class PageCache
 
     private function getIfModifiedSinceTimestamp()
     {
-        if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']))
-        {
+        if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
             $mod_time = $_SERVER['HTTP_IF_MODIFIED_SINCE'];
 
             // Some versions of IE6 append "; length=####"
@@ -371,7 +370,7 @@ class PageCache
      *
      * Filename is created the same way as getFile()
      *
-     * @return array array(filename, directory)
+     * @return string
      */
     public function getFilePath()
     {
@@ -707,5 +706,42 @@ class PageCache
     public function getStrategy()
     {
         return $this->strategy;
+    }
+
+    public function clearCache()
+    {
+        $this->clearDirectory($this->getPath(), FALSE);
+    }
+
+    private function clearDirectory($dir, $remove_self = TRUE)
+    {
+        $iterator = new \RecursiveDirectoryIterator($dir);
+
+        $filter = new \RecursiveCallbackFilterIterator($iterator, function ($current) { /** @var \SplFileInfo $current */
+            $filename = $current->getBasename();
+
+            // Check for files and dirs starting with "dot" (.gitignore, etc)
+            if (strlen($filename) && $filename[0] == '.') {
+                return false;
+            }
+
+            return true;
+        });
+
+        /** @var \SplFileInfo[] $listing */
+        $listing = new \RecursiveIteratorIterator($filter, \RecursiveIteratorIterator::CHILD_FIRST);
+
+        foreach ($listing as $item) {
+            $path = $item->getPathname();
+
+            // Skip current directory
+            if (!$remove_self && $path == $dir) {
+                continue;
+            }
+
+            $this->log('Removing '.$path);
+
+            $item->isDir() ? rmdir($path) : unlink($path);
+        }
     }
 }
