@@ -163,11 +163,36 @@ class PageCache
     {
         $file = $this->file;
 
-        if (!file_exists($file)
-            || (filemtime($file) < (time() - $this->cache_expire + log10(rand(10, 1000)) * rand(-2, 2)))
-            || filesize($file) < $this->min_cache_file_size
-        ) {
-            $this->log(__METHOD__ . ' Cache file not found or cache expired or min_cache_file_size not met.');
+        if (!file_exists($file)) {
+            $this->log(__METHOD__ . ' Cache file not found at path '.$file);
+            return;
+        }
+
+        if (filesize($file) < $this->min_cache_file_size) {
+            $this->log(__METHOD__ . ' Cache file min_cache_file_size not met.');
+            return;
+        }
+
+        $lastModified = filemtime($file);
+
+        $format = 'D, d M Y H:i:s \G\M\T';
+
+        $this->sendHttpHeader('Last-Modified', gmdate($format, $lastModified));
+
+        $ifModified = $this->getIfModifiedSinceTimestamp();
+
+        if ($ifModified && $ifModified >= $lastModified) {
+            $this->log(__METHOD__ . ' Not modified.');
+            $this->sendHttpHeader('HTTP/1.0 304 Not Modified');
+            exit();
+        }
+
+        $expires = $lastModified + $this->cache_expire + log10(rand(10, 1000)) * rand(-2, 2);
+
+        $this->sendHttpHeader('Expires', gmdate($format, $expires));
+
+        if (time() > $expires) {
+            $this->log(__METHOD__ . ' Cache expired.');
             return;
         }
 
@@ -178,6 +203,28 @@ class PageCache
             //stop execution
             exit();
         }
+    }
+
+    private function sendHttpHeader($name, $value = null)
+    {
+        header($name.($value ? ': '.$value : ''));
+    }
+
+    private function getIfModifiedSinceTimestamp()
+    {
+        if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']))
+        {
+            $mod_time = $_SERVER['HTTP_IF_MODIFIED_SINCE'];
+
+            // Some versions of IE6 append "; length=####"
+            if (($pos = strpos($mod_time, ';')) !== FALSE) {
+                $mod_time = substr($mod_time, 0, $pos);
+            }
+
+            return strtotime($mod_time);
+        }
+
+        return NULL;
     }
 
     /**
