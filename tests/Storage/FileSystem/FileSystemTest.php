@@ -8,12 +8,11 @@
  * file that was distributed with this source code.
  */
 
-namespace PageCache\Tests\Storage;
+namespace PageCache\Tests\Storage\FileSystem;
 
-use PageCache\Storage\FileSystem;
+use PageCache\Storage\FileSystem\FileSystem;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
-
 
 /**
  * FileSystem is a file storage for cache.
@@ -142,7 +141,6 @@ class FileSystemTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(FileSystem::OK, $result);
         $this->assertFileExists($fpath);
         $this->assertEquals('content', file_get_contents($fpath));
-
     }
 
     public function testWriteAttemptWithLock()
@@ -167,7 +165,6 @@ class FileSystemTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(FileSystem::OK, $result2);
         $this->assertEquals(FileSystem::OK, $result3);
         $this->assertEquals('content written with lock', file_get_contents($fpath));
-
     }
 
     /**

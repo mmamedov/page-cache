@@ -3,6 +3,7 @@
  * This file is part of the PageCache package.
  *
  * @author Muhammed Mamedov <mm@turkmenweb.net>
+ * @copyright 2016
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -10,13 +11,15 @@
 
 namespace PageCache;
 
-use PageCache\Storage\FileSystem;
+use PageCache\Storage\FileSystem\FileSystem;
+use PageCache\Storage\FileSystem\HashDirectory;
 use PageCache\Strategy;
 
 /**
- *
+ * Class PageCache
  * PageCache is the main class, create PageCache object and call init() to start caching
  *
+ * @package PageCache
  */
 class PageCache
 {
@@ -100,6 +103,16 @@ class PageCache
     private $logger = null;
 
     /**
+     * @var HttpHeader
+     */
+    protected $http_header;
+
+    /**
+     * @var HashDirectory
+     */
+    protected $hash_directory;
+
+    /**
      * PageCache constructor.
      *
      * @param null|string $config_file_path
@@ -110,10 +123,7 @@ class PageCache
         if (isset(PageCache::$ins)) {
             throw new \Exception('PageCache already created.');
         }
-
-        /**
-         * load configuration file
-         */
+         // Load configuration file
         if (!is_null($config_file_path) && file_exists($config_file_path)) {
             $config = null;
             /** @noinspection PhpIncludeInspection */
@@ -125,11 +135,11 @@ class PageCache
             //do not use $_SESSION in cache, by default
             SessionHandler::disable();
         }
-
         PageCache::$ins = true;
 
-        //default file naming strategy
+        $this->http_header = new HttpHeader();
         $this->strategy = new Strategy\DefaultStrategy();
+        $this->hash_directory = new HashDirectory();
     }
 
     /**
@@ -161,69 +171,39 @@ class PageCache
      */
     private function display()
     {
-        $file = $this->file;
-
-        if (!file_exists($file)) {
-            $this->log(__METHOD__ . ' Cache file not found at path '.$file);
+        if (!file_exists($this->file)) {
+            $this->log(__METHOD__ . ' Cache file not found at path ' . $this->file);
             return;
         }
-
-        if (filesize($file) < $this->min_cache_file_size) {
+        if (filesize($this->file) < $this->min_cache_file_size) {
             $this->log(__METHOD__ . ' Cache file min_cache_file_size not met.');
             return;
         }
 
-        $lastModified = filemtime($file);
-
-        $format = 'D, d M Y H:i:s \G\M\T';
-
-        $this->sendHttpHeader('Last-Modified', gmdate($format, $lastModified));
-
-        $ifModified = $this->getIfModifiedSinceTimestamp();
-
-        if ($ifModified && $ifModified >= $lastModified) {
-            $this->log(__METHOD__ . ' Not modified.');
-            $this->sendHttpHeader('HTTP/1.0 304 Not Modified');
-            exit();
-        }
-
-        $expires = $lastModified + $this->cache_expire + log10(rand(10, 1000)) * rand(-2, 2);
-
-        $this->sendHttpHeader('Expires', gmdate($format, $expires));
-
-        if (time() > $expires) {
+        // Cache expired?
+        // Important to have this before Not-Modified header call, otherwise regeneration on cache expire will
+        // never be enforced.
+        $fileExpirationTime = $this->calculateExpirationTimestamp();
+        if (time() > $fileExpirationTime) {
             $this->log(__METHOD__ . ' Cache expired.');
             return;
         }
 
+        $this->http_header->setFile($this->file);
+        $this->http_header->setLastModified();
+        $this->http_header->setExpires($fileExpirationTime);
+        $this->http_header->setEtag();
+
+        //Will exit if conditions for this header are met
+        $this->http_header->setNotModified();
+
         $this->log(__METHOD__ . ' Cache file found.');
 
         //Read file, output cache. If error occurred, ob_start() will be called next in PageCache
-        if (@readfile($file) !== false) {
+        if (@readfile($this->file) !== false) {
             //stop execution
             exit();
         }
-    }
-
-    private function sendHttpHeader($name, $value = null)
-    {
-        header($name.($value ? ': '.$value : ''));
-    }
-
-    private function getIfModifiedSinceTimestamp()
-    {
-        if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
-            $mod_time = $_SERVER['HTTP_IF_MODIFIED_SINCE'];
-
-            // Some versions of IE6 append "; length=####"
-            if (($pos = strpos($mod_time, ';')) !== FALSE) {
-                $mod_time = substr($mod_time, 0, $pos);
-            }
-
-            return strtotime($mod_time);
-        }
-
-        return NULL;
     }
 
     /**
@@ -267,9 +247,7 @@ class PageCache
     }
 
     /**
-     *
      * Generates cache file name based on URL, Strategy, and SessionHandler
-     *
      */
     private function generateCacheFile()
     {
@@ -277,18 +255,17 @@ class PageCache
         if (!empty($this->file)) {
             return;
         }
-
         try {
             $fname = $this->strategy->strategy();
 
-            $hashDirectory = new HashDirectory($fname, $this->cache_path);
-            $dir_str = $hashDirectory->getHash();
+            $this->hash_directory->setFile($fname);
+            $this->hash_directory->setDir($this->cache_path);
+            $dir_str = $this->hash_directory->getHash();
 
             $this->file = $this->cache_path . $dir_str . $fname;
         } catch (\Exception $e) {
             $this->log(__METHOD__ . ' Exception', $e);
         }
-
         $this->log(__METHOD__ . ' Cache file: ' . $this->file);
     }
 
@@ -375,7 +352,7 @@ class PageCache
     public function getFilePath()
     {
         $fname = $this->getFile();
-        $subdir = HashDirectory::getLocation($fname);
+        $subdir = $this->hash_directory->getLocation($fname);
 
         return $this->cache_path . $subdir . $fname;
     }
@@ -388,16 +365,13 @@ class PageCache
      */
     public function setPath($path)
     {
-        //path writable?
         if (empty($path) || !is_writable($path)) {
             $this->log(__METHOD__ . ' Cache path not writable.');
             throw new \Exception('setPath() - Cache path not writable: ' . $path);
         }
-
         if (substr($path, -1) != '/') {
             throw new \Exception('setPath() - / trailing slash is expected at the end of cache_path.');
         }
-
         $this->cache_path = $path;
     }
 
@@ -411,10 +385,25 @@ class PageCache
     {
         if ($seconds < 0 || !is_numeric($seconds)) {
             $this->log(__METHOD__ . ' Invalid expiration value, < 0: ' . $seconds);
-            throw new \Exception('Invalid expiration value, < 0.');
+            throw new \Exception(__METHOD__.' Invalid expiration value, < 0.');
         }
 
         $this->cache_expire = intval($seconds);
+    }
+
+    /**
+     * Calculate and returns current cache file's expiration timestamp
+     *
+     * @return int timestamp of current file expiration
+     * @throws \Exception
+     */
+    private function calculateExpirationTimestamp()
+    {
+        if (empty($this->file)) {
+            $this->log(__METHOD__ . ' file not set.');
+            throw new \Exception(__METHOD__.' File not set');
+        }
+        return filemtime($this->file) + $this->cache_expire + log10(rand(10, 1000)) * rand(-2, 2);
     }
 
     /**
@@ -458,8 +447,6 @@ class PageCache
     public function disableSession()
     {
         SessionHandler::disable();
-
-        return true;
     }
 
     /**
@@ -470,13 +457,10 @@ class PageCache
      *              value of $_SESSION['count] session variable.
      *
      * @param array $keys $_SESSION keys to exclude from caching strategies
-     * @return bool
      */
     public function sessionExclude(array $keys)
     {
         SessionHandler::excludeKeys($keys);
-
-        return true;
     }
 
     /**
@@ -493,8 +477,8 @@ class PageCache
      * Parses conf.php files and sets parameters for this object
      *
      * @param array $config
+     *
      * @throws \Exception min params not set
-     * @return true
      */
     private function parseConfig(array $config)
     {
@@ -552,7 +536,10 @@ class PageCache
             $this->file_lock = $this->config['file_lock'];
         }
 
-        return true;
+        //Send HTTP headers
+        if (isset($this->config['send_headers']) && !$this->isBool($this->config['send_headers'])) {
+            $this->http_header->enableHeaders($this->config['send_headers']);
+        }
     }
 
     /**
@@ -566,11 +553,12 @@ class PageCache
     }
 
     /**
-     * Log message using PSR Logger (if enabled)
+     * Log message using PSR Logger, or error_log.
+     * Works only when logging was enabled.
      *
      * @param string $msg
      * @param null|\Exception $exception
-     * @return bool
+     * @return bool true when logged, false when didn't log
      */
     private function log($msg, $exception = null)
     {
@@ -578,11 +566,8 @@ class PageCache
             return false;
         }
 
-        /**
-         * if an external Logger is available
-         */
+        // If an external Logger is available
         if (isset($this->logger)) {
-
             /** @var \Psr\Log\LoggerInterface */
             $this->logger->debug($msg, array('Exception', $exception));
         } else {
@@ -610,11 +595,7 @@ class PageCache
      */
     private function isBool($var)
     {
-        if ($var === true || $var === false) {
-            return true;
-        } else {
-            return false;
-        }
+        return ($var === true || $var === false)? true:false;
     }
 
     /**
@@ -629,6 +610,8 @@ class PageCache
     }
 
     /**
+     * Get file_lock value
+     *
      * @return false|int
      */
     public function getFileLock()
@@ -637,6 +620,8 @@ class PageCache
     }
 
     /**
+     * Set file_lock value
+     *
      * @param false|int $file_lock
      */
     public function setFileLock($file_lock)
@@ -644,9 +629,8 @@ class PageCache
         $this->file_lock = $file_lock;
     }
 
-
     /**
-     * Kept for BC. Same as getExpiration()
+     * Kept for backwards-compatibility. Same as getExpiration()
      *
      * @deprecated Use getExpiration() instead
      * @return int
@@ -657,7 +641,7 @@ class PageCache
     }
 
     /**
-     * Get cach expiration in seconds
+     * Get cache expiration in seconds
      *
      * @return int
      */
@@ -667,6 +651,8 @@ class PageCache
     }
 
     /**
+     * Get cache directory path
+     *
      * @return string
      */
     public function getPath()
@@ -675,6 +661,8 @@ class PageCache
     }
 
     /**
+     * Get file path for internal log file
+     *
      * @return string
      */
     public function getLogFilePath()
@@ -683,6 +671,8 @@ class PageCache
     }
 
     /**
+     * Set path for internal log file
+     *
      * @param string $log_file_path
      */
     public function setLogFilePath($log_file_path)
@@ -693,6 +683,8 @@ class PageCache
     }
 
     /**
+     * Get minimum allowed size of a cache file
+     *
      * @return int
      */
     public function getMinCacheFileSize()
@@ -701,6 +693,8 @@ class PageCache
     }
 
     /**
+     * Get curernt Strategy
+     *
      * @return StrategyInterface
      */
     public function getStrategy()
@@ -708,40 +702,21 @@ class PageCache
         return $this->strategy;
     }
 
-    public function clearCache()
+    /**
+     * Enable or disable headers
+     *
+     * @param bool $enable True to enable, false to disable
+     */
+    public function enableHeaders($enable)
     {
-        $this->clearDirectory($this->getPath(), FALSE);
+        $this->http_header->enableHeaders($enable);
     }
 
-    private function clearDirectory($dir, $remove_self = TRUE)
+    /**
+     * Delete everything from cache directory (all files and directories recursively)
+     */
+    public function clearCache()
     {
-        $iterator = new \RecursiveDirectoryIterator($dir);
-
-        $filter = new \RecursiveCallbackFilterIterator($iterator, function ($current) { /** @var \SplFileInfo $current */
-            $filename = $current->getBasename();
-
-            // Check for files and dirs starting with "dot" (.gitignore, etc)
-            if (strlen($filename) && $filename[0] == '.') {
-                return false;
-            }
-
-            return true;
-        });
-
-        /** @var \SplFileInfo[] $listing */
-        $listing = new \RecursiveIteratorIterator($filter, \RecursiveIteratorIterator::CHILD_FIRST);
-
-        foreach ($listing as $item) {
-            $path = $item->getPathname();
-
-            // Skip current directory
-            if (!$remove_self && $path == $dir) {
-                continue;
-            }
-
-            $this->log('Removing '.$path);
-
-            $item->isDir() ? rmdir($path) : unlink($path);
-        }
+        $this->hash_directory->clearDirectory($this->getPath());
     }
 }

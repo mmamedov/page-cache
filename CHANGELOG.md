@@ -1,13 +1,21 @@
 PageCache ChangeLog
 ===================
 
-### 1.3.1 (in progress)
-* New storage options. Now you can store cache not only in files.
-* More updates coming 
+### [WIP]
+
+* Introduce Configuration class, remove clutter from PageCache class.
+* Get rid of all static calls (better testability).
+* More Storage adapters
+
+### 1.3.1 (2017-01-15)
+
+* HTTP Headers introduced (optional). Thanks to @spotman.
+* Clean cache directory with clearCache() (removes all files and directories inside main cache directory).
+* [Refactoring] Removed static method from HashDirectory, other improvements.
 
 ### 1.3.0 (2016-05-23)
 
-* PSR-2 coding style adopted (php-cs-fixer and phpcs are being used)
+* PSR-2 coding style adopted (php-cs-fixer and phpcs are being used).
 * File locking mechanism using flock(). Single write - many reads of the same cache file.
 * Cache stampede protection (dog-piling effect) added, file lock and logarithmic random early and late expiration.
 * PSR-3 Logger integration (PageCache already comes with a simple logging support). 

@@ -1,6 +1,16 @@
 <?php
 
 /**
+ * This file is part of the PageCache package.
+ *
+ * @author Muhammed Mamedov <mm@turkmenweb.net>
+ * @copyright 2016
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+/**
  *
  * This demo demonstrates integration with Monolog logger
  *

@@ -52,14 +52,23 @@ $config = array(
     'session_exclude_keys' => array(),
 
     /**
-     *
      * Locking mechanism to use when writing cache files. Default is LOCK_EX | LOCK_NB, which locks for
      * exclusive write while being non-blocking. Set whatever you want.
      * Read for details (http://php.net/manual/en/function.flock.php)
      *
      * Set file_lock = false to disable file locking.
      */
-    'file_lock' => LOCK_EX | LOCK_NB
+    'file_lock' => LOCK_EX | LOCK_NB,
 
-
+    /**
+     * Send appropriate HTTP cache related headers in response or not.
+     * When true headers are sent, when false not being sent.
+     *
+     * When set to true:
+     * First call to your URL results in HTTP Response code 200.
+     * Consequent calls, until page expiration, will result in 304 Not Modified.
+     * When 304 is being returned, no content is retrieved from the server.
+     * This makes your application load super fast - cached content comes from web browser.
+     */
+    'send_headers' => false
 );

@@ -54,5 +54,8 @@ $config = array(
      *
      * Set file_lock = false to disable file locking.
      */
-    'file_lock' => LOCK_EX | LOCK_NB
+    'file_lock' => LOCK_EX | LOCK_NB,
+
+    //Send HTTP headers
+    'send_headers' => false
 );

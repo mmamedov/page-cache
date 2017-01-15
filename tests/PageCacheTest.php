@@ -74,6 +74,21 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($pc->isCached());
     }
 
+    public function testInitWithHeaders()
+    {
+        $pc = new PageCache();
+        $pc->setPath(vfsStream::url('tmpdir') . '/');
+        $pc->enableHeaders(true);
+        $pc->init();
+        $output = 'Testing output for clearPageCache() with Headers enabled';
+        echo $output;
+        $this->assertFalse($pc->isCached());
+        $this->assertFileNotExists($pc->getFilePath());
+        ob_end_flush();
+        $this->assertFileExists($pc->getFilePath());
+        $this->assertTrue($pc->isCached());
+    }
+
     public function testSetStrategy()
     {
         $pc = new PageCache();

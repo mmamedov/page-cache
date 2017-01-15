@@ -3,6 +3,7 @@
  * This file is part of the PageCache package.
  *
  * @author Muhammed Mamedov <mm@turkmenweb.net>
+ * @copyright 2016
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -82,6 +83,17 @@ $config = array(
      *
      * Set file_lock = false to disable file locking.
      */
-    'file_lock' => LOCK_EX | LOCK_NB
+    'file_lock' => LOCK_EX | LOCK_NB,
 
+    /**
+     * Send appropriate HTTP cache related headers in response or not.
+     * When true headers are sent, when false not being sent.
+     *
+     * When set to true:
+     * First call to your URL results in HTTP Response code 200.
+     * Consequent calls, until page expiration, will result in 304 Not Modified.
+     * When 304 is being returned, no content is retrieved from the server.
+     * This makes your application load super fast - cached content comes from web browser.
+     */
+    'send_headers' => false
 );

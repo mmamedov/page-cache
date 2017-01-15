@@ -10,7 +10,7 @@
 
 namespace PageCache\Tests\Storage;
 
-use PageCache\Storage\FileSystem;
+use PageCache\Storage\FileSystem\FileSystem;
 
 class FileSystemFiveTest extends \PHPUnit_Framework_TestCase
 {

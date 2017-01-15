@@ -106,6 +106,8 @@ The following are public methods of PageCache class that you could call from you
 - getPageCache():bool - Return current page cache as a string or false on error, if this page was cached before.
 - getSessionExclude():array|null - Get excluded $_SESSION keys.
 - setFileLock(false|int) - Set PHP file locking mechanism for cache file writing. Disable locking by setting it to false. 
+- enableHeaders(bool) - Enable/disable HTTP headers related to caching. It is highly recommended that you turn it on.
+- clearCache() - Removes all content from cache directory.
 
 Check source code for more available methods. 
 
@@ -127,6 +129,24 @@ Exclude this variable, otherwise PageCache will generate seperate cache files fo
     // ...
     $cache->init();
 ```
+
+Sending cache related HTTP headers
+----------------------------------
+You can enable appropriate headers to be sent with the response to the client. This is done by calling 
+`enableHeaders(true)`, prior to `init()`. Although disabled by default, we encourage you to use this feature. Test on
+ your local application before deploying it to your live version.
+
+When HTTP headers are enabled, PageCache will attempt to send the following HTTP headers automatically with each response:
+- Last-Modified
+- Expires
+- ETag
+- Not Modified
+
+PageCache will attempt to send `HTTP/1.1 304 Not Modified` header along with cached content. When this header is sent, content
+is omitted from the response. This makes your application super fast. Browser is responsible for fetching a locally cached version when
+this header is present.
+
+Check out [HTTP Headers demo](examples/demo-headers.php) for code.
 
 Cache Stampede (dog-piling) protection
 -----------------------
