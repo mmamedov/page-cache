@@ -41,8 +41,8 @@ $config = array(
     'enable_log' => false,
 
     /**
-     * Internal log file location, enable_log must be true for loging to work
-     * When external loger is provided via setLogger(), internal logging is disabled.
+     * Internal log file location, enable_log must be true for logging to work
+     * When external logger is provided via setLogger(), internal logging is disabled.
      */
     'log_file_path' => __DIR__ . '/log/cache.log',
 
