@@ -103,9 +103,6 @@ class CacheItem implements CacheItemInterface
     }
 
     /**
-     * Calculating ETag from last modified time
-     *
-     * @link https://github.com/mmamedov/page-cache/issues/1#issuecomment-273875002
      * @return string
      */
     public function getETagString()
