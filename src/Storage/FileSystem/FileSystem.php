@@ -1,4 +1,6 @@
 <?php
+namespace PageCache\Storage\FileSystem;
+
 /**
  * This file is part of the PageCache package.
  *
@@ -8,7 +10,7 @@
  * file that was distributed with this source code.
  */
 
-namespace PageCache\Storage\FileSystem;
+use PageCache\PageCacheException;
 
 /**
  *
@@ -96,7 +98,7 @@ class FileSystem
          * "c" is needed instead of "w", because if lock is not acquired, old version of the file is returned.
          * If "w" option is used, file is truncated no matter what, and empty file is returned.
          */
-        $fp = fopen($this->filepath, "c");
+        $fp = fopen($this->filepath, 'c');
 
         if ($fp === false) {
             return self::ERROR_OPEN;
@@ -105,7 +107,7 @@ class FileSystem
         /**
          * File locking disabled?
          */
-        if (empty($this->file_lock)) {
+        if ($this->file_lock === null) {
             ftruncate($fp, 0);
             if (fwrite($fp, $this->content) === false) {
                 $result = self::ERROR_WRITE;
@@ -160,7 +162,7 @@ class FileSystem
     public function setFileLock($file_lock)
     {
         if (empty($file_lock)) {
-            throw new \Exception(__CLASS__ . ' file lock can not be empty');
+            throw new PageCacheException(__CLASS__ . ' file lock can not be empty');
         }
         $this->file_lock = $file_lock;
     }
@@ -194,7 +196,7 @@ class FileSystem
     public function setFilePath($filepath)
     {
         if (!isset($filepath) || empty($filepath)) {
-            throw new \Exception(__CLASS__ . ' file path not set or empty');
+            throw new PageCacheException(__CLASS__ . ' file path not set or empty');
         }
 
         $this->filepath = $filepath;

@@ -19,9 +19,9 @@ namespace PageCache;
 interface StrategyInterface
 {
     /**
-     * Sets cache file name
+     * Returns cache data key
      *
-     * @return string Cache file name
+     * @return string Cache data key
      */
     public function strategy();
 }
