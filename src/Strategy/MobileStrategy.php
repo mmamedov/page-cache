@@ -40,10 +40,10 @@ class MobileStrategy implements StrategyInterface
      */
     public function __construct(\Mobile_Detect $mobileDetect = null)
     {
-        if (is_null($mobileDetect)) {
-            $this->MobileDetect = new \Mobile_Detect;
-        } else {
+        if ($mobileDetect !== null) {
             $this->MobileDetect = $mobileDetect;
+        } else {
+            $this->MobileDetect = new \Mobile_Detect;
         }
     }
 
@@ -76,7 +76,7 @@ class MobileStrategy implements StrategyInterface
      */
     private function currentMobile()
     {
-        if (empty($this->MobileDetect) || !($this->MobileDetect instanceof \Mobile_Detect)) {
+        if (!$this->MobileDetect || !($this->MobileDetect instanceof \Mobile_Detect)) {
             return false;
         }
 

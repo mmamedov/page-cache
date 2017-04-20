@@ -30,7 +30,7 @@ $cache = new PageCache\PageCache($config_file);
 $cache->enableLog();
 
 //getfilepath
-echo 'Cache filepath, getFilePath(): ' . $cache->getFilePath() . '<br/>';
+echo 'Cache filepath, getFilepath(): ' . $cache->getFilePath() . '<br/>';
 echo '<hr/>';
 
 //get file name
