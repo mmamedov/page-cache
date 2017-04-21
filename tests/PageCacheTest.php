@@ -10,19 +10,17 @@
 
 namespace PageCache\Tests;
 
-use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
-use org\bovigo\vfs\vfsStreamDirectory;
+use Monolog\Logger;
 use org\bovigo\vfs\vfsStream;
+use org\bovigo\vfs\vfsStreamDirectory;
 use PageCache\CacheItemStorage;
 use PageCache\DefaultLogger;
 use PageCache\PageCache;
 use PageCache\PageCacheException;
 use PageCache\SessionHandler;
-use PageCache\Storage\FileSystem\FileSystemPsrCacheAdapter;
 use PageCache\Strategy\DefaultStrategy;
 use PageCache\Strategy\MobileStrategy;
-use Psr\Log\LoggerInterface;
 
 class PageCacheTest extends \PHPUnit_Framework_TestCase
 {
@@ -49,14 +47,14 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
      */
     public function testSingleton()
     {
-        $pc = new PageCache();
+        $pc      = new PageCache();
         $another = new PageCache();
     }
 
     /**
      * Without config file
      */
-        public function testConstructWithoutConfig()
+    public function testConstructWithoutConfig()
     {
         $pc = new PageCache();
         $this->assertFalse(SessionHandler::getStatus());
@@ -72,7 +70,7 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
     public function testInit()
     {
         $pc = new PageCache();
-        $pc->setPath(vfsStream::url('tmpdir') . '/');
+        $pc->setPath(vfsStream::url('tmpdir').'/');
 
         // No CacheItemStorage before init()
         $this->assertAttributeEquals(null, 'itemStorage', $pc);
@@ -93,7 +91,7 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
     public function testInitWithHeaders()
     {
         $pc = new PageCache();
-        $pc->setPath(vfsStream::url('tmpdir') . '/');
+        $pc->setPath(vfsStream::url('tmpdir').'/');
         $pc->enableHeaders(true);
         $pc->init();
         $output = 'Testing output for InitWithHeaders() with Headers enabled';
@@ -129,8 +127,8 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
 
     public function testClearPageCache()
     {
-        $pc = new PageCache(__DIR__ . '/config_test.php');
-        $pc->setPath(vfsStream::url('tmpdir') . '/');
+        $pc = new PageCache(__DIR__.'/config_test.php');
+        $pc->setPath(vfsStream::url('tmpdir').'/');
 
         $pc->init();
         $output = 'Testing output for clearPageCache()';
@@ -151,7 +149,7 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
         $this->assertSame(false, $pc->getPageCache());
         $pc->destroy();
 
-        $pc = new PageCache(__DIR__ . '/config_test.php');
+        $pc = new PageCache(__DIR__.'/config_test.php');
         $pc->setPath($cachePath);
         $pc->init();
         $output = 'Testing output for getPageCache()';
@@ -162,8 +160,8 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
 
     public function testIsCached()
     {
-        $pc = new PageCache(__DIR__ . '/config_test.php');
-        $pc->setPath(vfsStream::url('tmpdir') . '/');
+        $pc = new PageCache(__DIR__.'/config_test.php');
+        $pc->setPath(vfsStream::url('tmpdir').'/');
 
         //no cache exists
         $this->assertFalse($pc->isCached(), ' is cached');
@@ -179,7 +177,7 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
         //cache exists now
         $this->assertTrue(
             $pc->isCached(),
-            __METHOD__ . ' after init cache item does not exist'
+            __METHOD__.' after init cache item does not exist'
         );
         $this->assertEquals($output, $pc->getPageCache(), 'Cache file contents not as expected.');
     }
@@ -189,7 +187,7 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
         $pc = new PageCache();
         $this->assertAttributeSame(null, 'cachePath', $pc);
 
-        $dir = __DIR__ . '/';
+        $dir = __DIR__.'/';
         $pc->setPath($dir);
         $this->assertAttributeSame($dir, 'cachePath', $pc);
     }
@@ -261,31 +259,31 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
     {
         $pc = new PageCache();
 
-        $pc->sessionExclude(array());
-        $this->assertEquals(array(), SessionHandler::getExcludeKeys());
+        $pc->sessionExclude([]);
+        $this->assertEquals([], SessionHandler::getExcludeKeys());
 
-        $pc->sessionExclude(array(1, 2, 3));
-        $this->assertEquals(array(1, 2, 3), SessionHandler::getExcludeKeys());
+        $pc->sessionExclude([1, 2, 3]);
+        $this->assertEquals([1, 2, 3], SessionHandler::getExcludeKeys());
     }
 
     public function testGetSessionExclude()
     {
-        $pc = new PageCache();
+        $pc     = new PageCache();
         $result = $pc->getSessionExclude();
         $this->assertEmpty($result);
 
-        $pc->sessionExclude(array(null, '2', 3, false, new \stdClass()));
-        $this->assertEquals(array(null, '2', 3, false, new \stdClass()), SessionHandler::getExcludeKeys());
+        $pc->sessionExclude([null, '2', 3, false, new \stdClass()]);
+        $this->assertEquals([null, '2', 3, false, new \stdClass()], SessionHandler::getExcludeKeys());
     }
 
     public function testParseConfig()
     {
-        $pc = new PageCache(__DIR__ . '/config_test.php');
+        $pc = new PageCache(__DIR__.'/config_test.php');
         $this->assertAttributeNotEmpty('config', $pc);
 
         //include $config array
         $config = null;
-        include(__DIR__ . '/config_test.php');
+        include(__DIR__.'/config_test.php');
         $this->assertAttributeEquals($config, 'config', $pc);
 
         $this->assertAttributeSame(1, 'minCacheFileSize', $pc);
@@ -305,7 +303,7 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
     public function testWrongParseConfig()
     {
         $this->expectException(PageCacheException::class);
-        $pc = new PageCache(__DIR__ . '/config_wrong_test.php');
+        $pc = new PageCache(__DIR__.'/config_wrong_test.php');
 
         $this->assertAttributeEmpty('logEnabled', $pc);
     }
@@ -323,12 +321,12 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
 
     public function testDefaultLogger()
     {
-        $tmpDir = vfsStream::url('tmpdir');
+        $tmpDir  = vfsStream::url('tmpdir');
         $tmpFile = $tmpDir.'/log.txt';
 
         $pc = new PageCache();
         $pc->enableLog();
-        $pc->setPath($tmpDir . '/');
+        $pc->setPath($tmpDir.'/');
         $pc->setLogFilePath($tmpFile);
 
         // No logger
@@ -345,7 +343,7 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
 
     public function testLogWithMonolog()
     {
-        $cachePath = vfsStream::url('tmpdir').'/';
+        $cachePath      = vfsStream::url('tmpdir').'/';
         $defaultLogFile = vfsStream::url('tmpdir').'/log.txt';
         $monologLogFile = vfsStream::url('tmpdir').'/monolog.log';
 
