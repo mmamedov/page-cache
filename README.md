@@ -101,7 +101,7 @@ The following are public methods of PageCache class that you could call from you
 - disableSession():void - Disable session support.
 - sessionExclude(array):void - Exclude $_SESSION key(s) from caching strategies 
 - isCached():bool - Checks if current page is in cache, true if exists false if not cached yet.
-- getFilepath():string - Get full path for current page's filename. At this point file itself might or might not have been created.
+- getFilePath():string - Get full path for current page's filename. At this point file itself might or might not have been created.
 - getFile():string - Get current page's cache file name.
 - getPageCache():bool - Return current page cache as a string or false on error, if this page was cached before.
 - getSessionExclude():array|null - Get excluded $_SESSION keys.
