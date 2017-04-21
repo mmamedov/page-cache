@@ -315,12 +315,10 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
         $pc = new PageCache();
         $this->assertAttributeEmpty('logger', $pc);
 
-        $this->expectException('PHPUnit_Framework_Error');
-        $pc->setLogger(new \stdClass());
-        $this->assertAttributeNotInstanceOf(LoggerInterface::class, 'logger', $pc);
+        $logger = new Logger('testmonolog');
 
-        $pc->setLogger(new Logger('testmonolog'));
-        $this->assertAttributeInstanceOf(LoggerInterface::class, 'logger', $pc);
+        $pc->setLogger($logger);
+        $this->assertAttributeEquals($logger, 'logger', $pc);
     }
 
     public function testDefaultLogger()
