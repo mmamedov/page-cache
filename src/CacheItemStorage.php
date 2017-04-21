@@ -108,7 +108,7 @@ class CacheItemStorage
     /**
      * Calculate and returns item's expiration time.
      *
-     * Cache expiration is cache_expire seconds +/- a random value of seconds, from -6 to 6.
+     * Cache expiration is cacheExpire seconds +/- a random value of seconds, from -6 to 6.
      *
      * So although expiration is set for example 200 seconds, it is not guaranteed that it will expire in exactly
      * that many seconds. It could expire at 200 seconds, but also could expire in 206 seconds, or 194 seconds, or
