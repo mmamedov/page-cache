@@ -2,27 +2,27 @@
 /**
  * This file is part of the PageCache package.
  *
- * @author Denis Terekhov <i.am@spotman.ru>
- * @package PageCache
+ * @author    Denis Terekhov <i.am@spotman.ru>
+ * @package   PageCache
  * @copyright 2017
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
-namespace PageCache;
+namespace PageCache\Storage\FileSystem;
 
 use DateInterval;
-use PageCache\Storage\FileSystem\FileSystem;
-use PageCache\Storage\FileSystem\HashDirectory;
+use PageCache\CacheAdapterException;
+use PageCache\PageCacheException;
 use Psr\SimpleCache\CacheInterface;
 
 /**
- * Class FileSystemCacheAdapter
+ * Class FileSystemPsrCacheAdapter
  *
  * @package PageCache
  */
-class FileSystemCacheAdapter implements CacheInterface
+class FileSystemPsrCacheAdapter implements CacheInterface
 {
     /**
      * @var string
@@ -42,10 +42,10 @@ class FileSystemCacheAdapter implements CacheInterface
     /**
      * @var \PageCache\Storage\FileSystem\HashDirectory
      */
-    protected $hash_directory;
+    protected $hashDirectory;
 
     /**
-     * FileSystemCacheAdapter constructor.
+     * FileSystemPsrCacheAdapter constructor.
      *
      * @param string $path
      * @param int    $fileLock
@@ -57,8 +57,8 @@ class FileSystemCacheAdapter implements CacheInterface
         $this->fileLock    = $fileLock;
         $this->minFileSize = $minFileSize;
 
-        $this->hash_directory = new HashDirectory();
-        $this->hash_directory->setDir($this->path);
+        $this->hashDirectory = new HashDirectory();
+        $this->hashDirectory->setDir($this->path);
     }
 
     /**
@@ -83,20 +83,10 @@ class FileSystemCacheAdapter implements CacheInterface
         return $this->isValidFile($path);
     }
 
-    private function makeFullPath($key)
-    {
-        return $this->hash_directory->getFullPath($key);
-    }
-
-    private function isValidFile($path)
-    {
-        return (file_exists($path) && filesize($path) >= $this->minFileSize);
-    }
-
     /**
      * Fetches a value from the cache.
      *
-     * @param string $key The unique key of this item in the cache.
+     * @param string $key     The unique key of this item in the cache.
      * @param mixed  $default Default value to return if the key does not exist.
      *
      * @return mixed The value of the item from the cache, or $default in case of cache miss.
@@ -119,9 +109,9 @@ class FileSystemCacheAdapter implements CacheInterface
     /**
      * Persists data in the cache, uniquely referenced by a key with an optional expiration TTL time.
      *
-     * @param string                $key The key of the item to store.
+     * @param string                $key   The key of the item to store.
      * @param mixed                 $value The value of the item to store, must be serializable.
-     * @param null|int|DateInterval $ttl Optional. The TTL value of this item. If no value is sent and
+     * @param null|int|DateInterval $ttl   Optional. The TTL value of this item. If no value is sent and
      *                                     the driver supports TTL then the library may set a default value
      *                                     for it or let the driver take care of that.
      *
@@ -153,11 +143,6 @@ class FileSystemCacheAdapter implements CacheInterface
         }
 
         return true;
-    }
-
-    private function prepareItemData($data)
-    {
-        return '<?php return unserialize('.var_export(serialize($data), true).');';
     }
 
     /**
@@ -194,13 +179,13 @@ class FileSystemCacheAdapter implements CacheInterface
      */
     public function clear()
     {
-        return $this->hash_directory->clearDirectory($this->path);
+        return $this->hashDirectory->clearDirectory($this->path);
     }
 
     /**
      * Obtains multiple cache items by their unique keys.
      *
-     * @param iterable $keys A list of keys that can obtained in a single operation.
+     * @param iterable $keys    A list of keys that can obtained in a single operation.
      * @param mixed    $default Default value to return for keys that do not exist.
      *
      * @return iterable A list of key => value pairs. Cache keys that do not exist or are stale will have $default as value.
@@ -218,7 +203,7 @@ class FileSystemCacheAdapter implements CacheInterface
      * Persists a set of key => value pairs in the cache, with an optional TTL.
      *
      * @param iterable              $values A list of key => value pairs for a multiple-set operation.
-     * @param null|int|DateInterval $ttl Optional. The TTL value of this item. If no value is sent and
+     * @param null|int|DateInterval $ttl    Optional. The TTL value of this item. If no value is sent and
      *                                      the driver supports TTL then the library may set a default value
      *                                      for it or let the driver take care of that.
      *
@@ -247,5 +232,20 @@ class FileSystemCacheAdapter implements CacheInterface
     public function deleteMultiple($keys)
     {
         throw new PageCacheException(__METHOD__.' not implemented');
+    }
+
+    private function makeFullPath($key)
+    {
+        return $this->hashDirectory->getFullPath($key);
+    }
+
+    private function isValidFile($path)
+    {
+        return (file_exists($path) && filesize($path) >= $this->minFileSize);
+    }
+
+    private function prepareItemData($data)
+    {
+        return '<?php return unserialize('.var_export(serialize($data), true).');';
     }
 }

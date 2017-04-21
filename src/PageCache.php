@@ -12,6 +12,7 @@
 namespace PageCache;
 
 use DateTime;
+use PageCache\Storage\FileSystem\FileSystemPsrCacheAdapter;
 use PageCache\Strategy\DefaultStrategy;
 use Psr\Log\LogLevel;
 use Psr\SimpleCache\CacheInterface;
@@ -37,7 +38,7 @@ class PageCache
     protected $httpHeaders;
 
     /**
-     * @var \PageCache\Storage
+     * @var \PageCache\CacheItemStorage
      */
     private $storage;
 
@@ -269,7 +270,7 @@ class PageCache
         $this->log(__METHOD__.' uri:'.$_SERVER['REQUEST_URI']
             .'; script:'.$_SERVER['SCRIPT_NAME'].'; query:'.$_SERVER['QUERY_STRING'].'.');
 
-        $this->storage = new Storage($this->cache_adapter ?: $this->getDefaultCacheAdapter(), $this->cache_expire);
+        $this->storage = new CacheItemStorage($this->cache_adapter ?: $this->getDefaultCacheAdapter(), $this->cache_expire);
 
         if (!$this->strategy) {
             $this->strategy = new DefaultStrategy();
@@ -331,7 +332,7 @@ class PageCache
 
     private function getDefaultCacheAdapter()
     {
-        return new FileSystemCacheAdapter($this->cache_path, $this->file_lock, $this->min_cache_file_size);
+        return new FileSystemPsrCacheAdapter($this->cache_path, $this->file_lock, $this->min_cache_file_size);
     }
 
     private function getCurrentKey()
@@ -461,7 +462,7 @@ class PageCache
     /**
      * Return current page cache as a string or false on error, if this page was cached before.
      *
-     * @deprecated No direct cache file manipulating
+     * @return string|false
      */
     public function getPageCache()
     {

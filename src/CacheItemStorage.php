@@ -16,12 +16,12 @@ use Psr\SimpleCache\CacheInterface;
 use DateTime;
 
 /**
- * Class Storage
+ * Class CacheItemStorage
  * Wrapper for PSR-16 SimpleCache adapter
  *
  * @package PageCache
  */
-class Storage
+class CacheItemStorage
 {
     /**
      * @var \Psr\SimpleCache\CacheInterface
@@ -59,7 +59,7 @@ class Storage
             return null;
         }
 
-        // Generate expiration time
+        // Randomize expiration time
         $this->randomizeExpirationTime($item);
 
         // Cache expired?
