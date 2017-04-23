@@ -1,6 +1,4 @@
 <?php
-namespace PageCache\Storage\FileSystem;
-
 /**
  * This file is part of the PageCache package.
  *
@@ -10,6 +8,8 @@ namespace PageCache\Storage\FileSystem;
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+namespace PageCache\Storage\FileSystem;
 
 use PageCache\PageCacheException;
 

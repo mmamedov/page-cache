@@ -18,7 +18,7 @@ $config = array(
     //adjust accordingly
     'min_cache_file_size' => 1,
 
-    // set true to enable loging, not recommended for production use, only for debugging
+    // set true to enable logging, not recommended for production use, only for debugging
     'enable_log' => 'someWrongValue',
 
     //current page's cache expiration in seconds. Set to 10 minutes:

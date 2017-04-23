@@ -57,5 +57,7 @@ $config = array(
     'file_lock' => LOCK_EX | LOCK_NB,
 
     //Send HTTP headers
-    'send_headers' => false
+    'send_headers' => false,
+
+    'forward_headers' => false,
 );

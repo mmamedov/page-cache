@@ -3,7 +3,7 @@
  * This file is part of the PageCache package.
  *
  * @author    Muhammed Mamedov <mm@turkmenweb.net>
- * @copyright 2017
+ * @copyright 2016
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,7 +12,9 @@
 namespace PageCache;
 
 use DateTime;
+use PageCache\Storage\FileSystem\FileSystemPsrCacheAdapter;
 use PageCache\Strategy\DefaultStrategy;
+use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\SimpleCache\CacheInterface;
 
@@ -37,52 +39,52 @@ class PageCache
     protected $httpHeaders;
 
     /**
-     * @var \PageCache\Storage
+     * @var \PageCache\CacheItemStorage
      */
-    private $storage;
+    private $itemStorage;
 
     /**
      * @var \Psr\SimpleCache\CacheInterface
      */
-    private $cache_adapter;
+    private $cacheAdapter;
 
     /**
      * Cache directory
      *
      * @var string
      */
-    private $cache_path;
+    private $cachePath;
 
     /**
      * Cache expiration in seconds
      *
      * @var int
      */
-    private $cache_expire = 1200;
+    private $cacheExpire = 1200;
 
     /**
      * @var string
      */
-    private $current_key;
+    private $currentKey;
 
     /**
      * @var \PageCache\CacheItemInterface
      */
-    private $current_item;
+    private $currentItem;
 
     /**
      * Enable logging
      *
      * @var bool
      */
-    private $enable_log = false;
+    private $logEnabled = false;
 
     /**
      * File path for internal log file
      *
      * @var string
      */
-    private $log_file_path;
+    private $logFilePath;
 
     /**
      * StrategyInterface for cache naming strategy
@@ -105,21 +107,21 @@ class PageCache
      *
      * @var false|int
      */
-    private $file_lock = 6;
+    private $fileLock = 6;
 
     /**
      * Regenerate cache if cached content is less that this many bytes (some error occurred)
      *
      * @var int
      */
-    private $min_cache_file_size = 10;
+    private $minCacheFileSize = 10;
 
     /**
      * Forward Last-Modified, Expires and ETag headers from application
      *
      * @var bool
      */
-    private $forward_headers = false;
+    private $forwardHeaders = false;
 
     /**
      * When logging is enabled, defines a PSR logging library for logging exceptions and errors.
@@ -140,6 +142,10 @@ class PageCache
         if (PageCache::$ins) {
             throw new PageCacheException('PageCache already created.');
         }
+
+        $this->httpHeaders = new HttpHeaders();
+        $this->strategy    = new DefaultStrategy();
+
         // Load configuration file
         if ($config_file_path && file_exists($config_file_path)) {
             $config = null;
@@ -153,8 +159,6 @@ class PageCache
             SessionHandler::disable();
         }
         PageCache::$ins = true;
-
-        $this->httpHeaders = new HttpHeaders();
     }
 
     /**
@@ -162,16 +166,16 @@ class PageCache
      *
      * @param array $config
      *
-     * @throws \Exception min params not set
+     * @throws \PageCache\PageCacheException Min params not set
      */
     private function parseConfig(array $config)
     {
         $this->config = $config;
 
-        $this->min_cache_file_size = (int)$this->config['min_cache_file_size'];
+        $this->minCacheFileSize = (int)$this->config['min_cache_file_size'];
 
-        if (isset($this->config['enable_log']) && $this->isBool($this->config['enable_log'])) {
-            $this->enable_log = $this->config['enable_log'];
+        if (isset($this->config['logEnabled']) && $this->isBool($this->config['logEnabled'])) {
+            $this->logEnabled = $this->config['logEnabled'];
         }
 
         if (isset($this->config['expiration'])) {
@@ -179,7 +183,7 @@ class PageCache
                 throw new PageCacheException('PageCache config: invalid expiration value, < 0.');
             }
 
-            $this->cache_expire = (int)$this->config['expiration'];
+            $this->cacheExpire = (int)$this->config['expiration'];
         }
 
         // Path to store cache files
@@ -194,13 +198,13 @@ class PageCache
                 throw new PageCacheException('PageCache config: cache path not writable or empty');
             }
 
-            $this->cache_path = $this->config['cache_path'];
+            $this->cachePath = $this->config['cache_path'];
             // @codeCoverageIgnoreEnd
         }
 
         // Log file path
         if (isset($this->config['log_file_path']) && !empty($this->config['log_file_path'])) {
-            $this->log_file_path = $this->config['log_file_path'];
+            $this->logFilePath = $this->config['log_file_path'];
         }
 
         // Use $_SESSION while caching or not
@@ -217,7 +221,7 @@ class PageCache
 
         // File Locking
         if (isset($this->config['file_lock']) && !empty($this->config['file_lock'])) {
-            $this->file_lock = $this->config['file_lock'];
+            $this->fileLock = $this->config['file_lock'];
         }
 
         // Send HTTP headers
@@ -227,7 +231,7 @@ class PageCache
 
         // Forward Last-Modified and ETag headers to cache item
         if (isset($this->config['forward_headers']) && $this->isBool($this->config['forward_headers'])) {
-            $this->forward_headers = $this->config['forward_headers'];
+            $this->forwardHeaders = $this->config['forward_headers'];
         }
     }
 
@@ -255,9 +259,9 @@ class PageCache
         }
     }
 
-    public function setCache(CacheInterface $cache)
+    public function setCacheAdapter(CacheInterface $cache)
     {
-        $this->cache_adapter = $cache;
+        $this->cacheAdapter = $cache;
     }
 
     /**
@@ -269,23 +273,14 @@ class PageCache
         $this->log(__METHOD__.' uri:'.$_SERVER['REQUEST_URI']
             .'; script:'.$_SERVER['SCRIPT_NAME'].'; query:'.$_SERVER['QUERY_STRING'].'.');
 
-        $this->storage = new Storage($this->cache_adapter ?: $this->getDefaultCacheAdapter(), $this->cache_expire);
-
-        if (!$this->strategy) {
-            $this->strategy = new DefaultStrategy();
-        }
-
-        // Detect current request hash key
-        $key = $this->getCurrentKey();
-
         // Search for valid cache item for current request
-        if ($this->current_item = $this->storage->get($key)) {
+        if ($item = $this->getCurrentItem()) {
             // Display cache item if found
             // If cache file not found or not valid, init() continues with cache generation(storePageContent())
-            $this->displayItem($this->current_item);
+            $this->displayItem($item);
         }
 
-        $this->log(__METHOD__.' Cache item not found for hash '.$key);
+        $this->log(__METHOD__.' Cache item not found for hash '.$this->getCurrentKey());
 
         // Fetch page content and save it
         ob_start(function ($content) {
@@ -312,13 +307,13 @@ class PageCache
      */
     private function log($msg, $exception = null)
     {
-        if (!$this->enable_log) {
+        if (!$this->logEnabled) {
             return false;
         }
 
         // If an external logger is not available but internal logger is configured
-        if (!$this->logger && $this->log_file_path) {
-            $this->logger = new DefaultLogger($this->log_file_path);
+        if (!$this->logger && $this->logFilePath) {
+            $this->logger = new DefaultLogger($this->logFilePath);
         }
 
         if ($this->logger) {
@@ -331,16 +326,16 @@ class PageCache
 
     private function getDefaultCacheAdapter()
     {
-        return new FileSystemCacheAdapter($this->cache_path, $this->file_lock, $this->min_cache_file_size);
+        return new FileSystemPsrCacheAdapter($this->cachePath, $this->fileLock, $this->minCacheFileSize);
     }
 
     private function getCurrentKey()
     {
-        if (!$this->current_key) {
-            $this->current_key = $this->strategy->strategy();
+        if (!$this->currentKey) {
+            $this->currentKey = $this->getStrategy()->strategy();
         }
 
-        return $this->current_key;
+        return $this->currentKey;
     }
 
     /**
@@ -379,7 +374,7 @@ class PageCache
         $key  = $this->getCurrentKey();
         $item = new CacheItem($key);
 
-        $isHeadersForwardingEnabled = $this->forward_headers && $this->httpHeaders->isEnabledHeaders();
+        $isHeadersForwardingEnabled = $this->forwardHeaders && $this->httpHeaders->isEnabledHeaders();
 
         $this->log('Header forwarding is '.($isHeadersForwardingEnabled ? 'enabled' : 'disabled'));
 
@@ -419,7 +414,7 @@ class PageCache
             ->setLastModified($lastModified)
             ->setETagString($eTagString);
 
-        $this->storage->set($item);
+        $this->getItemStorage()->set($item);
 
         $this->log(__METHOD__.' Data stored for key '.$key);
 
@@ -438,6 +433,26 @@ class PageCache
     }
 
     /**
+     * Get current Strategy.
+     *
+     * @return StrategyInterface
+     */
+    public function getStrategy()
+    {
+        return $this->strategy;
+    }
+
+    /**
+     * Caching strategy - expected file name for this current page.
+     *
+     * @param StrategyInterface $strategy object for choosing appropriate cache file name
+     */
+    public function setStrategy(StrategyInterface $strategy)
+    {
+        $this->strategy = $strategy;
+    }
+
+    /**
      * Clear cache for provided page (or current page if none given)
      *
      * @param \PageCache\CacheItemInterface|null $item
@@ -448,42 +463,68 @@ class PageCache
     {
         // Use current item if not provided in arguments
         if (!$item) {
-            $item = $this->current_item;
+            $item = $this->getCurrentItem();
         }
 
         if (!$item) {
             throw new PageCacheException(__METHOD__.' Page cache item can not be detected');
         }
 
-        $this->storage->delete($item);
+        $this->getItemStorage()->delete($item);
     }
 
     /**
      * Return current page cache as a string or false on error, if this page was cached before.
      *
-     * @deprecated No direct cache file manipulating
+     * @return string|false
      */
     public function getPageCache()
     {
-        if (!$this->current_item) {
-            return false;
-        }
+        $key = $this->getCurrentKey();
+        $item = $this->getItemStorage()->get($key);
 
-        return $this->current_item->getContent();
+        return $item ? $item->getContent() : false;
     }
 
     /**
      * Checks if current page is in cache.
      *
+     * @param \PageCache\CacheItemInterface|null $item
+     *
      * @return bool Returns true if page has a valid cache file saved, false if not
      */
-    public function isCached()
+    public function isCached(CacheItemInterface $item = null)
     {
-        $key = $this->getCurrentKey();
-
-        $item = $this->storage->get($key);
+        if (!$item) {
+            $key = $this->getCurrentKey();
+            $item = $this->getItemStorage()->get($key);
+        }
 
         return (bool)$item;
+    }
+
+    private function getItemStorage()
+    {
+        // Hack for weird initialization logic
+        if (!$this->itemStorage) {
+            $this->itemStorage = new CacheItemStorage(
+                $this->cacheAdapter ?: $this->getDefaultCacheAdapter(),
+                $this->cacheExpire
+            );
+        }
+
+        return $this->itemStorage;
+    }
+
+    private function getCurrentItem()
+    {
+        // Hack for weird initialization logic
+        if (!$this->currentItem) {
+            $key = $this->getCurrentKey();
+            $this->currentItem = $this->getItemStorage()->get($key);
+        }
+
+        return $this->currentItem;
     }
 
     /**
@@ -526,7 +567,7 @@ class PageCache
         if (substr($path, -1) !== '/') {
             throw new PageCacheException('setPath() - / trailing slash is expected at the end of cache_path.');
         }
-        $this->cache_path = $path;
+        $this->cachePath = $path;
     }
 
     /**
@@ -543,7 +584,7 @@ class PageCache
             throw new PageCacheException(__METHOD__.' Invalid expiration value, < 0.');
         }
 
-        $this->cache_expire = (int)$seconds;
+        $this->cacheExpire = (int)$seconds;
     }
 
     /**
@@ -551,7 +592,7 @@ class PageCache
      */
     public function enableLog()
     {
-        $this->enable_log = true;
+        $this->logEnabled = true;
     }
 
     /**
@@ -559,7 +600,7 @@ class PageCache
      */
     public function disableLog()
     {
-        $this->enable_log = false;
+        $this->logEnabled = false;
     }
 
     /**
@@ -608,7 +649,7 @@ class PageCache
      *
      * @param \Psr\Log\LoggerInterface $logger
      */
-    public function setLogger($logger)
+    public function setLogger(LoggerInterface $logger)
     {
         $this->logger = $logger;
     }
@@ -620,17 +661,17 @@ class PageCache
      */
     public function getFileLock()
     {
-        return $this->file_lock;
+        return $this->fileLock;
     }
 
     /**
      * Set file_lock value
      *
-     * @param false|int $file_lock
+     * @param false|int $fileLock
      */
-    public function setFileLock($file_lock)
+    public function setFileLock($fileLock)
     {
-        $this->file_lock = $file_lock;
+        $this->fileLock = $fileLock;
     }
 
     /**
@@ -641,7 +682,7 @@ class PageCache
      */
     public function getCacheExpiration()
     {
-        return $this->cache_expire;
+        return $this->cacheExpire;
     }
 
     /**
@@ -651,7 +692,7 @@ class PageCache
      */
     public function getExpiration()
     {
-        return $this->cache_expire;
+        return $this->cacheExpire;
     }
 
     /**
@@ -661,7 +702,7 @@ class PageCache
      */
     public function getPath()
     {
-        return $this->cache_path;
+        return $this->cachePath;
     }
 
     /**
@@ -671,18 +712,18 @@ class PageCache
      */
     public function getLogFilePath()
     {
-        return $this->log_file_path;
+        return $this->logFilePath;
     }
 
     /**
      * Set path for internal log file
      *
-     * @param string $log_file_path
+     * @param string $logFilePath
      */
-    public function setLogFilePath($log_file_path)
+    public function setLogFilePath($logFilePath)
     {
-        if (!empty($log_file_path)) {
-            $this->log_file_path = $log_file_path;
+        if (!empty($logFilePath)) {
+            $this->logFilePath = $logFilePath;
         }
     }
 
@@ -693,37 +734,17 @@ class PageCache
      */
     public function getMinCacheFileSize()
     {
-        return $this->min_cache_file_size;
+        return $this->minCacheFileSize;
     }
 
     /**
      * When generated cache file is less that this size, it is considered as invalid (will be regenerated on next call)
      *
-     * @param $min_cache_file_size int bytes for filename
+     * @param $minCacheFileSize int bytes for filename
      */
-    public function setMinCacheFileSize($min_cache_file_size)
+    public function setMinCacheFileSize($minCacheFileSize)
     {
-        $this->min_cache_file_size = $min_cache_file_size;
-    }
-
-    /**
-     * Get current Strategy.
-     *
-     * @return StrategyInterface
-     */
-    public function getStrategy()
-    {
-        return $this->strategy;
-    }
-
-    /**
-     * Caching strategy - expected file name for this current page.
-     *
-     * @param StrategyInterface $strategy object for choosing appropriate cache file name
-     */
-    public function setStrategy(StrategyInterface $strategy)
-    {
-        $this->strategy = $strategy;
+        $this->minCacheFileSize = $minCacheFileSize;
     }
 
     /**
@@ -744,7 +765,7 @@ class PageCache
      */
     public function forwardHeaders($enable)
     {
-        $this->forward_headers = (bool)$enable;
+        $this->forwardHeaders = (bool)$enable;
     }
 
     /**
@@ -752,6 +773,6 @@ class PageCache
      */
     public function clearCache()
     {
-        $this->storage->clear();
+        $this->getItemStorage()->clear();
     }
 }

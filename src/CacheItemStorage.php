@@ -1,16 +1,27 @@
 <?php
+/**
+ * This file is part of the PageCache package.
+ *
+ * @author Denis Terekhov <i.am@spotman.ru>
+ * @package PageCache
+ * @copyright 2017
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace PageCache;
 
 use Psr\SimpleCache\CacheInterface;
 use DateTime;
 
 /**
- * Class Storage
+ * Class CacheItemStorage
  * Wrapper for PSR-16 SimpleCache adapter
  *
  * @package PageCache
  */
-class Storage
+class CacheItemStorage
 {
     /**
      * @var \Psr\SimpleCache\CacheInterface
@@ -48,7 +59,7 @@ class Storage
             return null;
         }
 
-        // Generate expiration time
+        // Randomize expiration time
         $this->randomizeExpirationTime($item);
 
         // Cache expired?
@@ -97,7 +108,7 @@ class Storage
     /**
      * Calculate and returns item's expiration time.
      *
-     * Cache expiration is cache_expire seconds +/- a random value of seconds, from -6 to 6.
+     * Cache expiration is cacheExpire seconds +/- a random value of seconds, from -6 to 6.
      *
      * So although expiration is set for example 200 seconds, it is not guaranteed that it will expire in exactly
      * that many seconds. It could expire at 200 seconds, but also could expire in 206 seconds, or 194 seconds, or
