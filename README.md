@@ -146,7 +146,8 @@ The following are public methods of PageCache class that you could call from you
 - setFileLock(false|int) - Set PHP file locking mechanism for cache file writing. Disable locking by setting it to false. 
 - enableHeaders(bool) - Enable/disable HTTP headers related to caching. It is highly recommended that you turn it on.
 - forwardHeaders(bool) - Enable/disable fetching HTTP headers from your app and forwarding it to browser on every request
-- clearCache() - Removes all content from cache directory.
+- isHeadersForwardingEnabled():bool - Return true if HTTP headers forwarding was enabled
+- clearCache() - Removes all content from cache storage.
 
 Check source code for more available methods. 
 

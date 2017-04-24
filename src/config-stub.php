@@ -19,6 +19,8 @@
  * You do not need to copy this config file and use it, you could set up all parameters directly inside code.
  * If you have caching enabled on several pages, and do not want to repeat cache settings, then config file is for you.
  *
+ * Options `file_lock`, `cache_path` and `min_cache_file_size` are ignored if custom PSR-16 SimpleCache adapter is used.
+ *
  * NOTE: Parameters defined here in $config array are used by all pages using PageCache within you application.
  *       You can override any of these settings in your code.
  *

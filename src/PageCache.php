@@ -396,7 +396,7 @@ class PageCache
         $key  = $this->getCurrentKey();
         $item = new CacheItem($key);
 
-        $isHeadersForwardingEnabled = $this->forwardHeaders && $this->httpHeaders->isEnabledHeaders();
+        $isHeadersForwardingEnabled = $this->isHeadersForwardingEnabled();
 
         $this->log('Header forwarding is '.($isHeadersForwardingEnabled ? 'enabled' : 'disabled'));
 
@@ -798,6 +798,16 @@ class PageCache
     public function forwardHeaders($enable)
     {
         $this->forwardHeaders = (bool)$enable;
+    }
+
+    /**
+     * Return true if HTTP headers forwarding function enabled
+     *
+     * @return bool
+     */
+    public function isHeadersForwardingEnabled()
+    {
+        return $this->httpHeaders->isEnabledHeaders() && $this->forwardHeaders;
     }
 
     /**
