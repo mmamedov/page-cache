@@ -174,8 +174,8 @@ class PageCache
 
         $this->minCacheFileSize = (int)$this->config['min_cache_file_size'];
 
-        if (isset($this->config['logEnabled']) && $this->isBool($this->config['logEnabled'])) {
-            $this->logEnabled = $this->config['logEnabled'];
+        if (isset($this->config['log_enabled']) && $this->isBool($this->config['log_enabled'])) {
+            $this->logEnabled = $this->config['log_enabled'];
         }
 
         if (isset($this->config['expiration'])) {
@@ -259,6 +259,11 @@ class PageCache
         }
     }
 
+    /**
+     * Set PSR-16 compatible cache adapter
+     *
+     * @param \Psr\SimpleCache\CacheInterface $cache
+     */
     public function setCacheAdapter(CacheInterface $cache)
     {
         $this->cacheAdapter = $cache;
@@ -282,6 +287,14 @@ class PageCache
 
         $this->log(__METHOD__.' Cache item not found for hash '.$this->getCurrentKey());
 
+        $this->bindOutputBufferingHandler();
+    }
+
+    /**
+     * Start output buffering and bind handler for caching page content
+     */
+    private function bindOutputBufferingHandler()
+    {
         // Fetch page content and save it
         ob_start(function ($content) {
             try {
@@ -297,7 +310,7 @@ class PageCache
     }
 
     /**
-     * Log message using PSR Logger, or error_log.
+     * Log message using PSR Logger.
      * Works only when logging was enabled.
      *
      * @param string          $msg
@@ -324,11 +337,20 @@ class PageCache
         return true;
     }
 
+    /**
+     * Return default PSR-16 cache adapter
+     *
+     * @return \Psr\SimpleCache\CacheInterface
+     */
     private function getDefaultCacheAdapter()
     {
         return new FileSystemPsrCacheAdapter($this->cachePath, $this->fileLock, $this->minCacheFileSize);
     }
 
+    /**
+     * Detect and return cache key for current page
+     * @return string
+     */
     private function getCurrentKey()
     {
         if (!$this->currentKey) {
@@ -503,6 +525,11 @@ class PageCache
         return (bool)$item;
     }
 
+    /**
+     * Create and return cache storage instance
+     *
+     * @return \PageCache\CacheItemStorage
+     */
     private function getItemStorage()
     {
         // Hack for weird initialization logic
@@ -516,6 +543,11 @@ class PageCache
         return $this->itemStorage;
     }
 
+    /**
+     * Detect and return current page cached item (or null if current page was not cached yet)
+     *
+     * @return \PageCache\CacheItemInterface|null
+     */
     private function getCurrentItem()
     {
         // Hack for weird initialization logic

@@ -10,8 +10,10 @@ composer require mmamedov/page-cache
 ```
 Or manually add to your composer.json file:
 ```json
-"require": {
-    "mmamedov/page-cache": "^1.3"
+{
+  "require": {
+      "mmamedov/page-cache": "^1.3"
+  }
 }
 ```
 Once PageCache is installed, include Composer's autoload.php file, or implement your own autoloader. Composer autoloader is recommended.
@@ -44,6 +46,34 @@ $cache->init();
 
 //rest of your PHP page code, everything below will be cached
 ```
+
+Using PSR-16 compatible cache adapter
+----
+
+PageCache is built on top of PSR-16 SimpleCache "key"=>"value" storage and has default file-based cache adapter in class `FileSystemPsrCacheAdapter`. This implementation is fast and uses `var_export` + `include` internally so every cache file is also automatically cached in OpCache or APC if you have configured opcode caching for your project. This is perfect choice for single-server applications but if you have multi-server application you should want to share page cache content between servers. In this case you may use any PSR-16 compatible cache adapter for network-based "key"=>"value" storage like Memcached or Redis:
+
+```php
+<?php
+require_once __DIR__.'/../vendor/autoload.php';
+
+use Naroga\RedisCache\Redis;
+use Predis\Client;
+
+$config = array(
+    'scheme' => 'tcp',
+    'host'   => 'localhost',
+    'port'   => 6379
+);
+
+$redis = new Redis(new Client($config));
+
+$cache = new PageCache\PageCache();
+$cache->setCacheAdapter($redis);
+$cache->init();
+
+//rest of your PHP page code, everything below will be cached
+```
+
 For more examples see code inside [PageCache examples](examples/) directory.
 
 For those who wonder, cache is saved into path specified in config file or using API, inside directories based on file hash. 
