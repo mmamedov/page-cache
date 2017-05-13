@@ -272,7 +272,7 @@ class PageCache
         $key  = $this->getCurrentKey();
         $item = new CacheItem($key);
 
-        $isHeadersForwardingEnabled = $this->forwardHeaders && $this->httpHeaders->isEnabledHeaders();
+        $isHeadersForwardingEnabled = $this->isHeadersForwardingEnabled();
 
         $this->log('Header forwarding is '.($isHeadersForwardingEnabled ? 'enabled' : 'disabled'));
 
@@ -401,6 +401,11 @@ class PageCache
         return (bool)$item;
     }
 
+    /**
+     * Create and return cache storage instance
+     *
+     * @return \PageCache\CacheItemStorage
+     */
     private function getItemStorage()
     {
         // Hack for weird initialization logic
@@ -414,6 +419,11 @@ class PageCache
         return $this->itemStorage;
     }
 
+    /**
+     * Detect and return current page cached item (or null if current page was not cached yet)
+     *
+     * @return \PageCache\CacheItemInterface|null
+     */
     private function getCurrentItem()
     {
         // Hack for weird initialization logic
@@ -667,6 +677,16 @@ class PageCache
     }
 
     /**
+     * Return true if HTTP headers forwarding function enabled
+     *
+     * @return bool
+     */
+    public function isHeadersForwardingEnabled()
+    {
+        return $this->httpHeaders->isEnabledHeaders() && $this->forwardHeaders;
+    }
+
+    /**
      * Delete everything from cache.
      */
     public function clearCache()
@@ -731,7 +751,9 @@ class PageCache
         if (isset($this->config['cache_path'])) {
             // @codeCoverageIgnoreStart
             if (substr($this->config['cache_path'], -1) !== '/') {
-                throw new PageCacheException('PageCache config: / trailing slash is expected at the end of cache_path.');
+                throw new PageCacheException(
+                    'PageCache config: / trailing slash is expected at the end of cache_path.'
+                );
             }
 
             //path writable?

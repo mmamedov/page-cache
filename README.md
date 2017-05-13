@@ -10,8 +10,10 @@ composer require mmamedov/page-cache
 ```
 Or manually add to your composer.json file:
 ```json
-"require": {
-    "mmamedov/page-cache": "^1.3"
+{
+  "require": {
+      "mmamedov/page-cache": "^1.3"
+  }
 }
 ```
 Once PageCache is installed, include Composer's autoload.php file, or implement your own autoloader. Composer autoloader is recommended.
@@ -44,6 +46,34 @@ $cache->init();
 
 //rest of your PHP page code, everything below will be cached
 ```
+
+Using PSR-16 compatible cache adapter
+----
+
+PageCache is built on top of [PSR-16 SimpleCache](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-16-simple-cache.md) "key"=>"value" storage and has default file-based cache adapter in class `FileSystemPsrCacheAdapter`. This implementation is fast and uses `var_export` + `include` internally so every cache file is also automatically cached in OpCache or APC (if you have configured opcode caching for your project). This is perfect choice for single-server applications but if you have multi-server application you should want to share page cache content between servers. In this case you may use any PSR-16 compatible cache adapter for network-based "key"=>"value" storage like Memcached or Redis:
+
+```php
+<?php
+require_once __DIR__.'/../vendor/autoload.php';
+
+use Naroga\RedisCache\Redis;
+use Predis\Client;
+
+$config = array(
+    'scheme' => 'tcp',
+    'host'   => 'localhost',
+    'port'   => 6379
+);
+
+$redis = new Redis(new Client($config));
+
+$cache = new PageCache\PageCache();
+$cache->setCacheAdapter($redis);
+$cache->init();
+
+//rest of your PHP page code, everything below will be cached
+```
+
 For more examples see code inside [PageCache examples](examples/) directory.
 
 For those who wonder, cache is saved into path specified in config file or using API, inside directories based on file hash. 
@@ -70,6 +100,16 @@ $cache->setStrategy(new MyOwnStrategy());
 Included with the PageCache is the `MobileStrategy()` based on [Mobile_Detect](https://github.com/serbanghita/Mobile-Detect) . It is useful if you are serving the same URL differently accross devices. See [cache_mobiledetect.php PageCache example](examples/cache_mobiledetect.php) file for demo using MobileDetect._
 
 You can define your own naming strategy, for example to incorporate logged in users into your applications. In this situations, URL might remain same, while content of the page will be different for each logged in user.
+
+HTTP headers
+----
+PageCache serves these valid HTTP headers:
+
+- `Last-Modified`
+- `Expires`
+- `ETag`
+
+By default, `Last-Modified` is time of cache item creation, `Expires` is based on `expiration` config option, `ETag` is based on `Last-Modified` time. There is an `forward_headers` option which allows PageCache to fetch values of these HTTP headers from the app response and store them into cache item so headers would be cached too. This approach is useful if your app has fine-grained control of HTTP headers and all you need is proper page content caching.
 
 Config file
 ----
@@ -101,13 +141,13 @@ The following are public methods of PageCache class that you could call from you
 - disableSession():void - Disable session support.
 - sessionExclude(array):void - Exclude $_SESSION key(s) from caching strategies 
 - isCached():bool - Checks if current page is in cache, true if exists false if not cached yet.
-- getFilePath():string - Get full path for current page's filename. At this point file itself might or might not have been created.
-- getFile():string - Get current page's cache file name.
-- getPageCache():bool - Return current page cache as a string or false on error, if this page was cached before.
+- getPageCache():string - Return current page cache as a string or false on error, if this page was cached before.
 - getSessionExclude():array|null - Get excluded $_SESSION keys.
 - setFileLock(false|int) - Set PHP file locking mechanism for cache file writing. Disable locking by setting it to false. 
 - enableHeaders(bool) - Enable/disable HTTP headers related to caching. It is highly recommended that you turn it on.
-- clearCache() - Removes all content from cache directory.
+- forwardHeaders(bool) - Enable/disable fetching HTTP headers from your app and forwarding it to browser on every request
+- isHeadersForwardingEnabled():bool - Return true if HTTP headers forwarding was enabled
+- clearCache() - Removes all content from cache storage.
 
 Check source code for more available methods. 
 
