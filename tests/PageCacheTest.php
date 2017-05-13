@@ -219,14 +219,14 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
     {
         $pc = new PageCache();
         $pc->enableLog();
-        $this->assertAttributeSame(true, 'logEnabled', $pc);
+        $this->assertAttributeSame(true, 'enableLog', $pc);
     }
 
     public function testDisableLog()
     {
         $pc = new PageCache();
         $pc->disableLog();
-        $this->assertAttributeSame(false, 'logEnabled', $pc);
+        $this->assertAttributeSame(false, 'enableLog', $pc);
     }
 
     public function testSetMinCacheFileSize()
@@ -287,7 +287,7 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
         $this->assertAttributeEquals($config, 'config', $pc);
 
         $this->assertAttributeSame(1, 'minCacheFileSize', $pc);
-        $this->assertAttributeSame(false, 'logEnabled', $pc);
+        $this->assertAttributeSame(false, 'enableLog', $pc);
         $this->assertAttributeSame(600, 'cacheExpire', $pc);
         $this->assertAttributeContains('/tmp/cache/', 'cachePath', $pc);
         $this->assertAttributeContains('/tmp', 'logFilePath', $pc);
@@ -305,7 +305,7 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
         $this->expectException(PageCacheException::class);
         $pc = new PageCache(__DIR__.'/config_wrong_test.php');
 
-        $this->assertAttributeEmpty('logEnabled', $pc);
+        $this->assertAttributeEmpty('enableLog', $pc);
     }
 
     public function testSetLogger()

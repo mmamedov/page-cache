@@ -22,6 +22,7 @@ class DefaultLogger extends AbstractLogger
      * DefaultLogger constructor.
      *
      * @param $file
+     * @throws PageCacheException
      */
     public function __construct($file)
     {

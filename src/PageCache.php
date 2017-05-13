@@ -12,7 +12,7 @@
 namespace PageCache;
 
 use DateTime;
-use PageCache\Storage\FileSystem\FileSystemPsrCacheAdapter;
+use PageCache\Storage\FileSystem\FileSystemCacheAdapter;
 use PageCache\Strategy\DefaultStrategy;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
@@ -77,7 +77,7 @@ class PageCache
      *
      * @var bool
      */
-    private $logEnabled = false;
+    private $enableLog = false;
 
     /**
      * File path for internal log file
@@ -107,7 +107,7 @@ class PageCache
      *
      * @var false|int
      */
-    private $fileLock = 6;
+    private $fileLock = LOCK_EX | LOCK_NB;
 
     /**
      * Regenerate cache if cached content is less that this many bytes (some error occurred)
@@ -159,80 +159,6 @@ class PageCache
             SessionHandler::disable();
         }
         PageCache::$ins = true;
-    }
-
-    /**
-     * Parses conf.php files and sets parameters for this object
-     *
-     * @param array $config
-     *
-     * @throws \PageCache\PageCacheException Min params not set
-     */
-    private function parseConfig(array $config)
-    {
-        $this->config = $config;
-
-        $this->minCacheFileSize = (int)$this->config['min_cache_file_size'];
-
-        if (isset($this->config['logEnabled']) && $this->isBool($this->config['logEnabled'])) {
-            $this->logEnabled = $this->config['logEnabled'];
-        }
-
-        if (isset($this->config['expiration'])) {
-            if ($this->config['expiration'] < 0) {
-                throw new PageCacheException('PageCache config: invalid expiration value, < 0.');
-            }
-
-            $this->cacheExpire = (int)$this->config['expiration'];
-        }
-
-        // Path to store cache files
-        if (isset($this->config['cache_path'])) {
-            // @codeCoverageIgnoreStart
-            if (substr($this->config['cache_path'], -1) !== '/') {
-                throw new PageCacheException('PageCache config: / trailing slash is expected at the end of cache_path.');
-            }
-
-            //path writable?
-            if (empty($this->config['cache_path']) || !is_writable($this->config['cache_path'])) {
-                throw new PageCacheException('PageCache config: cache path not writable or empty');
-            }
-
-            $this->cachePath = $this->config['cache_path'];
-            // @codeCoverageIgnoreEnd
-        }
-
-        // Log file path
-        if (isset($this->config['log_file_path']) && !empty($this->config['log_file_path'])) {
-            $this->logFilePath = $this->config['log_file_path'];
-        }
-
-        // Use $_SESSION while caching or not
-        if (isset($this->config['use_session']) && $this->isBool($this->config['use_session'])) {
-            SessionHandler::setStatus($this->config['use_session']);
-        }
-
-        // Session exclude key
-        if (isset($this->config['session_exclude_keys']) && !empty($this->config['session_exclude_keys'])) {
-            // @codeCoverageIgnoreStart
-            SessionHandler::excludeKeys($this->config['session_exclude_keys']);
-            // @codeCoverageIgnoreEnd
-        }
-
-        // File Locking
-        if (isset($this->config['file_lock']) && !empty($this->config['file_lock'])) {
-            $this->fileLock = $this->config['file_lock'];
-        }
-
-        // Send HTTP headers
-        if (isset($this->config['send_headers']) && $this->isBool($this->config['send_headers'])) {
-            $this->httpHeaders->enableHeaders($this->config['send_headers']);
-        }
-
-        // Forward Last-Modified and ETag headers to cache item
-        if (isset($this->config['forward_headers']) && $this->isBool($this->config['forward_headers'])) {
-            $this->forwardHeaders = $this->config['forward_headers'];
-        }
     }
 
     /**
@@ -296,37 +222,9 @@ class PageCache
         });
     }
 
-    /**
-     * Log message using PSR Logger, or error_log.
-     * Works only when logging was enabled.
-     *
-     * @param string          $msg
-     * @param null|\Exception $exception
-     *
-     * @return bool true when logged, false when didn't log
-     */
-    private function log($msg, $exception = null)
-    {
-        if (!$this->logEnabled) {
-            return false;
-        }
-
-        // If an external logger is not available but internal logger is configured
-        if (!$this->logger && $this->logFilePath) {
-            $this->logger = new DefaultLogger($this->logFilePath);
-        }
-
-        if ($this->logger) {
-            $level = $exception ? LogLevel::ALERT : LogLevel::DEBUG;
-            $this->logger->log($level, $msg, ['exception' => $exception]);
-        }
-
-        return true;
-    }
-
     private function getDefaultCacheAdapter()
     {
-        return new FileSystemPsrCacheAdapter($this->cachePath, $this->fileLock, $this->minCacheFileSize);
+        return new FileSystemCacheAdapter($this->cachePath, $this->fileLock, $this->minCacheFileSize);
     }
 
     private function getCurrentKey()
@@ -592,7 +490,7 @@ class PageCache
      */
     public function enableLog()
     {
-        $this->logEnabled = true;
+        $this->enableLog = true;
     }
 
     /**
@@ -600,7 +498,7 @@ class PageCache
      */
     public function disableLog()
     {
-        $this->logEnabled = false;
+        $this->enableLog = false;
     }
 
     /**
@@ -774,5 +672,107 @@ class PageCache
     public function clearCache()
     {
         $this->getItemStorage()->clear();
+    }
+
+    /**
+     * Log message using PSR Logger, or error_log.
+     * Works only when logging was enabled.
+     *
+     * @param string          $msg
+     * @param null|\Exception $exception
+     *
+     * @return bool true when logged, false when didn't log
+     */
+    private function log($msg, $exception = null)
+    {
+        if (!$this->enableLog) {
+            return false;
+        }
+
+        // If an external logger is not available but internal logger is configured
+        if (!$this->logger && $this->logFilePath) {
+            $this->logger = new DefaultLogger($this->logFilePath);
+        }
+
+        if ($this->logger) {
+            $level = $exception ? LogLevel::ALERT : LogLevel::DEBUG;
+            $this->logger->log($level, $msg, ['exception' => $exception]);
+        }
+
+        return true;
+    }
+
+    /**
+     * Parses conf.php files and sets parameters for this object
+     *
+     * @param array $config
+     *
+     * @throws \PageCache\PageCacheException Min params not set
+     */
+    private function parseConfig(array $config)
+    {
+        $this->config = $config;
+
+        $this->minCacheFileSize = (int)$this->config['min_cache_file_size'];
+
+        if (isset($this->config['enable_log']) && $this->isBool($this->config['enable_log'])) {
+            $this->enableLog = $this->config['enable_log'];
+        }
+
+        if (isset($this->config['expiration'])) {
+            if ($this->config['expiration'] < 0) {
+                throw new PageCacheException('PageCache config: invalid expiration value, < 0.');
+            }
+
+            $this->cacheExpire = (int)$this->config['expiration'];
+        }
+
+        // Path to store cache files
+        if (isset($this->config['cache_path'])) {
+            // @codeCoverageIgnoreStart
+            if (substr($this->config['cache_path'], -1) !== '/') {
+                throw new PageCacheException('PageCache config: / trailing slash is expected at the end of cache_path.');
+            }
+
+            //path writable?
+            if (empty($this->config['cache_path']) || !is_writable($this->config['cache_path'])) {
+                throw new PageCacheException('PageCache config: cache path not writable or empty');
+            }
+
+            $this->cachePath = $this->config['cache_path'];
+            // @codeCoverageIgnoreEnd
+        }
+
+        // Log file path
+        if (isset($this->config['log_file_path']) && !empty($this->config['log_file_path'])) {
+            $this->logFilePath = $this->config['log_file_path'];
+        }
+
+        // Use $_SESSION while caching or not
+        if (isset($this->config['use_session']) && $this->isBool($this->config['use_session'])) {
+            SessionHandler::setStatus($this->config['use_session']);
+        }
+
+        // Session exclude key
+        if (isset($this->config['session_exclude_keys']) && !empty($this->config['session_exclude_keys'])) {
+            // @codeCoverageIgnoreStart
+            SessionHandler::excludeKeys($this->config['session_exclude_keys']);
+            // @codeCoverageIgnoreEnd
+        }
+
+        // File Locking
+        if (isset($this->config['file_lock']) && !empty($this->config['file_lock'])) {
+            $this->fileLock = $this->config['file_lock'];
+        }
+
+        // Send HTTP headers
+        if (isset($this->config['send_headers']) && $this->isBool($this->config['send_headers'])) {
+            $this->httpHeaders->enableHeaders($this->config['send_headers']);
+        }
+
+        // Forward Last-Modified and ETag headers to cache item
+        if (isset($this->config['forward_headers']) && $this->isBool($this->config['forward_headers'])) {
+            $this->forwardHeaders = $this->config['forward_headers'];
+        }
     }
 }

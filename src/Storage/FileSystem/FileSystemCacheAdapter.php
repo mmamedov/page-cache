@@ -22,7 +22,7 @@ use Psr\SimpleCache\CacheInterface;
  *
  * @package PageCache
  */
-class FileSystemPsrCacheAdapter implements CacheInterface
+class FileSystemCacheAdapter implements CacheInterface
 {
     /**
      * @var string
@@ -117,8 +117,8 @@ class FileSystemPsrCacheAdapter implements CacheInterface
      *
      * @return bool True on success and false on failure.
      *
-     * @throws \Psr\SimpleCache\InvalidArgumentException
-     *   MUST be thrown if the $key string is not a legal value.
+     * @throws \Psr\SimpleCache\InvalidArgumentException If the $key string is not a legal value.
+     * @throws \Exception If the $key string is not a legal value.
      */
     public function set($key, $value, $ttl = null)
     {
