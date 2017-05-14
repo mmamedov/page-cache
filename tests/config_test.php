@@ -11,8 +11,10 @@
 
 /**
  * Testing parameters for PageCache
+ *
+ * If any of the parameters are changed, please change test cases (esp. ConfigTest)
  */
-$config = array(
+return [
 
     //generated cache files less than this many bytes, are considered invalid and are regenerated
     //adjust accordingly
@@ -22,7 +24,7 @@ $config = array(
     'enable_log' => false,
 
     //current page's cache expiration in seconds. Set to 10 minutes:
-    'expiration' => 10 * 60,
+    'cache_expiration_in_seconds' => 10 * 60,
 
     //log file location, enable_log must be true for loging to work
     'log_file_path' => __DIR__ . '/tmp',
@@ -44,7 +46,7 @@ $config = array(
      *              value of $_SESSION['count] session variable.
      *              Example: 'session_exclude_keys'=>array('count')
      */
-    'session_exclude_keys' => array(),
+    'session_exclude_keys' => [],
 
     /**
      *
@@ -60,4 +62,4 @@ $config = array(
     'send_headers' => false,
 
     'forward_headers' => false,
-);
+];

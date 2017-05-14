@@ -12,4 +12,6 @@
 
 namespace PageCache;
 
-class PageCacheException extends \Exception {}
+class PageCacheException extends \Exception
+{
+}

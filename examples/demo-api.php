@@ -12,7 +12,7 @@
 
 /**
  *
- * This demo demonstrates use of global conf.php config file in PageCache.
+ * This demo demonstrates use of global config.php config file in PageCache.
  *
  * It's useful to have settings defined in one file, to avoid repeating yourself
  *
@@ -20,22 +20,19 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+use PageCache\PageCache;
+
 //PageCache configuration in a file
-$config_file = __DIR__ . '/conf.php';
+$config_file = __DIR__ . '/config.php';
 
 //pass config file
-$cache = new PageCache\PageCache($config_file);
+$cache = new PageCache($config_file);
 
-//enable log, by default disabled in conf.php
-$cache->enableLog();
+//enable log, by default disabled in config.php
+$cache->config()->setEnableLog(true);
 
-//getfilepath
-echo 'Cache filepath, getFilePath(): ' . $cache->getFilePath() . '<br/>';
+echo 'Cache key, getCurrentKey(): ' . $cache->getCurrentKey() . '<br/>';
 echo '<hr/>';
-
-//get file name
-echo 'Cache file name, getFile(): ' . $cache->getFile();
-echo '<hr>';
 
 //cache present already?
 echo 'isChached(): ';
@@ -59,13 +56,13 @@ echo '<hr/>';
 //
 //$cache->clearPageCache();
 
-//disable log, overrides conf.php
+//disable log, overrides config.php
 //$cache->disableLog();
 
-//Change log file path, overrides conf.php
+//Change log file path, overrides config.php
 //$cache->logFilePath(__DIR__.'/log/cache.log');
 
-//Set cache expiration for this current page, overrides conf.php
+//Set cache expiration for this current page, overrides config.php
 //$cache->setExpiration(3600);
 
 //Cache file minimum size, if it's less than this many bytes cache considered invalid.

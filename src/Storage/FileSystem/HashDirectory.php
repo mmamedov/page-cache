@@ -57,12 +57,11 @@ class HashDirectory
      */
     public function setDir($dir)
     {
-        if ($dir) {
-            if (!@is_dir($dir)) {
-                throw new PageCacheException(__CLASS__ . ' dir in constructor is not a directory');
-            }
-            $this->dir = $dir;
+        if (empty($dir) || !@is_dir($dir)) {
+            throw new PageCacheException(__METHOD__ . ': '
+                . strval($dir) . ' in constructor is not a directory');
         }
+        $this->dir = $dir;
     }
 
     /**
@@ -75,12 +74,18 @@ class HashDirectory
         $this->file = $file;
     }
 
+    /**
+     * Get full file path for a key
+     *
+     * @param mixed $key cache key
+     * @return string path
+     */
     public function getFullPath($key)
     {
         $this->setFile($key);
 
         $path = $this->getHash();
-        return $this->dir.$path.$key;
+        return $this->dir . $path . $key;
     }
 
     /**
@@ -93,7 +98,7 @@ class HashDirectory
      */
     public function getHash()
     {
-        if (!$this->file || !$this->dir) {
+        if (empty($this->file) || empty($this->dir)) {
             return null;
         }
 
@@ -128,7 +133,7 @@ class HashDirectory
         }
         //check if directories are there
         if (!@is_dir($this->dir . $dir1 . '/' . $dir2)) {
-            throw new PageCacheException(__CLASS__.' ' . $dir1 . '/' . $dir2
+            throw new PageCacheException(__CLASS__.'/'.__METHOD__.': ' . $dir1 . '/' . $dir2
                 . ' cache directory could not be created');
         }
     }
@@ -179,7 +184,7 @@ class HashDirectory
      */
     public function clearDirectory($dir)
     {
-        if (empty($dir)) {
+        if (empty($dir) || !@is_dir($dir)) {
             return false;
         }
 

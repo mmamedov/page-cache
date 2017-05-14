@@ -28,19 +28,18 @@
  */
 require_once __DIR__ . '/../vendor/autoload.php';
 
-
 use PageCache\PageCache;
 use PageCache\Strategy\MobileStrategy;
 
 /**
  * PageCache setup
  */
-$config_file = __DIR__ . '/conf.php';
+$config_file = __DIR__ . '/config.php';
 $cache = new PageCache($config_file);
 $cache->setStrategy(new MobileStrategy());
-//enable session support if needed, check demos and README for details
+//Enable session support if needed, check demos and README for details
 //uncomment for session support
-//$cache->enableSession();
+//$cache->config()->setUseSession(true);
 $cache->init();
 
 /**

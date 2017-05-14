@@ -14,7 +14,8 @@ use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
-use PageCache\CacheItemStorage;
+use PageCache\Config;
+use PageCache\Storage\CacheItemStorage;
 use PageCache\DefaultLogger;
 use PageCache\PageCache;
 use PageCache\PageCacheException;
@@ -61,7 +62,7 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
 
         $this->assertAttributeInstanceOf(\PageCache\HttpHeaders::class, 'httpHeaders', $pc);
         $this->assertAttributeInstanceOf(DefaultStrategy::class, 'strategy', $pc);
-        $this->assertAttributeEquals(null, 'config', $pc);
+        $this->assertAttributeInstanceOf(Config::class, 'config', $pc);
     }
 
     /**
@@ -70,7 +71,7 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
     public function testInit()
     {
         $pc = new PageCache();
-        $pc->setPath(vfsStream::url('tmpdir').'/');
+        $pc->config()->setCachePath(vfsStream::url('tmpdir').'/');
 
         // No CacheItemStorage before init()
         $this->assertAttributeEquals(null, 'itemStorage', $pc);
@@ -91,8 +92,9 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
     public function testInitWithHeaders()
     {
         $pc = new PageCache();
-        $pc->setPath(vfsStream::url('tmpdir').'/');
-        $pc->enableHeaders(true);
+        $pc->config()->setCachePath(vfsStream::url('tmpdir').'/')
+                     ->setSendHeaders(true);
+
         $pc->init();
         $output = 'Testing output for InitWithHeaders() with Headers enabled';
         echo $output;
@@ -128,7 +130,7 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
     public function testClearPageCache()
     {
         $pc = new PageCache(__DIR__.'/config_test.php');
-        $pc->setPath(vfsStream::url('tmpdir').'/');
+        $pc->config()->setCachePath(vfsStream::url('tmpdir').'/');
 
         $pc->init();
         $output = 'Testing output for clearPageCache()';
@@ -145,23 +147,23 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
         $cachePath = vfsStream::url('tmpdir').'/';
 
         $pc = new PageCache();
-        $pc->setPath($cachePath);
+        $pc->config()->setCachePath($cachePath);
         $this->assertSame(false, $pc->getPageCache());
         $pc->destroy();
 
         $pc = new PageCache(__DIR__.'/config_test.php');
-        $pc->setPath($cachePath);
+        $pc->config()->setCachePath($cachePath);
         $pc->init();
         $output = 'Testing output for getPageCache()';
         echo $output;
         ob_end_flush();
-        $this->assertEquals($output, $pc->getPageCache());
+        $this->assertSame($output, $pc->getPageCache());
     }
 
     public function testIsCached()
     {
         $pc = new PageCache(__DIR__.'/config_test.php');
-        $pc->setPath(vfsStream::url('tmpdir').'/');
+        $pc->config()->setCachePath(vfsStream::url('tmpdir').'/');
 
         //no cache exists
         $this->assertFalse($pc->isCached(), ' is cached');
@@ -182,139 +184,11 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($output, $pc->getPageCache(), 'Cache file contents not as expected.');
     }
 
-    public function testSetPath()
-    {
-        $pc = new PageCache();
-        $this->assertAttributeSame(null, 'cachePath', $pc);
-
-        $dir = __DIR__.'/';
-        $pc->setPath($dir);
-        $this->assertAttributeSame($dir, 'cachePath', $pc);
-    }
-
-    /**
-     * @expectedException \Exception
-     */
-    public function testSetPath2()
-    {
-        $pc = new PageCache();
-        $pc->setPath('nonexistant_dir');
-    }
-
-    public function testSetExpiration()
-    {
-        $pc = new PageCache();
-        $pc->setExpiration(10);
-        $this->assertAttributeSame(10, 'cacheExpire', $pc);
-    }
-
-    public function testSetExpirationException()
-    {
-        $pc = new PageCache();
-        $this->expectException(PageCacheException::class);
-        $pc->setExpiration(-1);
-    }
-
-    public function testEnableLog()
-    {
-        $pc = new PageCache();
-        $pc->enableLog();
-        $this->assertAttributeSame(true, 'enableLog', $pc);
-    }
-
-    public function testDisableLog()
-    {
-        $pc = new PageCache();
-        $pc->disableLog();
-        $this->assertAttributeSame(false, 'enableLog', $pc);
-    }
-
-    public function testSetMinCacheFileSize()
-    {
-        $pc = new PageCache();
-        $pc->setMinCacheFileSize(0);
-        $this->assertAttributeSame(0, 'minCacheFileSize', $pc);
-
-        $pc->setMinCacheFileSize(10000);
-        $this->assertAttributeSame(10000, 'minCacheFileSize', $pc);
-    }
-
-    public function testEnableSession()
-    {
-        $pc = new PageCache();
-
-        $pc->enableSession();
-        $this->assertEquals(true, SessionHandler::getStatus());
-    }
-
-    public function testDisableSession()
-    {
-        $pc = new PageCache();
-
-        $pc->disableSession();
-        $this->assertEquals(false, SessionHandler::getStatus());
-    }
-
-    public function testSessionExclude()
-    {
-        $pc = new PageCache();
-
-        $pc->sessionExclude([]);
-        $this->assertEquals([], SessionHandler::getExcludeKeys());
-
-        $pc->sessionExclude([1, 2, 3]);
-        $this->assertEquals([1, 2, 3], SessionHandler::getExcludeKeys());
-    }
-
-    public function testGetSessionExclude()
-    {
-        $pc     = new PageCache();
-        $result = $pc->getSessionExclude();
-        $this->assertEmpty($result);
-
-        $pc->sessionExclude([null, '2', 3, false, new \stdClass()]);
-        $this->assertEquals([null, '2', 3, false, new \stdClass()], SessionHandler::getExcludeKeys());
-    }
-
-    public function testParseConfig()
-    {
-        $pc = new PageCache(__DIR__.'/config_test.php');
-        $this->assertAttributeNotEmpty('config', $pc);
-
-        //include $config array
-        $config = null;
-        include(__DIR__.'/config_test.php');
-        $this->assertAttributeEquals($config, 'config', $pc);
-
-        $this->assertAttributeSame(1, 'minCacheFileSize', $pc);
-        $this->assertAttributeSame(false, 'enableLog', $pc);
-        $this->assertAttributeSame(600, 'cacheExpire', $pc);
-        $this->assertAttributeContains('/tmp/cache/', 'cachePath', $pc);
-        $this->assertAttributeContains('/tmp', 'logFilePath', $pc);
-        $this->assertSame(false, SessionHandler::getStatus());
-        $this->assertSame(null, SessionHandler::getExcludeKeys());
-        $this->assertAttributeSame($config['file_lock'], 'fileLock', $pc);
-        $this->assertAttributeSame($config['forward_headers'], 'forwardHeaders', $pc);
-    }
-
-    /**
-     * Config enable log not boolean(ignored), expiration negative -> throws exception
-     */
-    public function testWrongParseConfig()
-    {
-        $this->expectException(PageCacheException::class);
-        $pc = new PageCache(__DIR__.'/config_wrong_test.php');
-
-        $this->assertAttributeEmpty('enableLog', $pc);
-    }
-
     public function testSetLogger()
     {
         $pc = new PageCache();
         $this->assertAttributeEmpty('logger', $pc);
-
         $logger = new Logger('testmonolog');
-
         $pc->setLogger($logger);
         $this->assertAttributeEquals($logger, 'logger', $pc);
     }
@@ -325,13 +199,14 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
         $tmpFile = $tmpDir.'/log.txt';
 
         $pc = new PageCache();
-        $pc->enableLog();
-        $pc->setPath($tmpDir.'/');
-        $pc->setLogFilePath($tmpFile);
+        $pc->config()->setEnableLog(true)
+                     ->setCachePath($tmpDir.'/')
+                     ->setLogFilePath($tmpFile);
 
         // No logger
         $this->assertAttributeEquals(null, 'logger', $pc);
 
+        //During init logger is initialized
         $pc->init();
         $output = 'testLog() method testing, output testing.';
         echo $output;
@@ -339,6 +214,7 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
 
         $this->assertAttributeInstanceOf(DefaultLogger::class, 'logger', $pc);
         $this->assertContains('PageCache\PageCache::init', file_get_contents($tmpFile));
+        $this->assertContains('PageCache\PageCache::storePageContent', file_get_contents($tmpFile));
     }
 
     public function testLogWithMonolog()
@@ -348,13 +224,13 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
         $monologLogFile = vfsStream::url('tmpdir').'/monolog.log';
 
         $pc = new PageCache();
-        $pc->setPath($cachePath);
-        $pc->setLogFilePath($defaultLogFile); //internal logger, should be ignored
-        $pc->enableLog();
+        $pc->config()->setEnableLog(true)
+            ->setCachePath($cachePath)
+            ->setLogFilePath($defaultLogFile); //internal logger, should be ignored
 
-        $logger = new Logger('PageCache');
-        $logger->pushHandler(new StreamHandler($monologLogFile, Logger::DEBUG));
-        $pc->setLogger($logger);
+        $monolog_logger = new Logger('PageCache');
+        $monolog_logger->pushHandler(new StreamHandler($monologLogFile, Logger::DEBUG));
+        $pc->setLogger($monolog_logger);
 
         $pc->init();
         ob_end_flush();
@@ -368,71 +244,10 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
     public function testDestroy()
     {
         $pc = new PageCache();
-        $pc->enableSession();
-        $this->assertEquals(true, SessionHandler::getStatus());
+        $pc->config()->setUseSession(true);
         $pc->destroy();
 
-        $pc2 = new PageCache();
-        $this->assertEquals(false, SessionHandler::getStatus());
-    }
-
-    public function testSetFileLock()
-    {
-        $pc = new PageCache();
-        $pc->setFileLock(LOCK_EX);
-        $this->assertAttributeEquals(LOCK_EX, 'fileLock', $pc);
-
-        $pc->setFileLock(LOCK_EX | LOCK_NB);
-        $this->assertAttributeEquals(LOCK_EX | LOCK_NB, 'fileLock', $pc);
-    }
-
-    public function testGetFileLock()
-    {
-        $pc = new PageCache();
-        $this->assertEquals(6, $pc->getFileLock());
-
-        $pc->setFileLock(LOCK_EX);
-        $this->assertEquals(LOCK_EX, $pc->getFileLock());
-    }
-
-    public function testGetExpiration()
-    {
-        $pc = new PageCache();
-        $this->assertEquals(1200, $pc->getExpiration());
-
-        $pc->setExpiration(20);
-        $this->assertEquals(20, $pc->getExpiration());
-    }
-
-    public function testGetPath()
-    {
-        $pc = new PageCache();
-        $this->assertNull($pc->getPath());
-
-        $dir = __DIR__.'/';
-        $pc->setPath($dir);
-        $this->assertEquals($dir, $pc->getPath());
-    }
-
-    public function testGetLogFilePath()
-    {
-        $pc = new PageCache();
-        $this->assertNull($pc->getLogFilePath());
-
-        $path = 'somepath/to/file';
-
-        $pc->setLogFilePath($path);
-        $this->assertAttributeEquals($path, 'logFilePath', $pc);
-    }
-
-    public function testGetMinCacheFileSize()
-    {
-        $pc = new PageCache();
-        $pc->getMinCacheFileSize();
-        $this->assertAttributeSame(10, 'minCacheFileSize', $pc);
-
-        $pc->setMinCacheFileSize(10240);
-        $this->assertEquals(10240, $pc->getMinCacheFileSize());
+        new PageCache();
     }
 
     public function testGetStrategy()

@@ -10,10 +10,17 @@
  * file that was distributed with this source code.
  */
 
-namespace PageCache;
+namespace PageCache\Storage;
 
 use DateTime;
 
+/**
+ * Cache Item Storage.
+ * Contents of the item are stored as a string.
+ *
+ * Class CacheItem
+ * @package PageCache\Storage
+ */
 class CacheItem implements CacheItemInterface
 {
     /**
@@ -54,7 +61,7 @@ class CacheItem implements CacheItemInterface
     public function __construct($key)
     {
         $this->key       = $key;
-        $this->createdAt = new DateTime;
+        $this->createdAt = new DateTime();
     }
 
     /**

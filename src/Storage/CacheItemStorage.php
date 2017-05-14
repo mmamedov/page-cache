@@ -10,7 +10,7 @@
  * file that was distributed with this source code.
  */
 
-namespace PageCache;
+namespace PageCache\Storage;
 
 use Psr\SimpleCache\CacheInterface;
 use DateTime;
@@ -48,11 +48,11 @@ class CacheItemStorage
     /**
      * @param string $key
      *
-     * @return \PageCache\CacheItemInterface|null
+     * @return \PageCache\Storage\CacheItemInterface|null
      */
     public function get($key)
     {
-        /** @var \PageCache\CacheItemInterface $item */
+        /** @var \PageCache\Storage\CacheItemInterface $item */
         $item = $this->adapter->get($key);
 
         if (!$item) {
@@ -91,7 +91,7 @@ class CacheItemStorage
     }
 
     /**
-     * @param \PageCache\CacheItemInterface $item
+     * @param \PageCache\Storage\CacheItemInterface $item
      * @param \DateTime|null                $time
      *
      * @return bool
@@ -115,7 +115,7 @@ class CacheItemStorage
      * anywhere in between 206 and 194 seconds. This is done to better deal with cache stampede, and improve cache
      * hit rate.
      *
-     * @param \PageCache\CacheItemInterface $item
+     * @param \PageCache\Storage\CacheItemInterface $item
      */
     private function randomizeExpirationTime(CacheItemInterface $item)
     {

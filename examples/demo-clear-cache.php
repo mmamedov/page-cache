@@ -21,18 +21,18 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use PageCache\PageCache;
 
 $cache = new PageCache();
-$cache->setPath(__DIR__ . '/cache/');
+$cache->config()->setCachePath(__DIR__ . '/cache/');
 
 //Clear cache.
 //Note that setPath() must be called prior to this, or 'cache_path' config parameter must be configured.
-$cache->clearCache();
+$cache->clearAllCache();
 $cache->init();
 
 ?>
 <html>
 <body>
-<h1>Example #1</h1>
-<h3 style="color: red">This is a basic demo PageCache page that is going to be cached.</h3>
+<h1>Example Clear Cache</h1>
+<h3 style="color: red">Notice this page is not being cached, because clearCache() is being called before init()</h3>
 <h3>Default cache expiration time for this page is 20 minutes. You can change this value in your <i>conf.php</i>
     and passing its file path to PageCache constructor, or by calling <i>setExpiration()</i> method.
     <span style="color: green;">Refresh browser to see changes.</span></h3>

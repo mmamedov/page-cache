@@ -18,25 +18,15 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-/**
- * When not specified using a config file or by calling methods, the following parameters are set automatically:
- *
- * cache_expire = 1200 seconds
- * min_cache_file_size = 10
- * file_lock = LOCK_EX | LOCK_NB
- * use_session = false
- *
- */
 use PageCache\PageCache;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 
 //Setup PageCache
 $cache = new PageCache();
-$cache->setPath(__DIR__ . '/cache/');
-
-//Enable logging
-$cache->enableLog();
+$cache->config()->setCachePath(__DIR__ . '/cache/')
+                //Enable logging
+                ->setEnableLog(true);
 
 //Monolog setup. More info on https://github.com/Seldaek/monolog
 $logger = new Logger('PageCache');

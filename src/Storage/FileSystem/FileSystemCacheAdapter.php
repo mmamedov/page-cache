@@ -13,7 +13,7 @@
 namespace PageCache\Storage\FileSystem;
 
 use DateInterval;
-use PageCache\CacheAdapterException;
+use PageCache\Storage\CacheAdapterException;
 use PageCache\PageCacheException;
 use Psr\SimpleCache\CacheInterface;
 
@@ -57,8 +57,7 @@ class FileSystemCacheAdapter implements CacheInterface
         $this->fileLock    = $fileLock;
         $this->minFileSize = $minFileSize;
 
-        $this->hashDirectory = new HashDirectory();
-        $this->hashDirectory->setDir($this->path);
+        $this->hashDirectory = new HashDirectory(null, $this->path);
     }
 
     /**
@@ -73,12 +72,12 @@ class FileSystemCacheAdapter implements CacheInterface
      *
      * @return bool
      *
-     * @throws \Psr\SimpleCache\InvalidArgumentException
-     *   MUST be thrown if the $key string is not a legal value.
+     * @todo throws \Psr\SimpleCache\InvalidArgumentException
+     *       MUST be thrown if the $key string is not a legal value.
      */
     public function has($key)
     {
-        $path = $this->makeFullPath($key);
+        $path = $this->hashDirectory->getFullPath($key);
 
         return $this->isValidFile($path);
     }
@@ -91,12 +90,12 @@ class FileSystemCacheAdapter implements CacheInterface
      *
      * @return mixed The value of the item from the cache, or $default in case of cache miss.
      *
-     * @throws \Psr\SimpleCache\InvalidArgumentException
-     *   MUST be thrown if the $key string is not a legal value.
+     * @todo throws \Psr\SimpleCache\InvalidArgumentException
+     *       MUST be thrown if the $key string is not a legal value.
      */
     public function get($key, $default = null)
     {
-        $path = $this->makeFullPath($key);
+        $path = $this->hashDirectory->getFullPath($key);
 
         if (!$this->isValidFile($path)) {
             return $default;
@@ -115,7 +114,7 @@ class FileSystemCacheAdapter implements CacheInterface
      *                                     the driver supports TTL then the library may set a default value
      *                                     for it or let the driver take care of that.
      *
-     * @return bool True on success and false on failure.
+     * @return bool True on success
      *
      * @throws \Psr\SimpleCache\InvalidArgumentException If the $key string is not a legal value.
      * @throws \Exception If the $key string is not a legal value.
@@ -123,8 +122,7 @@ class FileSystemCacheAdapter implements CacheInterface
     public function set($key, $value, $ttl = null)
     {
         $data = $this->prepareItemData($value);
-
-        $path    = $this->makeFullPath($key);
+        $path = $this->hashDirectory->getFullPath($key);
         $storage = new FileSystem($data);
 
         try {
@@ -157,7 +155,7 @@ class FileSystemCacheAdapter implements CacheInterface
      */
     public function delete($key)
     {
-        $path = $this->makeFullPath($key);
+        $path = $this->hashDirectory->getFullPath($key);
 
         /**
          * Cache file name is now available, check if cache file exists.
@@ -188,9 +186,9 @@ class FileSystemCacheAdapter implements CacheInterface
      * @param iterable $keys    A list of keys that can obtained in a single operation.
      * @param mixed    $default Default value to return for keys that do not exist.
      *
-     * @return iterable A list of key => value pairs. Cache keys that do not exist or are stale will have $default as value.
+     * @return null
      *
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws PageCacheException
      *   MUST be thrown if $keys is neither an array nor a Traversable,
      *   or if any of the $keys are not a legal value.
      */
@@ -207,9 +205,9 @@ class FileSystemCacheAdapter implements CacheInterface
      *                                      the driver supports TTL then the library may set a default value
      *                                      for it or let the driver take care of that.
      *
-     * @return bool True on success and false on failure.
+     * @return null
      *
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws PageCacheException
      *   MUST be thrown if $values is neither an array nor a Traversable,
      *   or if any of the $values are not a legal value.
      */
@@ -223,9 +221,9 @@ class FileSystemCacheAdapter implements CacheInterface
      *
      * @param iterable $keys A list of string-based keys to be deleted.
      *
-     * @return bool True if the items were successfully removed. False if there was an error.
+     * @return null
      *
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws PageCacheException
      *   MUST be thrown if $keys is neither an array nor a Traversable,
      *   or if any of the $keys are not a legal value.
      */
@@ -234,16 +232,23 @@ class FileSystemCacheAdapter implements CacheInterface
         throw new PageCacheException(__METHOD__.' not implemented');
     }
 
-    private function makeFullPath($key)
-    {
-        return $this->hashDirectory->getFullPath($key);
-    }
-
+    /**
+     * Check if $path is a valid cache file
+     *
+     * @param string $path Cache file path
+     * @return bool True if valid file, false otherwise
+     */
     private function isValidFile($path)
     {
         return (file_exists($path) && filesize($path) >= $this->minFileSize);
     }
 
+    /**
+     * Format $data value to be used in cache
+     *
+     * @param mixed $data
+     * @return string
+     */
     private function prepareItemData($data)
     {
         return '<?php return unserialize('.var_export(serialize($data), true).');';

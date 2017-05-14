@@ -2,7 +2,8 @@
 
 Full-page PHP Caching library
 ----
-PageCache is a lightweight PHP library for full page cache, works out of the box with zero configuration. Use it when you need a simple yet powerfull file based PHP caching solution. Page caching for mobile devices is built-in.
+PageCache is a lightweight PHP library for full page cache, works out of the box with zero configuration. 
+Use it when you need a simple yet powerful file based PHP caching solution. Page caching for mobile devices is built-in.
 
 Install PHP PageCache and start caching your PHP's browser output code using Composer:
 ```
@@ -16,32 +17,49 @@ Or manually add to your composer.json file:
   }
 }
 ```
-Once PageCache is installed, include Composer's autoload.php file, or implement your own autoloader. Composer autoloader is recommended.
+Once PageCache is installed, include Composer's autoload.php file, or implement your own autoloader. 
+Composer autoloader is recommended.
+
+Do not use `master` branch, as it may contain unstable code, use versioned branches instead.
 
 No Database calls
 ----
-Once page is cached, there are no more database calls needed! Even if your page contains many database calls and complex logic, it will be executed once and cached for period you specify. No more overload!
+Once page is cached, there are no more database calls needed! Even if your page contains many database calls and complex logic, 
+it will be executed once and cached for period you specify. No more overload!
 
-This is a very efficient and simple method, to cache your most visited dynamic pages. [Tmawto.com](https://www.tmawto.com) website is built on PageCache, and is very fast.
+This is a very efficient and simple method, to cache your most visited dynamic pages. 
+[Tmawto.com](https://www.tmawto.com) website is built on PageCache, and is very fast.
 
 Why another PHP Caching class?
 ----
-Short answer - simplicity. If you want to include a couple lines of code on top of your dynamic PHP pages and be able to cache them fully, then PageCache is for you. No worrying about cache file name setup for each URL, no worries about your dynamically generated URL parameters and changing URLs. PageCache detects those changed and caches accordingly.
+Short answer - simplicity. If you want to include a couple lines of code on top of your dynamic PHP pages and be able 
+to cache them fully, then PageCache is for you. No worrying about cache file name setup for each URL, no worries 
+about your dynamically generated URL parameters and changing URLs. PageCache detects those changed and caches accordingly.
 
-PageCache also detects $_SESSION changes and caches those pages correctly. This is useful if you have user authentication enabled on your site, and page contents change per user login while URL remains the same.
+PageCache also detects $_SESSION changes and caches those pages correctly. This is useful if you have user 
+authentication enabled on your site, and page contents change per user login while URL remains the same.
 
-Lots of caching solutions focus on keyword-based approach, where you need to setup a keyword for your content (be it a full page cache, or a variable, etc.). There are great packages for keyword based approach. One could also use a more complex solution like a cache proxy, Varnish. PageCache on the other hand is a simple full page only caching solution, that does exactly what its name says - generates page cache in PHP.   
+Lots of caching solutions focus on keyword-based approach, where you need to setup a keyword for your 
+content (be it a full page cache, or a variable, etc.). There are great packages for keyword based approach. 
+One could also use a more complex solution like a cache proxy, Varnish. 
+PageCache on the other hand is a simple full page only caching solution, that does exactly what its name says - 
+generates page cache in PHP.   
 
 How PageCache works
 ----
-PageCache doesn't ask you for a keyword, it automatically generates them based on Strategies implementing StrategyInterface. You can define your own naming strategy, based on your application needs.
-Strategy class is responsible for generating a unique key for current request, key becomes file name for the cache file (if FileSystem storage is used).
+PageCache doesn't ask you for a keyword, it automatically generates them based on Strategies implementing StrategyInterface. 
+You can define your own naming strategy, based on your application needs.
+Strategy class is responsible for generating a unique key for current request, key becomes file name for the 
+cache file (if FileSystem storage is used).
 
 ```php
 <?php
 require_once __DIR__.'/../vendor/autoload.php';
 
 $cache = new PageCache\PageCache();
+//To get or set config params use config():
+$cache->config()->setCachePath('/your/path/')
+                ->setEnableLog(true);
 $cache->init();
 
 //rest of your PHP page code, everything below will be cached
@@ -77,7 +95,8 @@ $cache->init();
 For more examples see code inside [PageCache examples](examples/) directory.
 
 For those who wonder, cache is saved into path specified in config file or using API, inside directories based on file hash. 
-Based on the hash of the filename, 2 subdirectories will be created (if not created already), this is to avoid numerous files in a single cache directory. 
+Based on the hash of the filename, 2 subdirectories will be created (if not created already), 
+this is to avoid numerous files in a single cache directory. 
 
 Caching Strategies
 ------------------
@@ -89,7 +108,8 @@ All PageCache Strategies support sessions. See PageCache [cache page with sessio
 ```php
 md5($_SERVER['REQUEST_URI'] . $_SERVER['SCRIPT_NAME'] . $_SERVER['QUERY_STRING'] . $session_str)`
 ```
-String `$session_str` is a serialized $_SESSION variable, with some keys ignored/or not based on whether session support is enabled or if sessionExclude() was called. 
+String `$session_str` is a serialized $_SESSION variable, with some keys ignored/or not based on whether session 
+support is enabled or if sessionExclude() was called. 
 
 You could create your own naming strategy and pass it to PageCache:
 ```php
@@ -97,9 +117,12 @@ $cache = new PageCache\PageCache();
 $cache->setStrategy(new MyOwnStrategy());
 ```
 
-Included with the PageCache is the `MobileStrategy()` based on [Mobile_Detect](https://github.com/serbanghita/Mobile-Detect) . It is useful if you are serving the same URL differently accross devices. See [cache_mobiledetect.php PageCache example](examples/cache_mobiledetect.php) file for demo using MobileDetect._
+Included with the PageCache is the `MobileStrategy()` based on [Mobile_Detect](https://github.com/serbanghita/Mobile-Detect). 
+It is useful if you are serving the same URL differently across devices. 
+See [cache_mobiledetect.php PageCache example](examples/cache_mobiledetect.php) file for demo using MobileDetect._
 
-You can define your own naming strategy, for example to incorporate logged in users into your applications. In this situations, URL might remain same, while content of the page will be different for each logged in user.
+You can define your own naming strategy, for example to incorporate logged in users into your applications. 
+In this situations, URL might remain same, while content of the page will be different for each logged in user.
 
 HTTP headers
 ----
@@ -109,45 +132,50 @@ PageCache serves these valid HTTP headers:
 - `Expires`
 - `ETag`
 
-By default, `Last-Modified` is time of cache item creation, `Expires` is based on `expiration` config option, `ETag` is based on `Last-Modified` time. There is an `forward_headers` option which allows PageCache to fetch values of these HTTP headers from the app response and store them into cache item so headers would be cached too. This approach is useful if your app has fine-grained control of HTTP headers and all you need is proper page content caching.
+To enable HTTP headers to be sent along with the response, be sure to set `send_headers` to `true` in config file, or 
+directly using `$cache->config()->setSendHeaders(true)`.
+
+By default, `Last-Modified` is time of cache item creation, `Expires` is based on `expiration` config option, 
+`ETag` is based on `Last-Modified` time. There is an `forward_headers` option which allows PageCache to fetch 
+values of these HTTP headers from the app response and store them into cache item so headers would be cached too. 
+This approach is useful if your app has fine-grained control of HTTP headers and all you need is proper page content caching.
 
 Config file
 ----
 Although not required, configuration file can be specified during PageCache initialization for system wide caching properties
 
 ```php
-//optional system-wide cache config
+// Optional system-wide cache config
 use PageCache\PageCache;
 $config_file_ = __DIR__.'/config.php';
 $cache = new PageCache($config_file_);
+// You can overwrite or get configuration parameters like this:
+$cache->config()->getFileLock();
+$cache->config()->setUseSession(true);
 ```
 
-All available configuration options are documented in [config-stub](src/config-stub.php) file. Be sure to check it.
+All available configuration options are documented in [config](examples/config.php) file. Be sure to check it.
 
-API - PageCache class public methods
+API - PageCache access methods
 ------------------------------------
-The following are public methods of PageCache class that you could call from your application. This is not a complete list. Check out examples and source code for more.
+The following are public methods of PageCache class that you could call from your application. 
+This is not a complete list. Check out examples and source code for more.
 
-- init():void - initiate cache, this should be your last method to call on PageCache object.
-- setStrategy(\PageCache\StrategyInterface):void - set cache file strategy. Built-in strategies are DefaultStrategy() and MobileStrategy(). Define your own if needed.
-- clearPageCache():void - Clear cache for current page, if this page was cached before.
-- setPath(string):void - Location of cache files directory.
-- setExpiration(int):void - Time in seconds for cache to expire. (Actual expiration will vary +/- 0..6 seconds. Read "Random early and late expiration" section below.)
-- logFilePath(string):void - Set Log file path.
-- setLogger(\Psr\Log\LoggerInterface):void - Set PSR-3 compliant logger.
-- enableLog():void - Enable logging.
-- disableLog():void - Disable logging.
-- enableSession():void - Enable session support.
-- disableSession():void - Disable session support.
-- sessionExclude(array):void - Exclude $_SESSION key(s) from caching strategies 
-- isCached():bool - Checks if current page is in cache, true if exists false if not cached yet.
-- getPageCache():string - Return current page cache as a string or false on error, if this page was cached before.
-- getSessionExclude():array|null - Get excluded $_SESSION keys.
-- setFileLock(false|int) - Set PHP file locking mechanism for cache file writing. Disable locking by setting it to false. 
-- enableHeaders(bool) - Enable/disable HTTP headers related to caching. It is highly recommended that you turn it on.
-- forwardHeaders(bool) - Enable/disable fetching HTTP headers from your app and forwarding it to browser on every request
-- isHeadersForwardingEnabled():bool - Return true if HTTP headers forwarding was enabled
-- clearCache() - Removes all content from cache storage.
+| Method | Description |
+| --- | --- |
+| init():void | initiate cache, this should be your last method to call on PageCache object.|
+| setStrategy(\PageCache\StrategyInterface):void | set cache file strategy. Built-in strategies are DefaultStrategy() and MobileStrategy(). Define your own if needed.|
+| setCacheAdapter(CacheInterface) | Set cache adapter. |
+| getCurrentKey() : string | Get cache key value for this page.|
+| getStrategy() : Strategy | Get set Strategy object. |
+| setStrategy(Strategy) : void | Set Strategy object. |
+| clearPageCache():void | Clear cache for current page, if this page was cached before. |
+| getPageCache():string | Return current page cache as a string or false on error, if this page was cached before.|
+| isCached():bool | Checks if current page is in cache, true if exists false if not cached yet.|
+| setLogger(\Psr\Log\LoggerInterface):void | Set PSR-3 compliant logger.|
+| clearAllCache() | Removes all content from cache storage.|
+| destroy() : void | Destroy PageCache instance, reset SessionHandler | 
+| config() : Config | Get Config element. Setting and getting configuration values is done via this method. |
 
 Check source code for more available methods. 
 
@@ -156,16 +184,20 @@ Caching pages using Sessions (i.e. User Login enabled applications)
 PageCache makes it simple to maintain a full page cache in PHP while using sessions.
 
 For PageCache to be aware of your $_SESSION, in config file or in your PHP file you must enable session support.
-In your PHP file, before calling `init()` call `$cache->enableSession()`. That's it! Now your session pages will be cached seperately for your different session values. 
+In your PHP file, before calling `init()` call `$cache->config()->setUseSession(true)`. That's it! 
+Now your session pages will be cached seperately for your different session values. 
 
-Another handy method is `sessionExcludeKeys()`. Check out [Session exclude keys](examples/demo-session-exclude-keys.php) example for code.
+Another handy method is `config()->setSessionExcludeKeys()`. Check out [Session exclude keys](examples/demo-session-exclude-keys.php) 
+example for code.
 
-When to use `sessionExcludeKeys()`: For example let's assume that your application changes $_SESSION['count'] variable, but that doesn't reflect on the page content.
-Exclude this variable, otherwise PageCache will generate seperate cache files for each value of $_SESSION['count] session variable. To exclude 'count' session variable:
+When to use `config()->setSessionExcludeKeys()`: For example let's assume that your application changes $_SESSION['count'] variable, 
+but that doesn't reflect on the page content.
+Exclude this variable, otherwise PageCache will generate seperate cache files for each value of $_SESSION['count] 
+session variable. To exclude 'count' session variable:
 ```php
     // ...
-    $cache->enableSession();
-    $cache->sessionExcludeKeys(array('count'));
+    $cache->config()->setUseSession(true);
+    $cache->config()->setSessionExcludeKeys(array('count'));
     // ...
     $cache->init();
 ```
@@ -173,7 +205,7 @@ Exclude this variable, otherwise PageCache will generate seperate cache files fo
 Sending cache related HTTP headers
 ----------------------------------
 You can enable appropriate headers to be sent with the response to the client. This is done by calling 
-`enableHeaders(true)`, prior to `init()`. Although disabled by default, we encourage you to use this feature. Test on
+`config()->setSendHeaders(true)`, prior to `init()`. Although disabled by default, we encourage you to use this feature. Test on
  your local application before deploying it to your live version.
 
 When HTTP headers are enabled, PageCache will attempt to send the following HTTP headers automatically with each response:
@@ -183,16 +215,16 @@ When HTTP headers are enabled, PageCache will attempt to send the following HTTP
 - Not Modified
 
 PageCache will attempt to send `HTTP/1.1 304 Not Modified` header along with cached content. When this header is sent, content
-is omitted from the response. This makes your application super fast. Browser is responsible for fetching a locally cached version when
-this header is present.
+is omitted from the response. This makes your application super fast. Browser is responsible for fetching a locally 
+cached version when this header is present.
 
 Check out [HTTP Headers demo](examples/demo-headers.php) for code.
 
 Cache Stampede (dog-piling) protection
 -----------------------
-Under a heavy load or when multiple calls to the web server are made to the same URL when it has been expired, there might occur a condition
-where system might become unresponsive or when all clients will try to regenerate cache of the same page. This effect is
-called [cache stampede](https://en.wikipedia.org/wiki/Cache_stampede).
+Under a heavy load or when multiple calls to the web server are made to the same URL when it has been expired, 
+there might occur a condition where system might become unresponsive or when all clients will try to regenerate 
+cache of the same page. This effect is called [cache stampede](https://en.wikipedia.org/wiki/Cache_stampede).
 
 PageCache uses 2 strategies to defeat cache stampede, and even when thousands request are made to the same page system
 continues to function normally.
@@ -216,10 +248,10 @@ Making pages expire randomly at most 6 seconds before or after actual cache expi
 less clients trying to regenerate cache content. File locking already takes care of simultaneous writes of cache page, 
 random expiration takes it a step further minimizing the number of such required attempts. 
 
-To give an example, consider you have set expiration to 10 minutes `setExpiration(600)`. Page will expire for some clients
-in 594 seconds, for some in 606 seconds, and for some in 600 seconds. Actual page expiration is going to be anywhere 
-in between 594 and 606 seconds inclusive, this is randomly calculated. Expiration value is not an integer internally, so
-there are a lot more of random expiration values than you can think of. 
+To give an example, consider you have set expiration to 10 minutes `config()->setCacheExpirationInSeconds(600)`. 
+Page will expire for some clients in 594 seconds, for some in 606 seconds, and for some in 600 seconds. 
+Actual page expiration is going to be anywhere  in between 594 and 606 seconds inclusive, this is randomly calculated. 
+Expiration value is not an integer internally, so there are a lot more of random expiration values than you can think of. 
 
 
 That's it!

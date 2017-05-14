@@ -40,12 +40,12 @@ echo '<fieldset style="background-color: #eee; padding: 10px;">var_dump($_SESSIO
 var_dump($_SESSION);
 echo 'var_dump ends. All below is cached.</fieldset>';
 
-$cache = new PageCache\PageCache(__DIR__ . '/conf.php');
-$cache->enableSession();
-
-//exclude $_SESSION['exc'] from cache strategy.
-//Comment line below, and cached version for each 'excl' session variable will be saved in a different cache file
-$cache->sessionExclude(array('excl'));
+$cache = new PageCache\PageCache(__DIR__ . '/config.php');
+$cache->config()->setUseSession(true)
+                // Exclude $_SESSION['exc'] from cache strategy.
+                // Comment line below, and cached version for each 'excl' session variable
+                //   will be saved in a different cache file
+                ->setSessionExcludeKeys(array('excl'));
 
 //init
 $cache->init();
@@ -98,7 +98,7 @@ being recorded.
     </form>
 
     <br class="clear"/><br/>
-    <code>PageCache call demo: $cache->sessionExclude(array('excl'));</code>
+    <code>PageCache call demo: $cache->config()->setSessionExcludeKeys(array('excl'));</code>
 </fieldset>
 
 
@@ -110,8 +110,8 @@ if (isset($_SESSION['excl'])) {
     var_dump($_SESSION);
 }
 
-echo '<br><b>Generated cache file name: </b><fieldset>'
-    . ($cache->getFile())
+echo '<br><b>Stored under cache key: </b><fieldset>'
+    . ($cache->getCurrentKey())
     . '</fieldset>';
 ?>
 

@@ -107,7 +107,7 @@ class FileSystem
         /**
          * File locking disabled?
          */
-        if ($this->file_lock === null) {
+        if (empty($this->file_lock)) {
             ftruncate($fp, 0);
             if (fwrite($fp, $this->content) === false) {
                 $result = self::ERROR_WRITE;
@@ -161,8 +161,8 @@ class FileSystem
      */
     public function setFileLock($file_lock)
     {
-        if (empty($file_lock)) {
-            throw new PageCacheException(__CLASS__ . ' file lock can not be empty');
+        if (empty($file_lock) && $file_lock !== false) {
+            throw new PageCacheException(__CLASS__ . ' file lock can not be empty. To disable set to boolean false.');
         }
         $this->file_lock = $file_lock;
     }

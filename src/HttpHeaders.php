@@ -30,11 +30,6 @@ class HttpHeaders
     const DATE_FORMAT_PARSE  = self::DATE_FORMAT.' T';
 
     /**
-     * @var bool Whether we are sending headers or no
-     */
-    private $enableHeaders = false;
-
-    /**
      * Last modified time of the cache item
      *
      * @var \DateTime
@@ -98,12 +93,11 @@ class HttpHeaders
         return $this;
     }
 
+    /**
+     * Send Headers
+     */
     public function send()
     {
-        if (!$this->enableHeaders) {
-            return;
-        }
-
         // Last-Modified
         if ($this->itemLastModified) {
             $this->setHeader(
@@ -217,11 +211,18 @@ class HttpHeaders
             : false;
     }
 
+    /**
+     * @return mixed|null
+     */
     public function detectResponseETagString()
     {
         return $this->detectResponseHeaderValue(self::HEADER_ETAG);
     }
 
+    /**
+     * @param $name
+     * @return mixed|null
+     */
     private function detectResponseHeaderValue($name)
     {
         $headers = $this->getResponseHeaders();
@@ -229,6 +230,11 @@ class HttpHeaders
         return isset($headers[$name]) ? $headers[$name] : null;
     }
 
+    /**
+     * Get headers and populate local responseHeaders variable
+     *
+     * @return array
+     */
     private function getResponseHeaders()
     {
         if (!$this->responseHeaders) {
@@ -245,23 +251,4 @@ class HttpHeaders
         return $this->responseHeaders;
     }
 
-    /**
-     * Enable or disable headers
-     *
-     * @param bool $enable
-     */
-    public function enableHeaders($enable)
-    {
-        $this->enableHeaders = (bool)$enable;
-    }
-
-    /**
-     * Returns whether headers are enabled or not
-     *
-     * @return bool
-     */
-    public function isEnabledHeaders()
-    {
-        return $this->enableHeaders;
-    }
 }

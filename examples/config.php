@@ -24,8 +24,10 @@
  * NOTE: Parameters defined here in $config array are used by all pages using PageCache within you application.
  *       You can override any of these settings in your code.
  *
+ * Feel free to comment out any settings you don't need.
+ *
  */
-$config = array(
+return [
 
     /**
      * Minimum cache file size.
@@ -52,13 +54,13 @@ $config = array(
      * Current page's cache expiration in seconds.
      * Default: 20 minutes, 1200 seconds.
      */
-    'expiration' => 1200,
+    'cache_expiration_in_seconds' => 1200,
 
     /**
      * Cache directory location (mind the trailing slash "/").
      * Cache files are saved here.
      */
-    'cache_path' => __DIR__ . '/tmp/cache/',
+    'cache_path' => __DIR__ . '/cache/',
 
     /**
      * Use session support, if you have a login area or similar.
@@ -75,7 +77,7 @@ $config = array(
      *              value of $_SESSION['count] session variable.
      *              Example: 'session_exclude_keys'=>array('count')
      */
-    'session_exclude_keys' => array(),
+    'session_exclude_keys' => [],
 
     /**
      *
@@ -104,4 +106,4 @@ $config = array(
      * Values will be fetched from the current response.
      */
     'forward_headers' => false,
-);
+];
