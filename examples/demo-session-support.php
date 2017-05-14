@@ -47,21 +47,21 @@ if (isset($_POST['withsessions']) && $_POST['withsessions'] == '1') {
 $cache = new PageCache\PageCache();
 
 //cache path
-$cache->setPath(__DIR__ . '/cache/');
+$cache->config()->setCachePath(__DIR__ . '/cache/');
 
 //Disable line below and you will see only 1 cache file generated,
 // no differentiation between session and without session calls
 //
 //use session support in cache
 //
-$cache->enableSession();
+$cache->config()->setUseSession(true);
 
 //do disable session cache uncomment this line, or comment line above and see
-//$cache->disableSession();
+//$cache->config()->setUseSession(false);
 
 //enable log
-//$cache->enableLog();
-//$cache->logFilePath(__DIR__.'/log/cache.log');
+//$cache->config()->setEnableLog(true);
+//$cache->config()->setLogFilePath(__DIR__.'/log/cache.log');
 
 
 //start cache;

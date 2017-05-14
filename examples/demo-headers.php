@@ -21,10 +21,10 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use PageCache\PageCache;
 
 $cache = new PageCache();
-$cache->setPath(__DIR__ . '/cache/');
-$cache->enableLog();
-$cache->setExpiration(60);
-$cache->enableHeaders(true);
+$cache->config()->setCachePath(__DIR__ . '/cache/')
+                ->setEnableLog(true)
+                ->setCacheExpirationInSeconds(60)
+                ->setSendHeaders(true);
 $cache->init();
 
 ?>

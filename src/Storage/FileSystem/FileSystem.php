@@ -10,6 +10,8 @@
 
 namespace PageCache\Storage\FileSystem;
 
+use PageCache\PageCacheException;
+
 /**
  *
  * File system storage for cache, page cache is saved into file.
@@ -96,7 +98,7 @@ class FileSystem
          * "c" is needed instead of "w", because if lock is not acquired, old version of the file is returned.
          * If "w" option is used, file is truncated no matter what, and empty file is returned.
          */
-        $fp = fopen($this->filepath, "c");
+        $fp = fopen($this->filepath, 'c');
 
         if ($fp === false) {
             return self::ERROR_OPEN;
@@ -159,8 +161,8 @@ class FileSystem
      */
     public function setFileLock($file_lock)
     {
-        if (empty($file_lock)) {
-            throw new \Exception(__CLASS__ . ' file lock can not be empty');
+        if (empty($file_lock) && $file_lock !== false) {
+            throw new PageCacheException(__CLASS__ . ' file lock can not be empty. To disable set to boolean false.');
         }
         $this->file_lock = $file_lock;
     }
@@ -194,7 +196,7 @@ class FileSystem
     public function setFilePath($filepath)
     {
         if (!isset($filepath) || empty($filepath)) {
-            throw new \Exception(__CLASS__ . ' file path not set or empty');
+            throw new PageCacheException(__CLASS__ . ' file path not set or empty');
         }
 
         $this->filepath = $filepath;

@@ -1,5 +1,4 @@
 <?php
-
 /**
  * This file is part of the PageCache package.
  *
@@ -11,6 +10,8 @@
  */
 
 namespace PageCache\Storage\FileSystem;
+
+use PageCache\PageCacheException;
 
 /**
  * Class HashDirectory.
@@ -56,12 +57,11 @@ class HashDirectory
      */
     public function setDir($dir)
     {
-        if (!empty($dir)) {
-            if (!@is_dir($dir)) {
-                throw new \Exception(__CLASS__ . ' dir in constructor is not a directory');
-            }
-            $this->dir = $dir;
+        if (empty($dir) || !@is_dir($dir)) {
+            throw new PageCacheException(__METHOD__ . ': '
+                . strval($dir) . ' in constructor is not a directory');
         }
+        $this->dir = $dir;
     }
 
     /**
@@ -72,6 +72,20 @@ class HashDirectory
     public function setFile($file)
     {
         $this->file = $file;
+    }
+
+    /**
+     * Get full file path for a key
+     *
+     * @param mixed $key cache key
+     * @return string path
+     */
+    public function getFullPath($key)
+    {
+        $this->setFile($key);
+
+        $path = $this->getHash();
+        return $this->dir . $path . $key;
     }
 
     /**
@@ -103,7 +117,7 @@ class HashDirectory
      * @param $dir1 string directory
      * @param $dir2 string directory
      *
-     * @throws \Exception directories not created
+     * @throws \PageCache\PageCacheException directories not created
      */
     private function createSubDirs($dir1, $dir2)
     {
@@ -119,7 +133,7 @@ class HashDirectory
         }
         //check if directories are there
         if (!@is_dir($this->dir . $dir1 . '/' . $dir2)) {
-            throw new \Exception(__CLASS__.' ' . $dir1 . '/' . $dir2
+            throw new PageCacheException(__CLASS__.'/'.__METHOD__.': ' . $dir1 . '/' . $dir2
                 . ' cache directory could not be created');
         }
     }
@@ -155,8 +169,8 @@ class HashDirectory
         $val2 = ord($filename[3]);
 
         //normalize to 99
-        $val1 = $val1 % 99;
-        $val2 = $val2 % 99;
+        $val1 %= 99;
+        $val2 %= 99;
 
         return $val1 . '/' . $val2 . '/';
     }
@@ -166,11 +180,12 @@ class HashDirectory
      * Used for deleting all cache content.
      *
      * @param string $dir
+     * @return bool
      */
     public function clearDirectory($dir)
     {
-        if (empty($dir)) {
-            return;
+        if (empty($dir) || !@is_dir($dir)) {
+            return false;
         }
 
         $iterator = new \RecursiveDirectoryIterator($dir);
@@ -178,7 +193,7 @@ class HashDirectory
             /** @var \SplFileInfo $current */
             $filename = $current->getBasename();
             // Check for files and dirs starting with "dot" (.gitignore, etc)
-            if (strlen($filename) && $filename[0] == '.') {
+            if ($filename && $filename[0] === '.') {
                 return false;
             }
             return true;
@@ -190,5 +205,7 @@ class HashDirectory
             $path = $item->getPathname();
             $item->isDir() ? rmdir($path) : unlink($path);
         }
+
+        return true;
     }
 }

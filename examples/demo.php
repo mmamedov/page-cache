@@ -25,14 +25,18 @@ require_once __DIR__ . '/../vendor/autoload.php';
  * min_cache_file_size = 10
  * file_lock = LOCK_EX | LOCK_NB
  * use_session = false
+ * send_headers = false
+ * forward_headers = false
+ * enable_log = false
+ * .. For full list of default values check Config class file
  *
  */
 use PageCache\PageCache;
 
 $cache = new PageCache();
-$cache->setPath(__DIR__ . '/cache/');
+$cache->config()->setCachePath(__DIR__ . '/cache/')
+                ->setSendHeaders(true);
 $cache->init();
-
 ?>
 <html>
 <body>

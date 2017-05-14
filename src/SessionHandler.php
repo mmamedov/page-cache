@@ -42,7 +42,7 @@ class SessionHandler
         //session handler enabled
         if (self::$status) {
             //get session into array
-            $tmp = $_SESSION;
+            $tmp = isset($_SESSION) ? $_SESSION : [];
 
             //remove excluded keys if were set, and if session is set
             if (!empty(self::$exclude_keys) && isset($_SESSION) && !empty($_SESSION)) {
@@ -60,13 +60,17 @@ class SessionHandler
     }
 
     /**
-     * Exclude keys from session
+     * Exclude $_SESSION key(s) from caching strategies.
      *
-     * @param array $sess_keys
+     * When to use: i.e. Your application changes $_SESSION['count'] variable, but that does not reflect on the page
+     *              content. Exclude this variable, otherwise PageCache will generate seperate cache files for each
+     *              value of $_SESSION['count] session variable.
+     *
+     * @param array $keys $_SESSION keys to exclude from caching strategies
      */
-    public static function excludeKeys(array $sess_keys)
+    public static function excludeKeys(array $keys)
     {
-        self::$exclude_keys = $sess_keys;
+        self::$exclude_keys = $keys;
     }
 
     /**
@@ -81,13 +85,19 @@ class SessionHandler
         }
     }
 
+    /**
+     * Get excluded $_SESSION keys
+     *
+     * @return array|null
+     */
     public static function getExcludeKeys()
     {
         return self::$exclude_keys;
     }
 
     /**
-     * Enable session support
+     * Enable session support. Use sessions when caching page.
+     * For the same URL session enabled page might be displayed differently, when for example user has logged in.
      */
     public static function enable()
     {
