@@ -192,7 +192,7 @@ class PageCache
             ->setExpires($item->getExpiresAt())
             ->setETag($item->getETagString());
 
-        //Decide if sending headers from Config
+        // Decide if sending headers from Config
         // Send headers (if not disabled) and process If-Modified-Since header
         if ($this->config->isSendHeaders()) {
             $this->httpHeaders->send();
@@ -219,7 +219,7 @@ class PageCache
         $key  = $this->getCurrentKey();
         $item = new CacheItem($key);
 
-        //When enabled we store original header values with the item
+        // When enabled we store original header values with the item
         $isHeadersForwardingEnabled = $this->config->isSendHeaders() && $this->config->isForwardHeaders();
 
         $this->log('Header forwarding is '.($isHeadersForwardingEnabled ? 'enabled' : 'disabled'));
@@ -301,7 +301,7 @@ class PageCache
             $item = $this->getCurrentItem();
         }
 
-        //getCurrent Item might have returned null
+        // Current item might have returned null
         if (is_null($item)) {
             throw new PageCacheException(__METHOD__.' Page cache item can not be detected');
         }
