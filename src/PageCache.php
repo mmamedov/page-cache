@@ -192,7 +192,7 @@ class PageCache
             ->setExpires($item->getExpiresAt())
             ->setETag($item->getETagString());
 
-        //Decide if sending headers from Config
+        // Decide if sending headers from Config
         // Send headers (if not disabled) and process If-Modified-Since header
         if ($this->config->isSendHeaders()) {
             $this->httpHeaders->send();

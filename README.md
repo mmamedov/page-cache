@@ -13,7 +13,7 @@ Or manually add to your composer.json file:
 ```json
 {
   "require": {
-      "mmamedov/page-cache": "^1.3"
+      "mmamedov/page-cache": "^2.0"
   }
 }
 ```
@@ -21,6 +21,18 @@ Once PageCache is installed, include Composer's autoload.php file, or implement 
 Composer autoloader is recommended.
 
 Do not use `master` branch, as it may contain unstable code, use versioned branches instead.
+
+Upgrading from version 1.* to 2.0
+---
+Version 2.0 is not backwards compatible with versions starting with v1.0. Version 2.0 introduces new features and code
+was refactored to enable us deliver more features.
+
+When upgrading to version 2.0, please not the followings:
+- PHP requirements >= 5.6.
+- Your config file must be like this `return [...]` and not `$config = array(...);` like in previous version.
+- `expiration` setting is now `cache_expiration_in_seconds`
+
+If you find any other notable incompatibilities please let us know we will include them here.
 
 No Database calls
 ----
@@ -121,24 +133,7 @@ Included with the PageCache is the `MobileStrategy()` based on [Mobile_Detect](h
 It is useful if you are serving the same URL differently across devices. 
 See [cache_mobiledetect.php PageCache example](examples/cache_mobiledetect.php) file for demo using MobileDetect._
 
-You can define your own naming strategy, for example to incorporate logged in users into your applications. 
-In this situations, URL might remain same, while content of the page will be different for each logged in user.
-
-HTTP headers
-----
-PageCache serves these valid HTTP headers:
-
-- `Last-Modified`
-- `Expires`
-- `ETag`
-
-To enable HTTP headers to be sent along with the response, be sure to set `send_headers` to `true` in config file, or 
-directly using `$cache->config()->setSendHeaders(true)`.
-
-By default, `Last-Modified` is time of cache item creation, `Expires` is based on `expiration` config option, 
-`ETag` is based on `Last-Modified` time. There is an `forward_headers` option which allows PageCache to fetch 
-values of these HTTP headers from the app response and store them into cache item so headers would be cached too. 
-This approach is useful if your app has fine-grained control of HTTP headers and all you need is proper page content caching.
+You can define your own naming strategy based on the needs of your application.
 
 Config file
 ----
@@ -183,6 +178,9 @@ Caching pages using Sessions (i.e. User Login enabled applications)
 -------------------------------------------------------------------
 PageCache makes it simple to maintain a full page cache in PHP while using sessions.
 
+One example for using session feature could be when you need to  incorporate logged in users into your applications.
+In that case URL might remain same (if you rely on sessions to log users in), while content of the page will be different for each logged in user.
+
 For PageCache to be aware of your $_SESSION, in config file or in your PHP file you must enable session support.
 In your PHP file, before calling `init()` call `$cache->config()->setUseSession(true)`. That's it! 
 Now your session pages will be cached seperately for your different session values. 
@@ -202,21 +200,29 @@ session variable. To exclude 'count' session variable:
     $cache->init();
 ```
 
-Sending cache related HTTP headers
+HTTP Headers
 ----------------------------------
-You can enable appropriate headers to be sent with the response to the client. This is done by calling 
-`config()->setSendHeaders(true)`, prior to `init()`. Although disabled by default, we encourage you to use this feature. Test on
- your local application before deploying it to your live version.
+PageCache can send cache related HTTP Headers. This helps browsers to load your pages faster and makes your
+application SEO aware. Search engines will read this headers and know whether your page was modified or expired.
+
+By default, HTTP headers are disabled. You can enable appropriate headers to be sent with the response to the client.
+This is done by calling  `config()->setSendHeaders(true)`, prior to `init()`, or `send_headers = true` in config file.
+Although disabled by default, we encourage you to use this feature.
+Test on your local application before deploying it to your live version.
 
 When HTTP headers are enabled, PageCache will attempt to send the following HTTP headers automatically with each response:
-- Last-Modified
-- Expires
-- ETag
-- Not Modified
+- `Last-Modified`
+- `Expires`
+- `ETag`
+- `HTTP/1.1 304 Not Modified`
 
 PageCache will attempt to send `HTTP/1.1 304 Not Modified` header along with cached content. When this header is sent, content
-is omitted from the response. This makes your application super fast. Browser is responsible for fetching a locally 
+is omitted from the response. This makes your application super fast. Browser is responsible for fetching a locally
 cached version when this header is present.
+
+There is also `forward_headers` option in config, or `config()->setForwardHeaders(true)` which allows PageCache to fetch
+values of these HTTP headers from the app response and store them into cache item so headers would be cached too.
+This approach is useful if your app has fine-grained control.
 
 Check out [HTTP Headers demo](examples/demo-headers.php) for code.
 
