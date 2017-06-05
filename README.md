@@ -22,15 +22,14 @@ Composer autoloader is recommended.
 
 Do not use `master` branch, as it may contain unstable code, use versioned branches instead.
 
-Upgrading from version 1.* to 2.0
----
+#### Upgrading to to v2.*
 Version 2.0 is not backwards compatible with versions starting with v1.0. Version 2.0 introduces new features and code
 was refactored to enable us deliver more features.
 
-When upgrading to version 2.0, please not the followings:
+When upgrading to version 2.0, please note the followings:
 - PHP requirements >= 5.6.
 - Your config file must be like this `return [...]` and not `$config = array(...);` like in previous version.
-- `expiration` setting is now `cache_expiration_in_seconds`
+- Config `expiration` setting was renamed to `cache_expiration_in_seconds`
 
 If you find any other notable incompatibilities please let us know we will include them here.
 
