@@ -15,7 +15,8 @@
     ],
     "require": {
         "php": ">=5.5.0",
-        "psr/simple-cache": "^1.0"
+        "psr/simple-cache": "^1.0",
+        "psr/log": "^1.0"
     },
     "require-dev": {
         "mobiledetect/mobiledetectlib": "^2.8",
@@ -24,6 +25,7 @@
         "mikey179/vfsStream": "^1.6"
     },
     "suggest": {
+        "monolog/monolog": "Allows using custom logging subsystem",
         "mobiledetect/mobiledetectlib": "Allows separate cache versions for mobile pages"
     },
     "autoload": {
