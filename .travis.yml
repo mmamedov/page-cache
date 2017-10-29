@@ -9,8 +9,8 @@ branches:
 
 before_script:
   - phpenv config-rm xdebug.ini
+  - composer require phpunit/phpunit ^5
   - composer install -o
-  - composer require --dev phpunit/phpunit ^5
   - phpunit --version
 
 script:
