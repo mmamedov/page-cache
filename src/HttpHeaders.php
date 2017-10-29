@@ -121,9 +121,6 @@ class HttpHeaders
                 $this->itemETagString
             );
         }
-
-        // Will exit if conditions for the If-Modified-Since header are met
-        $this->checkIfNotModified();
     }
 
     /**
@@ -141,8 +138,12 @@ class HttpHeaders
     /**
      * Set Not Modified header, only if HTTP_IF_MODIFIED_SINCE was set or ETag matches
      * Content body is not sent when this header is set. Client/browser will use its local copy.
+     *
+     * When return is true, 304 header will be sent later and exit() will be called.
+     *
+     * @return  bool To end execution or not
      */
-    private function checkIfNotModified()
+    public function checkIfNotModified()
     {
         $lastModifiedTimestamp  = $this->itemLastModified->getTimestamp();
         $modifiedSinceTimestamp = $this->getIfModifiedSinceTimestamp();
@@ -157,14 +158,19 @@ class HttpHeaders
         // Client's version older than server's?
         // If ETags matched ($notModified=true), we skip this step.
         // Because same hash means same file contents, no need to further check if-modified-since header
-        if ($notModified) {
-            $notModified = $modifiedSinceTimestamp !== false && $modifiedSinceTimestamp >= $lastModifiedTimestamp;
-        }
+        return
+            $notModified &&
+            $modifiedSinceTimestamp !== false &&
+            $modifiedSinceTimestamp >= $lastModifiedTimestamp;
+    }
 
-        if ($notModified) {
-            $this->setHeader(self::HEADER_NOT_MODIFIED);
-            exit();
-        }
+    /**
+     * Send 304 Not Modified header.
+     * Keeping this separate because right after this is set, we exit().
+     */
+    public function sendNotModifiedHeader()
+    {
+        $this->setHeader(self::HEADER_NOT_MODIFIED);
     }
 
     /**

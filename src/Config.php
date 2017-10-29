@@ -78,6 +78,14 @@ class Config
     private $sendHeaders = false;
 
     /**
+     * When true enables a dry run of the system. Useful for testing.
+     * Default is false
+     *
+     * @var bool
+     */
+    private $dryRunMode = false;
+
+    /**
      * Forward Last-Modified, Expires and ETag headers from application
      *
      * @var bool
@@ -169,6 +177,11 @@ class Config
         // Forward Last-Modified and ETag headers to cache item
         if (isset($this->config['forward_headers']) && $this->isBool($this->config['forward_headers'])) {
             $this->forwardHeaders = $this->config['forward_headers'];
+        }
+
+        // Enable Dry run mode
+        if (isset($this->config['dry_run_mode']) && $this->isBool($this->config['dry_run_mode'])) {
+            $this->dryRunMode = $this->config['dry_run_mode'];
         }
     }
 
@@ -405,5 +418,27 @@ class Config
     {
         $this->forwardHeaders = (bool)$forwardHeaders;
         return $this;
+    }
+
+    /**
+     * Enable or disable Dry Run Mode. Output will not be changed, everything else will function.
+     *
+     * @param bool $dryRunMode
+     * @return Config for chaining
+     */
+    public function setDryRunMode($dryRunMode)
+    {
+        $this->dryRunMode = (bool)$dryRunMode;
+        return $this;
+    }
+
+    /**
+     * Whether Dry run mode is enabled
+     *
+     * @return bool
+     */
+    public function isDryRunMode()
+    {
+        return $this->dryRunMode;
     }
 }

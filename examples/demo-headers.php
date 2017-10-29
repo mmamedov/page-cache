@@ -16,6 +16,14 @@
  *
  */
 
+/**
+ * To test concept, once files are cached uncomment 2 lines below.
+ * Nothing at all will be sent to the browser except the 304 Header, and you should still see page contents.
+ */
+//header('HTTP/1.1 304 Not Modified');
+//exit();
+
+
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use PageCache\PageCache;
@@ -23,8 +31,13 @@ use PageCache\PageCache;
 $cache = new PageCache();
 $cache->config()->setCachePath(__DIR__ . '/cache/')
                 ->setEnableLog(true)
-                ->setCacheExpirationInSeconds(60)
+                ->setLogFilePath(__DIR__ . '/log/cache.log')
+                ->setCacheExpirationInSeconds(600)
+//    Uncomment to enable Dry Run mode
+//                ->setDryRunMode(false)
                 ->setSendHeaders(true);
+// Uncomment to delete this page from cache
+//$cache->clearPageCache();
 $cache->init();
 
 ?>

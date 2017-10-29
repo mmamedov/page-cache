@@ -102,6 +102,11 @@ $cache->init();
 
 //rest of your PHP page code, everything below will be cached
 ```
+PageCache also has "Dry Run mode" option, is is turned off by default. 
+Dry Run mode enables all functionality except that users won't be getting the cached content, they will be getting live content. 
+No cache headers and no cached content will be send, if Dry Run mode is enabled. 
+But cache will be stored in its as if it would run with Dry mode disabled. 
+This mode lets PageCache dry run, useful if you want to test, debug or to see how your cache content populates.  
 
 For more examples see code inside [PageCache examples](examples/) directory.
 

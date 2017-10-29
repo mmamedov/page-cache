@@ -83,9 +83,7 @@ class HashDirectory
     public function getFullPath($key)
     {
         $this->setFile($key);
-
-        $path = $this->getHash();
-        return $this->dir . $path . $key;
+        return $this->dir . $this->getHash() . $key;
     }
 
     /**
@@ -148,11 +146,7 @@ class HashDirectory
      */
     public function getLocation($filename)
     {
-        if (empty($filename)) {
-            return null;
-        }
-
-        return $this->getDirectoryPathByHash($filename);
+        return empty($filename) ? null : $this->getDirectoryPathByHash($filename);
     }
 
     /**

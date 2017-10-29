@@ -1,11 +1,18 @@
 PageCache ChangeLog
 ===================
 
-### [WIP]
+### WIP
 
-* Introduce Configuration class, remove clutter from PageCache class.
-* Get rid of all static calls (better testability).
-* More Storage adapters
+* Dry Run mode introduced
+* More logs added, milliseconds in log times.
+
+### 2.0 (2017-06-05)
+
+* Backwards incompatible refactoring.
+* PSR-16 introduced. PageCache now supports distributed file systems (Redis, Memcached, etc). 
+* New PHP requirements >= 5.6.
+* Config file now must return `return [...]`.
+* Config `expiration` setting was renamed to `cache_expiration_in_seconds`
 
 ### 1.3.1 (2017-01-15)
 
