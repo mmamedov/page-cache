@@ -13,3 +13,4 @@ branches:
 before_script:
   - phpenv config-rm xdebug.ini
   - composer install -o
+  - phpunit --version
