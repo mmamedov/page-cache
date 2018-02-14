@@ -20,8 +20,12 @@
     },
     "require-dev": {
         "mobiledetect/mobiledetectlib": "^2.8",
-        "monolog/monolog": "^1.19",
-        "mikey179/vfsStream": "^1.6"
+        "monolog/monolog": "^1.23",
+        "mikey179/vfsStream": "^1.6",
+        "guzzlehttp/guzzle": "^6.3",
+        "cache/integration-tests": "dev-master",
+        "symfony/cache": "^3.4 || ^4.0",
+        "symfony/process": "^3.4 || ^4.0"
     },
     "suggest": {
         "monolog/monolog": "Allows using custom logging subsystem",

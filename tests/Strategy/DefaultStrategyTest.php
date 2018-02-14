@@ -14,7 +14,7 @@ use PageCache\SessionHandler;
 use PageCache\Strategy\DefaultStrategy;
 use PageCache\StrategyInterface;
 
-class DefaultStrategyTest extends \PHPUnit_Framework_TestCase
+class DefaultStrategyTest extends \PHPUnit\Framework\TestCase
 {
     public function testStrategy()
     {

@@ -41,7 +41,7 @@ class HashDirectory
      *
      * @param string|null $file
      * @param string|null $dir
-     * @throws \Exception
+     * @throws \PageCache\PageCacheException
      */
     public function __construct($file = null, $dir = null)
     {
@@ -53,7 +53,7 @@ class HashDirectory
      * Set directory
      *
      * @param string|null $dir
-     * @throws \Exception
+     * @throws \PageCache\PageCacheException
      */
     public function setDir($dir)
     {

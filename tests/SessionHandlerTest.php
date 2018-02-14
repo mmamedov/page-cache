@@ -12,7 +12,7 @@ namespace PageCache\Tests;
 
 use PageCache\SessionHandler;
 
-class SessionHandlerTest extends \PHPUnit_Framework_TestCase
+class SessionHandlerTest extends \PHPUnit\Framework\TestCase
 {
     public function setUp()
     {

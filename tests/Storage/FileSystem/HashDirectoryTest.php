@@ -20,7 +20,7 @@ use org\bovigo\vfs\vfsStream;
  * Class HashDirectoryTest
  * @package PageCache\Tests
  */
-class HashDirectoryTest extends \PHPUnit_Framework_TestCase
+class HashDirectoryTest extends \PHPUnit\Framework\TestCase
 {
 
     private $dir;

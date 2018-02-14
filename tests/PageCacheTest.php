@@ -23,7 +23,7 @@ use PageCache\SessionHandler;
 use PageCache\Strategy\DefaultStrategy;
 use PageCache\Strategy\MobileStrategy;
 
-class PageCacheTest extends \PHPUnit_Framework_TestCase
+class PageCacheTest extends \PHPUnit\Framework\TestCase
 {
     /** @var  vfsStreamDirectory */
     private $root;

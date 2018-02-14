@@ -11,15 +11,15 @@
 
 namespace PageCache;
 
-use PageCache\Storage\FileSystem\FileSystemCacheAdapter;
-use PageCache\Strategy\DefaultStrategy;
+use DateTime;
 use PageCache\Storage\CacheItem;
 use PageCache\Storage\CacheItemInterface;
 use PageCache\Storage\CacheItemStorage;
+use PageCache\Storage\FileSystem\FileSystemCacheAdapter;
+use PageCache\Strategy\DefaultStrategy;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\SimpleCache\CacheInterface;
-use DateTime;
 
 /**
  * Class PageCache
@@ -97,9 +97,9 @@ class PageCache
             throw new PageCacheException('PageCache already created.');
         }
 
-        $this->config = new Config($config_file_path);
+        $this->config      = new Config($config_file_path);
         $this->httpHeaders = new HttpHeaders();
-        $this->strategy = new DefaultStrategy();
+        $this->strategy    = new DefaultStrategy();
 
         //Disable Session by default
         if (!$this->config->isUseSession()) {
@@ -133,7 +133,9 @@ class PageCache
             .'; script:'.$_SERVER['SCRIPT_NAME'].'; query:'.$_SERVER['QUERY_STRING'].'.');
 
         // Search for valid cache item for current request
-        if ($item = $this->getCurrentItem()) {
+        $item = $this->getCurrentItem();
+
+        if ($item) {
             // Display cache item if found
             // If cache file not found or not valid, init() continues with cache generation(storePageContent())
             $this->displayItem($item);
@@ -195,6 +197,8 @@ class PageCache
      */
     private function displayItem(CacheItemInterface $item)
     {
+        $isDryRun = $this->config()->isDryRunMode();
+
         $this->httpHeaders
             ->setLastModified($item->getLastModified())
             ->setExpires($item->getExpiresAt())
@@ -215,14 +219,17 @@ class PageCache
             $this->log(__METHOD__.' uri:'.$_SERVER['REQUEST_URI']
                 . '; Headers {' . $logHeaders . '}');
 
-            if (!$this->config()->isDryRunMode()) {
+            if (!$isDryRun) {
                 $this->httpHeaders->send();
+                $this->log(__METHOD__.' Headers sent: '.PHP_EOL.implode(PHP_EOL, $this->httpHeaders->getSentHeaders()));
             }
 
+            // Check if conditions for the If-Modified-Since header are met
             if ($this->httpHeaders->checkIfNotModified()) {
-                if (!$this->config()->isDryRunMode()) {
+                if (!$isDryRun) {
                     $this->httpHeaders->sendNotModifiedHeader();
                     $this->log(__METHOD__ . ' 304 Not Modified header was set. Exiting w/o content.');
+                    $this->log(__METHOD__.' Response status: '.http_response_code());
                     exit();
                 }
                 $this->log(__METHOD__ . ' 304 Not Modified header was set. Not exiting w/o content - Dry Mode.');
@@ -231,8 +238,9 @@ class PageCache
 
         // Show cached content
         $this->log(__METHOD__ . ' Cache item found: ' . $this->getCurrentKey());
+        $this->log(__METHOD__.' Response status: '.http_response_code());
 
-        if (!$this->config()->isDryRunMode()) {
+        if (!$isDryRun) {
             // Echo content and stop execution
             echo $item->getContent();
             exit();
@@ -255,7 +263,7 @@ class PageCache
         // When enabled we store original header values with the item
         $isHeadersForwardingEnabled = $this->config->isSendHeaders() && $this->config->isForwardHeaders();
 
-        $this->log('Header forwarding is '.($isHeadersForwardingEnabled ? 'enabled' : 'disabled'));
+        $this->log(__METHOD__.' Header forwarding is '.($isHeadersForwardingEnabled ? 'enabled' : 'disabled'));
 
         $expiresAt = $isHeadersForwardingEnabled
             ? $this->httpHeaders->detectResponseExpires()
@@ -288,7 +296,8 @@ class PageCache
             $eTagString = md5($lastModified->getTimestamp());
         }
 
-        $item->setContent($content)
+        $item
+            ->setContent($content)
             ->setLastModified($lastModified)
             ->setETagString($eTagString);
 
@@ -357,7 +366,7 @@ class PageCache
      */
     public function getPageCache()
     {
-        $key = $this->getCurrentKey();
+        $key  = $this->getCurrentKey();
         $item = $this->getItemStorage()->get($key);
 
         return $item ? $item->getContent() : false;
@@ -373,7 +382,7 @@ class PageCache
     public function isCached(CacheItemInterface $item = null)
     {
         if (!$item) {
-            $key = $this->getCurrentKey();
+            $key  = $this->getCurrentKey();
             $item = $this->getItemStorage()->get($key);
         }
 
@@ -408,7 +417,7 @@ class PageCache
     {
         // Hack for weird initialization logic
         if (!$this->currentItem) {
-            $key = $this->getCurrentKey();
+            $key               = $this->getCurrentKey();
             $this->currentItem = $this->getItemStorage()->get($key);
         }
 
