@@ -52,8 +52,8 @@ $pc = new PageCache();
 
 // Common configuration
 $pc->config()
-    // Two seconds is enough for testing both concurrency and single requests
-    ->setCacheExpirationInSeconds(2)
+    // 60 seconds is enough for testing both concurrency and single requests
+    ->setCacheExpirationInSeconds(60)
     ->setLogFilePath($logsDirectory.'/page-cache.log')
     ->setEnableLog(true)
     ->setUseSession(true)
