@@ -18,15 +18,18 @@ use PageCache\Storage\FileSystem\FileSystemCacheAdapter;
  * Class IntegrationPsrCacheTest
  *
  * @package PageCache\Tests\Integration
+ * @group   psr16
  */
 class IntegrationPsrCacheTest extends SimpleCacheTest
 {
     public function createSimpleCache()
     {
+        $directory = realpath(__DIR__.DIRECTORY_SEPARATOR.'www'.DIRECTORY_SEPARATOR.'cache');
+
         return new FileSystemCacheAdapter(
-            __DIR__.DIRECTORY_SEPARATOR.'cache',
+            $directory,
             LOCK_EX | LOCK_NB,
-            500
+            0 // Always create cache file
         );
     }
 }

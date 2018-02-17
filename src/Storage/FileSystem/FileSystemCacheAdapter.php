@@ -14,7 +14,7 @@ namespace PageCache\Storage\FileSystem;
 
 use DateInterval;
 use PageCache\Storage\CacheAdapterException;
-use PageCache\PageCacheException;
+use PageCache\Storage\InvalidArgumentException;
 use Psr\SimpleCache\CacheInterface;
 
 /**
@@ -72,12 +72,12 @@ class FileSystemCacheAdapter implements CacheInterface
      *
      * @return bool
      *
-     * @todo throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      *       MUST be thrown if the $key string is not a legal value.
      */
     public function has($key)
     {
-        $path = $this->hashDirectory->getFullPath($key);
+        $path = $this->getKeyPath($key);
 
         return $this->isValidFile($path);
     }
@@ -90,19 +90,40 @@ class FileSystemCacheAdapter implements CacheInterface
      *
      * @return mixed The value of the item from the cache, or $default in case of cache miss.
      *
-     * @todo throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      *       MUST be thrown if the $key string is not a legal value.
      */
     public function get($key, $default = null)
     {
-        $path = $this->hashDirectory->getFullPath($key);
+        $path = $this->getKeyPath($key);
 
         if (!$this->isValidFile($path)) {
             return $default;
         }
 
         /** @noinspection PhpIncludeInspection */
-        return include $path;
+        $data = include $path;
+
+        if (!$data || !\is_array($data) || !isset($data['ttl'], $data['item'])) {
+            // Prevent errors on broken files, they would be overwritten later by set() call in client logic
+            return $default;
+        }
+
+        $ttl = (int)$data['ttl'];
+
+        // 0 TTL means expired (allow negative values like -1)
+        if ($ttl < 1) {
+            // Do not delete cache files, they would be overwritten later by set() call in client logic
+            return $default;
+        }
+
+        // Process item TTL
+        if (filemtime($path) + $ttl < time()) {
+            // Do not delete cache files, they would be overwritten later by set() call in client logic
+            return $default;
+        }
+
+        return $data['item'];
     }
 
     /**
@@ -117,12 +138,19 @@ class FileSystemCacheAdapter implements CacheInterface
      * @return bool True on success
      *
      * @throws \Psr\SimpleCache\InvalidArgumentException If the $key string is not a legal value.
-     * @throws \Exception If the $key string is not a legal value.
+     * @throws \PageCache\Storage\CacheAdapterException
      */
     public function set($key, $value, $ttl = null)
     {
-        $data = $this->prepareItemData($value);
-        $path = $this->hashDirectory->getFullPath($key);
+        $ttl = $this->normalizeTtl($ttl);
+
+        if ($ttl < 1) {
+            // Item marked as expired, delete it
+            return $this->delete($key);
+        }
+
+        $path    = $this->getKeyPath($key);
+        $data    = $this->prepareItemData($value, $ttl);
         $storage = new FileSystem($data);
 
         try {
@@ -155,16 +183,18 @@ class FileSystemCacheAdapter implements CacheInterface
      */
     public function delete($key)
     {
-        $path = $this->hashDirectory->getFullPath($key);
+        $path = $this->getKeyPath($key);
 
         /**
-         * Cache file name is now available, check if cache file exists.
          * If init() wasn't called on this page before, there won't be any cache saved, so we check with file_exists.
          */
-        if (file_exists($path) && is_file($path)) {
-            unlink($path);
-
+        if (!\file_exists($path)) {
+            // Probably the file already deleted in another thread, PSR requires return value to be "true" in this case
             return true;
+        }
+
+        if (is_file($path)) {
+            return unlink($path);
         }
 
         return false;
@@ -186,15 +216,25 @@ class FileSystemCacheAdapter implements CacheInterface
      * @param iterable $keys    A list of keys that can obtained in a single operation.
      * @param mixed    $default Default value to return for keys that do not exist.
      *
-     * @return null
+     * @return iterable A list of key => value pairs. Cache keys that do not exist or are stale will have $default as value.
      *
-     * @throws PageCacheException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      *   MUST be thrown if $keys is neither an array nor a Traversable,
      *   or if any of the $keys are not a legal value.
      */
     public function getMultiple($keys, $default = null)
     {
-        throw new PageCacheException(__METHOD__.' not implemented');
+        if (!$keys || (!\is_array($keys) && !$keys instanceof \Traversable)) {
+            throw new InvalidArgumentException('Cache keys must be an array or Traversable');
+        }
+
+        $values = [];
+
+        foreach ($keys as $key) {
+            $values[$key] = $this->get($key, $default);
+        }
+
+        return $values;
     }
 
     /**
@@ -205,15 +245,30 @@ class FileSystemCacheAdapter implements CacheInterface
      *                                      the driver supports TTL then the library may set a default value
      *                                      for it or let the driver take care of that.
      *
-     * @return null
+     * @return bool True on success and false on failure.
      *
-     * @throws PageCacheException
+     * @throws \PageCache\Storage\CacheAdapterException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      *   MUST be thrown if $values is neither an array nor a Traversable,
      *   or if any of the $values are not a legal value.
      */
     public function setMultiple($values, $ttl = null)
     {
-        throw new PageCacheException(__METHOD__.' not implemented');
+        if (!$values || (!\is_array($values) && !$values instanceof \Traversable)) {
+            throw new InvalidArgumentException('Cache values must be an array or Traversable');
+        }
+
+        $result = true;
+
+        foreach ($values as $key => $value) {
+            if (\is_int($key)) {
+                $key = (string)$key;
+            }
+
+            $result = $this->set($key, $value, $ttl) && $result;
+        }
+
+        return $result;
     }
 
     /**
@@ -221,21 +276,32 @@ class FileSystemCacheAdapter implements CacheInterface
      *
      * @param iterable $keys A list of string-based keys to be deleted.
      *
-     * @return null
+     * @return bool True if the items were successfully removed. False if there was an error.
      *
-     * @throws PageCacheException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      *   MUST be thrown if $keys is neither an array nor a Traversable,
      *   or if any of the $keys are not a legal value.
      */
     public function deleteMultiple($keys)
     {
-        throw new PageCacheException(__METHOD__.' not implemented');
+        if (!\is_array($keys) && !$keys instanceof \Traversable) {
+            throw new InvalidArgumentException('Cache keys must be an array or Traversable');
+        }
+
+        $result = true;
+
+        foreach ($keys as $key) {
+            $result = $this->delete($key) && $result;
+        }
+
+        return $result;
     }
 
     /**
      * Check if $path is a valid cache file
      *
      * @param string $path Cache file path
+     *
      * @return bool True if valid file, false otherwise
      */
     private function isValidFile($path)
@@ -246,11 +312,90 @@ class FileSystemCacheAdapter implements CacheInterface
     /**
      * Format $data value to be used in cache
      *
-     * @param mixed $data
+     * @param mixed                  $itemData
+     *
+     * @param int|\DateInterval|null $ttl
+     *
      * @return string
+     * @throws \PageCache\Storage\InvalidArgumentException
      */
-    private function prepareItemData($data)
+    private function prepareItemData($itemData, $ttl = null)
     {
-        return '<?php return unserialize('.var_export(serialize($data), true).');';
+        $ttl = $this->normalizeTtl($ttl);
+
+        // Integrate TTL into data (it will be checked later in the get() method)
+        $fileData = [
+            'ttl'  => $ttl,
+            'item' => $itemData,
+        ];
+
+        return '<?php return unserialize('.var_export(serialize($fileData), true).');';
+    }
+
+    /**
+     * @param $key
+     *
+     * @return string
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
+    private function getKeyPath($key)
+    {
+        $this->validateKey($key);
+
+        $file = sha1($key);
+
+        return $this->hashDirectory->getFullPath($file);
+    }
+
+    /**
+     * @param $key
+     *
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
+    private function validateKey($key)
+    {
+        if (!\is_string($key)) {
+            throw new InvalidArgumentException(sprintf('Cache key must be string, "%s" given',
+                is_object($key) ? get_class($key) : gettype($key)));
+        }
+
+        if (!isset($key[0])) {
+            throw new InvalidArgumentException('Cache key length must be greater than zero');
+        }
+
+        if (preg_match('/[^A-Za-z0-9_\.]+/', $key)) {
+            throw new InvalidArgumentException('Invalid PSR SimpleCache key: '.$key);
+        }
+
+        if (strpbrk($key, '{}()/\@:') !== false) {
+            throw new InvalidArgumentException(sprintf('Cache key "%s" contains reserved characters {}()/\@:',
+                $key));
+        }
+    }
+
+    /**
+     * @param int|DateInterval|null $ttl
+     *
+     * @return int
+     * @throws \PageCache\Storage\InvalidArgumentException
+     */
+    private function normalizeTtl($ttl)
+    {
+        if ($ttl === null) {
+            return 3600; // Default TTL is one hour
+        }
+
+        if (\is_int($ttl)) {
+            return $ttl;
+        }
+
+        if ($ttl instanceof DateInterval) {
+            $currentDateTime = new \DateTimeImmutable();
+            $ttlDateTime     = $currentDateTime->add($ttl);
+
+            return $ttlDateTime->getTimestamp() - $currentDateTime->getTimestamp();
+        }
+
+        throw new InvalidArgumentException('Invalid TTL: '.print_r($ttl, true));
     }
 }

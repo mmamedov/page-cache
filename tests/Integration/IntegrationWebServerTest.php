@@ -581,8 +581,17 @@ class IntegrationWebServerTest extends \PHPUnit\Framework\TestCase
 
     private function clearCacheDirectory()
     {
-        $it    = new \RecursiveDirectoryIterator($this->cacheDirectory, \RecursiveDirectoryIterator::SKIP_DOTS);
-        $files = new \RecursiveIteratorIterator($it, \RecursiveIteratorIterator::CHILD_FIRST);
+        $it = new \RecursiveDirectoryIterator($this->cacheDirectory, \RecursiveDirectoryIterator::SKIP_DOTS);
+
+        $filter = new \RecursiveCallbackFilterIterator($it, function ($current) {
+            /** @var \SplFileInfo $current */
+            $filename = $current->getBasename();
+
+            // Check for files and dirs starting with "dot" (.gitignore, etc)
+            return !($filename && $filename[0] === '.');
+        });
+
+        $files = new \RecursiveIteratorIterator($filter, \RecursiveIteratorIterator::CHILD_FIRST);
 
         foreach ($files as $file) {
             if ($file->isDir()) {
