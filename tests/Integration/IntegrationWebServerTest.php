@@ -357,7 +357,7 @@ class IntegrationWebServerTest extends \PHPUnit\Framework\TestCase
             $this->serverHost,
             $this->serverPort,
             $this->documentRoot,
-            'index.php'
+            $this->documentRoot.DIRECTORY_SEPARATOR.'index.php'
         );
 
         if ('\\' !== DIRECTORY_SEPARATOR) {
