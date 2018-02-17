@@ -287,7 +287,7 @@ class IntegrationWebServerTest extends \PHPUnit\Framework\TestCase
             $request = $this->makeRequest($contentFile, $query);
 
             // Send If-Modified-Since header sometimes (it is the root of the blank screen probably)
-            if (random_int(1, 10) === 1) {
+            if (\random_int(1, 10) === 1) {
                 $request = $this->withModifiedSinceHeader($request, $contentFile);
             }
 
@@ -324,15 +324,15 @@ class IntegrationWebServerTest extends \PHPUnit\Framework\TestCase
         // TODO Randomize cache control headers (Pragma, etc)
 
         foreach ($this->queryValues as $key => $values) {
-            $index       = random_int(0, \count($values) - 1);
+            $index       = \random_int(0, \count($values) - 1);
             $query[$key] = $values[$index];
         }
 
         // Clear cache if probability set and matched
-        $query[self::CACHE_CLEAR_KEY] = $clearanceProbability && random_int(1, 100) < (int)$clearanceProbability;
+        $query[self::CACHE_CLEAR_KEY] = $clearanceProbability && \random_int(1, 100) < (int)$clearanceProbability;
 
         // Redirect sometimes
-        $query[self::REDIRECT_KEY] = (bool)random_int(0, 1);
+        $query[self::REDIRECT_KEY] = (bool)\random_int(0, 1);
 
         return $query;
     }
@@ -341,7 +341,7 @@ class IntegrationWebServerTest extends \PHPUnit\Framework\TestCase
     {
         $filesCount = \count($this->contentFiles);
 
-        $index = random_int(0, $filesCount - 1);
+        $index = \random_int(0, $filesCount - 1);
 
         return $this->contentFiles[$index];
     }
