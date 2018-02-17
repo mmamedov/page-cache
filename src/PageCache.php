@@ -125,6 +125,10 @@ class PageCache
      */
     public function init()
     {
+        if ($this->config()->isDryRunMode()) {
+            $this->log('Dry run mode is on. Live content is displayed, no cached output.');
+        }
+
         $this->log(__METHOD__.' uri:'.$_SERVER['REQUEST_URI']
             .'; script:'.$_SERVER['SCRIPT_NAME'].'; query:'.$_SERVER['QUERY_STRING'].'.');
 
@@ -137,19 +141,23 @@ class PageCache
 
         $this->log(__METHOD__.' Cache item not found for hash '.$this->getCurrentKey());
 
-        // Cache item not found
-        // Fetch page content and save it
-        ob_start(function ($content) {
-            try {
-                return $this->storePageContent($content);
-            } catch (\Throwable $t) {
-                $this->log('', $t);
-            } catch (\Exception $e) {
-                $this->log('', $e);
-            }
+        /**
+         * Cache item not found. Fetch content, save it, display it on this run.
+         */
+        ob_start([$this, 'storePageHandler']);
+    }
 
-            return $content;
-        });
+    private function storePageHandler($content)
+    {
+        try {
+            return $this->storePageContent($content);
+        } catch (\Throwable $t) {
+            $this->log('', $t);
+        } catch (\Exception $e) {
+            $this->log('', $e);
+        }
+
+        return $content;
     }
 
     /**
@@ -181,7 +189,7 @@ class PageCache
     }
 
     /**
-     * Display cache item.
+     * Display cache item, send headers if necessary.
      *
      * @param \PageCache\Storage\CacheItemInterface $item
      */
@@ -195,15 +203,40 @@ class PageCache
         // Decide if sending headers from Config
         // Send headers (if not disabled) and process If-Modified-Since header
         if ($this->config->isSendHeaders()) {
-            $this->httpHeaders->send();
+            $logHeaders = sprintf(
+                '%s: %s, %s: %s,%s: %s',
+                HttpHeaders::HEADER_LAST_MODIFIED,
+                $item->getLastModified()->format(HttpHeaders::DATE_FORMAT_CREATE),
+                HttpHeaders::HEADER_EXPIRES,
+                $item->getExpiresAt()->format(HttpHeaders::DATE_FORMAT_CREATE),
+                HttpHeaders::HEADER_ETAG,
+                $item->getETagString()
+            );
+            $this->log(__METHOD__.' uri:'.$_SERVER['REQUEST_URI']
+                . '; Headers {' . $logHeaders . '}');
+
+            if (!$this->config()->isDryRunMode()) {
+                $this->httpHeaders->send();
+            }
+
+            if ($this->httpHeaders->checkIfNotModified()) {
+                if (!$this->config()->isDryRunMode()) {
+                    $this->httpHeaders->sendNotModifiedHeader();
+                    $this->log(__METHOD__ . ' 304 Not Modified header was set. Exiting w/o content.');
+                    exit();
+                }
+                $this->log(__METHOD__ . ' 304 Not Modified header was set. Not exiting w/o content - Dry Mode.');
+            }
         }
 
-        // Normal flow, show cached content
+        // Show cached content
         $this->log(__METHOD__ . ' Cache item found: ' . $this->getCurrentKey());
 
-        // Echo content and stop execution
-        echo $item->getContent();
-        exit();
+        if (!$this->config()->isDryRunMode()) {
+            // Echo content and stop execution
+            echo $item->getContent();
+            exit();
+        }
     }
 
     /**
@@ -261,7 +294,15 @@ class PageCache
 
         $this->getItemStorage()->set($item);
 
-        $this->log(__METHOD__.' Data stored for key '.$key);
+        $logHeaders = sprintf(
+            '%s: %s, %s: %s',
+            HttpHeaders::HEADER_LAST_MODIFIED,
+            $item->getLastModified()->format(HttpHeaders::DATE_FORMAT_CREATE),
+            HttpHeaders::HEADER_ETAG,
+            $item->getETagString()
+        );
+
+        $this->log(__METHOD__ . ' Data stored for key ' . $key . '; Headers {' . $logHeaders . '}');
 
         // Return page content
         return $content;
@@ -389,6 +430,7 @@ class PageCache
      */
     public function clearAllCache()
     {
+        $this->log(__METHOD__.' Clearing all cache.');
         $this->getItemStorage()->clear();
     }
 

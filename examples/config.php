@@ -106,4 +106,12 @@ return [
      * Values will be fetched from the current response.
      */
     'forward_headers' => false,
+
+    /**
+     * Dry Run Mode.
+     * When enabled no cache headers will be sent, no cache output will be sent.
+     * Cache items will be saved.
+     * Use this to test system.
+     */
+    'dry_run_mode' =>false
 ];

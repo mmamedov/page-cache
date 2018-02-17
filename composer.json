@@ -21,7 +21,6 @@
     "require-dev": {
         "mobiledetect/mobiledetectlib": "^2.8",
         "monolog/monolog": "^1.19",
-        "brianium/paratest": "dev-master",
         "mikey179/vfsStream": "^1.6"
     },
     "suggest": {

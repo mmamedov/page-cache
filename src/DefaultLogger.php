@@ -46,9 +46,11 @@ class DefaultLogger extends AbstractLogger
     public function log($level, $message, array $context = [])
     {
         $exception = isset($context['exception']) ? $context['exception'] : null;
-
+        $microTime = microtime(true);
+        $micro = sprintf("%06d", ($microTime - floor($microTime)) * 1000000);
+        $logTime = (new \DateTime(date('Y-m-d H:i:s.' . $micro, $microTime)))->format('Y-m-d H:i:s.u');
         error_log(
-            '['.date('Y-m-d H:i:s').'] '
+            '[' . $logTime . '] '
             .$message.($exception ? ' {Exception: '.$exception->getMessage().'}' : '')."\n",
             3,
             $this->file,

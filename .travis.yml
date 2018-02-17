@@ -3,13 +3,15 @@ php:
   - 5.6
   - 7.0
 
-#script:
-#  - phpunit -v -c phpunit.xml
-
 branches:
     only:
       - master
 
 before_script:
   - phpenv config-rm xdebug.ini
+  - composer require phpunit/phpunit ^5
   - composer install -o
+  - phpunit --version
+
+script:
+  - ./vendor/bin/phpunit -v -c phpunit.xml

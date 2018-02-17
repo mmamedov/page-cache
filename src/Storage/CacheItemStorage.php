@@ -72,9 +72,7 @@ class CacheItemStorage
 
     public function set(CacheItemInterface $item)
     {
-        $key = $item->getKey();
-
-        $this->adapter->set($key, $item);
+        $this->adapter->set($item->getKey(), $item);
     }
 
     public function delete(CacheItemInterface $item)
@@ -98,10 +96,7 @@ class CacheItemStorage
      */
     private function isExpired(CacheItemInterface $item, DateTime $time = null)
     {
-        if (!$time) {
-            $time = new DateTime();
-        }
-
+        $time = $time ?: new DateTime();
         return ($time > $item->getExpiresAt());
     }
 
@@ -123,16 +118,10 @@ class CacheItemStorage
         $expiresAtTimestamp = $item->getExpiresAt() ? $item->getExpiresAt()->getTimestamp() : null;
 
         // Generate expires time from creation date and default interval
-        if (!$expiresAtTimestamp) {
-            $expiresAtTimestamp = $item->getCreatedAt()->getTimestamp() + $this->cacheExpiresIn;
-        }
+        $expiresAtTimestamp = $expiresAtTimestamp ?: ($item->getCreatedAt()->getTimestamp() + $this->cacheExpiresIn);
 
         // Slightly random offset
         $offset = log10(mt_rand(10, 1000)) * mt_rand(-2, 2);
-
-        $newValue = new DateTime;
-        $newValue->setTimestamp($expiresAtTimestamp + $offset);
-
-        $item->setExpiresAt($newValue);
+        $item->setExpiresAt((new DateTime())->setTimestamp($expiresAtTimestamp + $offset));
     }
 }
