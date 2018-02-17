@@ -87,10 +87,17 @@ class SessionHandlerTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @expectedException \Throwable
+     * @doesNotPerformAssertions
      */
     public function testExceptionArray()
     {
-        SessionHandler::excludeKeys('stringvalue is not scalar array');
+        try {
+            SessionHandler::excludeKeys('stringvalue is not scalar array');
+            $this->expectException('PHPUnit_Framework_Error');
+        } catch (\Throwable $e) {
+            // echo '~~~~As expected PHP7 throws Throwable.';
+        } catch (\Exception $e) {
+            // echo '~~~~As expected PHP5 throws Exception.';
+        }
     }
 }

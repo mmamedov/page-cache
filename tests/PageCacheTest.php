@@ -18,7 +18,6 @@ use PageCache\Config;
 use PageCache\Storage\CacheItemStorage;
 use PageCache\DefaultLogger;
 use PageCache\PageCache;
-use PageCache\PageCacheException;
 use PageCache\SessionHandler;
 use PageCache\Strategy\DefaultStrategy;
 use PageCache\Strategy\MobileStrategy;
@@ -117,12 +116,19 @@ class PageCacheTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @expectedException \Throwable
+     * @doesNotPerformAssertions
      */
     public function testSetStrategyException()
     {
         $pc = new PageCache();
-        $pc->setStrategy(new \stdClass());
+        try {
+            $pc->setStrategy(new \stdClass());
+            $this->expectException('PHPUnit_Framework_Error');
+        } catch (\Throwable $e) {
+            // echo '~~~~As expected PHP7 throws Throwable.';
+        } catch (\Exception $e) {
+            // echo '~~~~As expected PHP5 throws Exception.';
+        }
     }
 
     public function testClearPageCache()
