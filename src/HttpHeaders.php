@@ -26,8 +26,8 @@ class HttpHeaders
     const HTTP_IF_NONE_MATCH     = 'HTTP_IF_NONE_MATCH';
 
     const DATE_FORMAT        = 'D, d M Y H:i:s';
-    const DATE_FORMAT_CREATE = self::DATE_FORMAT.' \G\M\T';
-    const DATE_FORMAT_PARSE  = self::DATE_FORMAT.' T';
+    const DATE_FORMAT_CREATE = self::DATE_FORMAT . ' \G\M\T';
+    const DATE_FORMAT_PARSE  = self::DATE_FORMAT . ' T';
 
     /**
      * Last modified time of the cache item
@@ -143,7 +143,7 @@ class HttpHeaders
      */
     private function setHeader($name, $value = null, $httpResponseCode = null)
     {
-        header($name.($value ? ': '.$value : ''), true, $httpResponseCode);
+        header($name . ($value ? ': ' . $value : ''), true, $httpResponseCode);
     }
 
     /**
@@ -156,7 +156,7 @@ class HttpHeaders
      */
     public function checkIfNotModified()
     {
-        $lastModifiedTimestamp  = $this->itemLastModified->getTimestamp();
+        $lastModifiedTimestamp = $this->itemLastModified->getTimestamp();
         $modifiedSinceTimestamp = $this->getIfModifiedSinceTimestamp();
 
         $notModified = false;

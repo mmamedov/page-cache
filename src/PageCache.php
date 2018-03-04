@@ -89,7 +89,7 @@ class PageCache
      *
      * @param null|string $config_file_path
      *
-     * @throws \Exception
+     * @throws \PageCache\PageCacheException
      */
     public function __construct($config_file_path = null)
     {
@@ -97,9 +97,9 @@ class PageCache
             throw new PageCacheException('PageCache already created.');
         }
 
-        $this->config      = new Config($config_file_path);
+        $this->config = new Config($config_file_path);
         $this->httpHeaders = new HttpHeaders();
-        $this->strategy    = new DefaultStrategy();
+        $this->strategy = new DefaultStrategy();
 
         //Disable Session by default
         if (!$this->config->isUseSession()) {
@@ -129,8 +129,8 @@ class PageCache
             $this->log('Dry run mode is on. Live content is displayed, no cached output.');
         }
 
-        $this->log(__METHOD__.' uri:'.$_SERVER['REQUEST_URI']
-            .'; script:'.$_SERVER['SCRIPT_NAME'].'; query:'.$_SERVER['QUERY_STRING'].'.');
+        $this->log(__METHOD__ . ' uri:' . $_SERVER['REQUEST_URI']
+            . '; script:' . $_SERVER['SCRIPT_NAME'] . '; query:' . $_SERVER['QUERY_STRING'] . '.');
 
         // Search for valid cache item for current request
         $item = $this->getCurrentItem();
@@ -141,7 +141,7 @@ class PageCache
             $this->displayItem($item);
         }
 
-        $this->log(__METHOD__.' Cache item not found for hash '.$this->getCurrentKey());
+        $this->log(__METHOD__ . ' Cache item not found for hash ' . $this->getCurrentKey());
 
         /**
          * Cache item not found. Fetch content, save it, display it on this run.
@@ -216,12 +216,13 @@ class PageCache
                 HttpHeaders::HEADER_ETAG,
                 $item->getETagString()
             );
-            $this->log(__METHOD__.' uri:'.$_SERVER['REQUEST_URI']
+            $this->log(__METHOD__ . ' uri:' . $_SERVER['REQUEST_URI']
                 . '; Headers {' . $logHeaders . '}');
 
             if (!$isDryRun) {
                 $this->httpHeaders->send();
-                $this->log(__METHOD__.' Headers sent: '.PHP_EOL.implode(PHP_EOL, $this->httpHeaders->getSentHeaders()));
+                $this->log(__METHOD__ . ' Headers sent: ' . PHP_EOL . implode(PHP_EOL,
+                        $this->httpHeaders->getSentHeaders()));
             }
 
             // Check if conditions for the If-Modified-Since header are met
@@ -229,7 +230,7 @@ class PageCache
                 if (!$isDryRun) {
                     $this->httpHeaders->sendNotModifiedHeader();
                     $this->log(__METHOD__ . ' 304 Not Modified header was set. Exiting w/o content.');
-                    $this->log(__METHOD__.' Response status: '.http_response_code());
+                    $this->log(__METHOD__ . ' Response status: ' . http_response_code());
                     exit();
                 }
                 $this->log(__METHOD__ . ' 304 Not Modified header was set. Not exiting w/o content - Dry Mode.');
@@ -238,7 +239,7 @@ class PageCache
 
         // Show cached content
         $this->log(__METHOD__ . ' Cache item found: ' . $this->getCurrentKey());
-        $this->log(__METHOD__.' Response status: '.http_response_code());
+        $this->log(__METHOD__ . ' Response status: ' . http_response_code());
 
         if (!$isDryRun) {
             // Echo content and stop execution
@@ -257,13 +258,13 @@ class PageCache
      */
     private function storePageContent($content)
     {
-        $key  = $this->getCurrentKey();
+        $key = $this->getCurrentKey();
         $item = new CacheItem($key);
 
         // When enabled we store original header values with the item
         $isHeadersForwardingEnabled = $this->config->isSendHeaders() && $this->config->isForwardHeaders();
 
-        $this->log(__METHOD__.' Header forwarding is '.($isHeadersForwardingEnabled ? 'enabled' : 'disabled'));
+        $this->log(__METHOD__ . ' Header forwarding is ' . ($isHeadersForwardingEnabled ? 'enabled' : 'disabled'));
 
         $expiresAt = $isHeadersForwardingEnabled
             ? $this->httpHeaders->detectResponseExpires()
@@ -353,7 +354,7 @@ class PageCache
 
         // Current item might have returned null
         if (is_null($item)) {
-            throw new PageCacheException(__METHOD__.' Page cache item can not be detected');
+            throw new PageCacheException(__METHOD__ . ' Page cache item can not be detected');
         }
 
         $this->getItemStorage()->delete($item);
@@ -366,7 +367,7 @@ class PageCache
      */
     public function getPageCache()
     {
-        $key  = $this->getCurrentKey();
+        $key = $this->getCurrentKey();
         $item = $this->getItemStorage()->get($key);
 
         return $item ? $item->getContent() : false;
@@ -382,7 +383,7 @@ class PageCache
     public function isCached(CacheItemInterface $item = null)
     {
         if (!$item) {
-            $key  = $this->getCurrentKey();
+            $key = $this->getCurrentKey();
             $item = $this->getItemStorage()->get($key);
         }
 
@@ -417,7 +418,7 @@ class PageCache
     {
         // Hack for weird initialization logic
         if (!$this->currentItem) {
-            $key               = $this->getCurrentKey();
+            $key = $this->getCurrentKey();
             $this->currentItem = $this->getItemStorage()->get($key);
         }
 
@@ -439,7 +440,7 @@ class PageCache
      */
     public function clearAllCache()
     {
-        $this->log(__METHOD__.' Clearing all cache.');
+        $this->log(__METHOD__ . ' Clearing all cache.');
         $this->getItemStorage()->clear();
     }
 

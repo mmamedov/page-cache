@@ -68,7 +68,7 @@ class HashDirectory
     public function setDir($dir)
     {
         if (empty($dir) || !@is_dir($dir)) {
-            throw new PageCacheException(__METHOD__.': '.(string)$dir.' in constructor is not a directory');
+            throw new PageCacheException(__METHOD__ . ': ' . (string)$dir . ' in constructor is not a directory');
         }
 
         // Check for trailing slash and add it if not exists
@@ -99,8 +99,7 @@ class HashDirectory
     public function getFullPath($file)
     {
         $this->setFile($file);
-
-        return $this->dir.$this->getHash().$file;
+        return $this->dir . $this->getHash() . $file;
     }
 
     /**
@@ -121,7 +120,6 @@ class HashDirectory
 
         // Create directories
         $this->createSubDirs($path);
-
         return $path;
     }
 
@@ -134,10 +132,10 @@ class HashDirectory
      */
     private function createSubDirs($path)
     {
-        $fullPath = $this->dir.$path;
+        $fullPath = $this->dir . $path;
 
         if (!\file_exists($fullPath) && !mkdir($fullPath, $this->directoryPermissions, true) && !is_dir($fullPath)) {
-            throw new PageCacheException(__METHOD__.': '.$fullPath.' cache directory could not be created');
+            throw new PageCacheException(__METHOD__ . ': ' . $fullPath . ' cache directory could not be created');
         }
     }
 
@@ -170,8 +168,7 @@ class HashDirectory
         //normalize to 99
         $val1 %= 99;
         $val2 %= 99;
-
-        return $val1.'/'.$val2.'/';
+        return $val1 . '/' . $val2 . '/';
     }
 
     /**
@@ -189,10 +186,9 @@ class HashDirectory
         }
 
         $iterator = new \RecursiveDirectoryIterator($dir);
-        $filter   = new \RecursiveCallbackFilterIterator($iterator, function ($current) {
+        $filter = new \RecursiveCallbackFilterIterator($iterator, function ($current) {
             /** @var \SplFileInfo $current */
             $filename = $current->getBasename();
-
             // Check for files and dirs starting with "dot" (.gitignore, etc)
             return !($filename && $filename[0] === '.');
         });
@@ -203,7 +199,6 @@ class HashDirectory
             $path = $item->getPathname();
             $item->isDir() ? rmdir($path) : unlink($path);
         }
-
         return true;
     }
 }

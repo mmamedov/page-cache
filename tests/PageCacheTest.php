@@ -115,18 +115,18 @@ class PageCacheTest extends \PHPUnit\Framework\TestCase
         $this->assertAttributeInstanceOf(DefaultStrategy::class, 'strategy', $pc);
     }
 
-    /**
-     * @doesNotPerformAssertions
-     */
     public function testSetStrategyException()
     {
         $pc = new PageCache();
+        $this->expectException(\InvalidArgumentException::class);
+
         try {
             $pc->setStrategy(new \stdClass());
-            $this->expectException('PHPUnit_Framework_Error');
         } catch (\Throwable $e) {
+            throw new \InvalidArgumentException;
             // echo '~~~~As expected PHP7 throws Throwable.';
         } catch (\Exception $e) {
+            throw new \InvalidArgumentException;
             // echo '~~~~As expected PHP5 throws Exception.';
         }
     }

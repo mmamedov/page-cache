@@ -24,6 +24,8 @@ use Psr\SimpleCache\CacheInterface;
  */
 class FileSystemCacheAdapter implements CacheInterface
 {
+    const DEFAULT_TTL = 3600;
+
     /**
      * @var string
      */
@@ -53,8 +55,8 @@ class FileSystemCacheAdapter implements CacheInterface
      */
     public function __construct($path, $fileLock, $minFileSize)
     {
-        $this->path        = $path;
-        $this->fileLock    = $fileLock;
+        $this->path = $path;
+        $this->fileLock = $fileLock;
         $this->minFileSize = $minFileSize;
 
         $this->hashDirectory = new HashDirectory(null, $this->path);
@@ -149,23 +151,23 @@ class FileSystemCacheAdapter implements CacheInterface
             return $this->delete($key);
         }
 
-        $path    = $this->getKeyPath($key);
-        $data    = $this->prepareItemData($value, $ttl);
+        $path = $this->getKeyPath($key);
+        $data = $this->prepareItemData($value, $ttl);
         $storage = new FileSystem($data);
 
         try {
             $storage->setFileLock($this->fileLock);
             $storage->setFilePath($path);
         } catch (\Throwable $t) {
-            throw new CacheAdapterException(__METHOD__.' FileSystem Exception', 0, $t);
+            throw new CacheAdapterException(__METHOD__ . ' FileSystem Exception', 0, $t);
         } catch (\Exception $e) {
-            throw new CacheAdapterException(__METHOD__.' FileSystem Exception', 0, $e);
+            throw new CacheAdapterException(__METHOD__ . ' FileSystem Exception', 0, $e);
         }
 
         $result = $storage->writeAttempt();
 
         if ($result !== FileSystem::OK) {
-            throw new CacheAdapterException(__METHOD__.' FileSystem writeAttempt not an OK result: '.$result);
+            throw new CacheAdapterException(__METHOD__ . ' FileSystem writeAttempt not an OK result: ' . $result);
         }
 
         return true;
@@ -329,11 +331,13 @@ class FileSystemCacheAdapter implements CacheInterface
             'item' => $itemData,
         ];
 
-        return '<?php return unserialize('.var_export(serialize($fileData), true).');';
+        return '<?php return unserialize(' . var_export(serialize($fileData), true) . ');';
     }
 
     /**
-     * @param $key
+     * Make full cache file path for provided key
+     *
+     * @param string $key
      *
      * @return string
      * @throws \Psr\SimpleCache\InvalidArgumentException
@@ -348,7 +352,9 @@ class FileSystemCacheAdapter implements CacheInterface
     }
 
     /**
-     * @param $key
+     * Check the key is valid and throw an exception if not
+     *
+     * @param string|mixed $key
      *
      * @throws \Psr\SimpleCache\InvalidArgumentException
      */
@@ -359,21 +365,23 @@ class FileSystemCacheAdapter implements CacheInterface
                 is_object($key) ? get_class($key) : gettype($key)));
         }
 
-        if (!isset($key[0])) {
+        if ($key === '') {
             throw new InvalidArgumentException('Cache key length must be greater than zero');
         }
 
-        if (preg_match('/[^A-Za-z0-9_\.]+/', $key)) {
-            throw new InvalidArgumentException('Invalid PSR SimpleCache key: '.$key);
+        if (strpbrk($key, '{}()/\@:') !== false) {
+            throw new InvalidArgumentException(sprintf('Cache key "%s" contains reserved characters {}()/\@:', $key));
         }
 
-        if (strpbrk($key, '{}()/\@:') !== false) {
-            throw new InvalidArgumentException(sprintf('Cache key "%s" contains reserved characters {}()/\@:',
-                $key));
+        if (preg_match('/[^A-Za-z0-9_\.]+/', $key)) {
+            throw new InvalidArgumentException('Invalid PSR SimpleCache key: ' . $key .
+                ', must contain letters, numbers, underscores and dots only');
         }
     }
 
     /**
+     * Convert TTL to seconds
+     *
      * @param int|DateInterval|null $ttl
      *
      * @return int
@@ -382,7 +390,7 @@ class FileSystemCacheAdapter implements CacheInterface
     private function normalizeTtl($ttl)
     {
         if ($ttl === null) {
-            return 3600; // Default TTL is one hour
+            return self::DEFAULT_TTL; // Default TTL is one hour
         }
 
         if (\is_int($ttl)) {
@@ -391,11 +399,11 @@ class FileSystemCacheAdapter implements CacheInterface
 
         if ($ttl instanceof DateInterval) {
             $currentDateTime = new \DateTimeImmutable();
-            $ttlDateTime     = $currentDateTime->add($ttl);
+            $ttlDateTime = $currentDateTime->add($ttl);
 
             return $ttlDateTime->getTimestamp() - $currentDateTime->getTimestamp();
         }
 
-        throw new InvalidArgumentException('Invalid TTL: '.print_r($ttl, true));
+        throw new InvalidArgumentException('Invalid TTL: ' . print_r($ttl, true));
     }
 }
