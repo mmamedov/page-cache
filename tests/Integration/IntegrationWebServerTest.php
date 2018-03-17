@@ -60,13 +60,11 @@ class IntegrationWebServerTest extends \PHPUnit\Framework\TestCase
     private $serverProcess;
 
     private $contentFiles = [
-        '1.html',
-        '2.html',
-        '3.html',
-        '4.html',
-        '5.html',
-        '6.html',
-        '7.html',
+        '1.php',
+        '2.php',
+        '3.php',
+        '4.php',
+        '5.php',
     ];
 
     private $queryValues = [
