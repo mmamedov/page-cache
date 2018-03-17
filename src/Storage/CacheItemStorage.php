@@ -49,6 +49,7 @@ class CacheItemStorage
      * @param string $key
      *
      * @return \PageCache\Storage\CacheItemInterface|null
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function get($key)
     {
@@ -59,7 +60,6 @@ class CacheItemStorage
             return null;
         }
 
-        // Randomize expiration time
         $this->randomizeExpirationTime($item);
 
         // Cache expired?
@@ -70,12 +70,20 @@ class CacheItemStorage
         return $item;
     }
 
+    /**
+     * @param CacheItemInterface $item
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
     public function set(CacheItemInterface $item)
     {
         // Add ttl for buggy adapters (double time for correct cache stampede preventing algorithm)
         $this->adapter->set($item->getKey(), $item, $this->cacheExpiresIn * 2);
     }
 
+    /**
+     * @param CacheItemInterface $item
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
     public function delete(CacheItemInterface $item)
     {
         $this->adapter->delete($item->getKey());

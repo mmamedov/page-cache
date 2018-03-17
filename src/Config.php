@@ -92,6 +92,12 @@ class Config
      */
     private $forwardHeaders = false;
 
+    /**
+     * Config constructor.
+     *
+     * @param string $config_file_path Config File path
+     * @throws PageCacheException
+     */
     public function __construct($config_file_path = null)
     {
         // Load configuration file
@@ -150,6 +156,11 @@ class Config
         // Log file path
         if (isset($this->config['log_file_path']) && !empty($this->config['log_file_path'])) {
             $this->logFilePath = $this->config['log_file_path'];
+            // Directory must exist. File doesn't have to exist, if not found it will be created on first log write
+            if (!$this->isParentDirectoryExists($this->logFilePath)) {
+                throw new PageCacheException('Log file directory does not exist for the path provided '
+                    . $this->logFilePath);
+            }
         }
 
         // Use $_SESSION while caching or not
@@ -256,9 +267,15 @@ class Config
      *
      * @param string $logFilePath
      * @return Config for chaining
+     * @throws PageCacheException
      */
     public function setLogFilePath($logFilePath)
     {
+        if (!$this->isParentDirectoryExists($logFilePath)) {
+            throw new PageCacheException('Log file directory does not exist for the path provided '
+                . $logFilePath);
+        }
+
         $this->logFilePath = $logFilePath;
         return $this;
     }
@@ -440,5 +457,17 @@ class Config
     public function isDryRunMode()
     {
         return $this->dryRunMode;
+    }
+
+    /**
+     * Checks if the parent directory of the file path provided exists
+     *
+     * @param string $file_path File Path
+     * @return bool true if exists, false if not
+     */
+    private function isParentDirectoryExists($file_path)
+    {
+        $dir = dirname($file_path);
+        return file_exists($dir);
     }
 }

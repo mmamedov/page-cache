@@ -101,7 +101,7 @@ class PageCache
         $this->httpHeaders = new HttpHeaders();
         $this->strategy = new DefaultStrategy();
 
-        //Disable Session by default
+        // Disable Session by default
         if (!$this->config->isUseSession()) {
             SessionHandler::disable();
         }
@@ -221,8 +221,12 @@ class PageCache
 
             if (!$isDryRun) {
                 $this->httpHeaders->send();
-                $this->log(__METHOD__ . ' Headers sent: ' . PHP_EOL . implode(PHP_EOL,
-                        $this->httpHeaders->getSentHeaders()));
+                $this->log(
+                    __METHOD__ . ' Headers sent: ' . PHP_EOL . implode(
+                        PHP_EOL,
+                        $this->httpHeaders->getSentHeaders()
+                    )
+                );
             }
 
             // Check if conditions for the If-Modified-Since header are met
@@ -255,6 +259,7 @@ class PageCache
      * @param string $content String from ob_start
      *
      * @return string Page content
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     private function storePageContent($content)
     {
@@ -446,9 +451,10 @@ class PageCache
 
     /**
      * Log message using PSR Logger, or error_log.
-     * Works only when logging was enabled.
+     * Works only when logging was enabled and log file path was define.
+     * Attempts to create default logger if no logger exists.
      *
-     * @param string          $msg
+     * @param string $msg Message
      * @param null|\Exception $exception
      *
      * @return bool true when logged, false when didn't log
@@ -459,14 +465,14 @@ class PageCache
             return false;
         }
 
-        // If an external logger is not available but internal logger is configured
-        if (!$this->logger && $this->config->getLogFilePath()) {
+        if (empty($this->logger) && !empty($this->config->getLogFilePath())) {
             $this->logger = new DefaultLogger($this->config->getLogFilePath());
         }
 
-        if ($this->logger) {
-            $level = $exception ? LogLevel::ALERT : LogLevel::DEBUG;
-            $this->logger->log($level, $msg, ['exception' => $exception]);
+        if ($exception) {
+            $this->logger->log(LogLevel::ALERT, $msg, ['exception' => $exception]);
+        } else {
+            $this->logger->log(LogLevel::DEBUG, $msg, []);
         }
 
         return true;

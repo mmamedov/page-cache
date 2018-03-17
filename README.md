@@ -30,6 +30,7 @@ When upgrading to version 2.0, please note the followings:
 - PHP requirements >= 5.6.
 - Your config file must be like this `return [...]` and not `$config = array(...);` like in previous version.
 - Config `expiration` setting was renamed to `cache_expiration_in_seconds`
+- Use `try/catch` to ensure proper page load in case of PageCache error.
 
 If you find any other notable incompatibilities please let us know we will include them here.
 
@@ -67,11 +68,16 @@ cache file (if FileSystem storage is used).
 <?php
 require_once __DIR__.'/../vendor/autoload.php';
 
-$cache = new PageCache\PageCache();
-//To get or set config params use config():
-$cache->config()->setCachePath('/your/path/')
-                ->setEnableLog(true);
-$cache->init();
+try {
+    $cache = new PageCache\PageCache();
+    $cache->config()
+                    ->setCachePath('/your/path/')
+                    ->setEnableLog(true);
+    $cache->init();
+} catch (\Exception $e) {
+    // Log PageCache error or simply do nothing.
+    // In case of PageCache error, page will load normally, without cache.
+}
 
 //rest of your PHP page code, everything below will be cached
 ```

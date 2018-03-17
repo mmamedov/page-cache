@@ -135,8 +135,8 @@ class ConfigTest extends \PHPUnit\Framework\TestCase
     public function testGetLogFilePath()
     {
         $path = 'somepath/to/file';
+        $this->expectException(PageCacheException::class);
         $this->config->setLogFilePath($path);
-        $this->assertAttributeSame($path, 'logFilePath', $this->config);
     }
 
     public function testGetMinCacheFileSize()

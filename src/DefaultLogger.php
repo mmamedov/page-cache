@@ -22,16 +22,10 @@ class DefaultLogger extends AbstractLogger
      * DefaultLogger constructor.
      *
      * @param $file
-     * @throws PageCacheException
      */
     public function __construct($file)
     {
         $this->file = $file;
-        $dir = dirname($this->file);
-
-        if (!file_exists($dir)) {
-            throw new PageCacheException('Log file directory does not exists '.$dir);
-        }
     }
 
     /**
