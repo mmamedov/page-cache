@@ -149,6 +149,13 @@ class PageCache
         ob_start([$this, 'storePageHandler']);
     }
 
+    /**
+     * Invoked by ob_start() to store page content
+     *
+     * @param string $content from ob_start
+     * @return string Contents of the page
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
     private function storePageHandler($content)
     {
         try {
@@ -166,6 +173,7 @@ class PageCache
      * Get Default Cache Adapter
      *
      * @return FileSystemCacheAdapter
+     * @throws PageCacheException
      */
     private function getDefaultCacheAdapter()
     {
@@ -349,6 +357,7 @@ class PageCache
      * @param \PageCache\Storage\CacheItemInterface|null $item
      *
      * @throws \PageCache\PageCacheException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function clearPageCache(CacheItemInterface $item = null)
     {
@@ -369,6 +378,7 @@ class PageCache
      * Return current page cache as a string or false on error, if this page was cached before.
      *
      * @return string|false
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function getPageCache()
     {
@@ -384,6 +394,7 @@ class PageCache
      * @param \PageCache\Storage\CacheItemInterface|null $item
      *
      * @return bool Returns true if page has a valid cache file saved, false if not
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function isCached(CacheItemInterface $item = null)
     {
@@ -418,6 +429,7 @@ class PageCache
      * Detect and return current page cached item (or null if current page was not cached yet)
      *
      * @return \PageCache\Storage\CacheItemInterface|null
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     private function getCurrentItem()
     {

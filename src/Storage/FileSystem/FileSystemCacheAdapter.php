@@ -50,8 +50,9 @@ class FileSystemCacheAdapter implements CacheInterface
      * FileSystemPsrCacheAdapter constructor.
      *
      * @param string $path
-     * @param int    $fileLock
-     * @param int    $minFileSize
+     * @param int $fileLock
+     * @param int $minFileSize
+     * @throws \PageCache\PageCacheException
      */
     public function __construct($path, $fileLock, $minFileSize)
     {
@@ -131,9 +132,9 @@ class FileSystemCacheAdapter implements CacheInterface
     /**
      * Persists data in the cache, uniquely referenced by a key with an optional expiration TTL time.
      *
-     * @param string                $key   The key of the item to store.
-     * @param mixed                 $value The value of the item to store, must be serializable.
-     * @param null|int|DateInterval $ttl   Optional. The TTL value of this item. If no value is sent and
+     * @param string $key The key of the item to store.
+     * @param mixed $value The value of the item to store, must be serializable.
+     * @param null|int|DateInterval $ttl Optional. The TTL value of this item. If no value is sent and
      *                                     the driver supports TTL then the library may set a default value
      *                                     for it or let the driver take care of that.
      *
@@ -141,6 +142,7 @@ class FileSystemCacheAdapter implements CacheInterface
      *
      * @throws \Psr\SimpleCache\InvalidArgumentException If the $key string is not a legal value.
      * @throws \PageCache\Storage\CacheAdapterException
+     * @throws \Exception
      */
     public function set($key, $value, $ttl = null)
     {
