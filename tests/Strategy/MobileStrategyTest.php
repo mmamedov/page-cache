@@ -13,7 +13,7 @@ use PageCache\SessionHandler;
 use PageCache\Strategy\MobileStrategy;
 use PageCache\StrategyInterface;
 
-class MobileStrategyTest extends \PHPUnit_Framework_TestCase
+class MobileStrategyTest extends \PHPUnit\Framework\TestCase
 {
     public function testStrategy()
     {

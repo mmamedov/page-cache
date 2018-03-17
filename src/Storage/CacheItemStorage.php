@@ -72,7 +72,8 @@ class CacheItemStorage
 
     public function set(CacheItemInterface $item)
     {
-        $this->adapter->set($item->getKey(), $item);
+        // Add ttl for buggy adapters (double time for correct cache stampede preventing algorithm)
+        $this->adapter->set($item->getKey(), $item, $this->cacheExpiresIn * 2);
     }
 
     public function delete(CacheItemInterface $item)

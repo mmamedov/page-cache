@@ -14,7 +14,7 @@ use PageCache\Config;
 use PageCache\PageCache;
 use PageCache\PageCacheException;
 
-class ConfigTest extends \PHPUnit_Framework_TestCase
+class ConfigTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var Config

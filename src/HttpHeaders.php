@@ -26,8 +26,8 @@ class HttpHeaders
     const HTTP_IF_NONE_MATCH     = 'HTTP_IF_NONE_MATCH';
 
     const DATE_FORMAT        = 'D, d M Y H:i:s';
-    const DATE_FORMAT_CREATE = self::DATE_FORMAT.' \G\M\T';
-    const DATE_FORMAT_PARSE  = self::DATE_FORMAT.' T';
+    const DATE_FORMAT_CREATE = self::DATE_FORMAT . ' \G\M\T';
+    const DATE_FORMAT_PARSE  = self::DATE_FORMAT . ' T';
 
     /**
      * Last modified time of the cache item
@@ -124,15 +124,26 @@ class HttpHeaders
     }
 
     /**
+     * @return array
+     */
+    public function getSentHeaders()
+    {
+        /** @link http://php.net/manual/ru/function.headers-list.php#120539 */
+        return (PHP_SAPI === 'cli' && \function_exists('xdebug_get_headers'))
+            ? xdebug_get_headers()
+            : headers_list();
+    }
+
+    /**
      * Sends HTTP Header
      *
-     * @param string      $name               Header name
-     * @param string|null $value              Header value
-     * @param int         $http_response_code HTTP response code
+     * @param string      $name             Header name
+     * @param string|null $value            Header value
+     * @param int         $httpResponseCode HTTP response code
      */
-    private function setHeader($name, $value = null, $http_response_code = null)
+    private function setHeader($name, $value = null, $httpResponseCode = null)
     {
-        header($name.($value ? ': '.$value : ''), true, $http_response_code);
+        header($name . ($value ? ': ' . $value : ''), true, $httpResponseCode);
     }
 
     /**
@@ -145,7 +156,7 @@ class HttpHeaders
      */
     public function checkIfNotModified()
     {
-        $lastModifiedTimestamp  = $this->itemLastModified->getTimestamp();
+        $lastModifiedTimestamp = $this->itemLastModified->getTimestamp();
         $modifiedSinceTimestamp = $this->getIfModifiedSinceTimestamp();
 
         $notModified = false;
@@ -158,10 +169,11 @@ class HttpHeaders
         // Client's version older than server's?
         // If ETags matched ($notModified=true), we skip this step.
         // Because same hash means same file contents, no need to further check if-modified-since header
-        return
-            $notModified &&
-            $modifiedSinceTimestamp !== false &&
-            $modifiedSinceTimestamp >= $lastModifiedTimestamp;
+        if (!$notModified && $modifiedSinceTimestamp !== false) {
+            $notModified = $modifiedSinceTimestamp >= $lastModifiedTimestamp;
+        }
+
+        return $notModified;
     }
 
     /**
@@ -170,6 +182,7 @@ class HttpHeaders
      */
     public function sendNotModifiedHeader()
     {
+        http_response_code(304);
         $this->setHeader(self::HEADER_NOT_MODIFIED);
     }
 
@@ -181,13 +194,20 @@ class HttpHeaders
     private function getIfModifiedSinceTimestamp()
     {
         if (!empty($_SERVER[self::HTTP_IF_MODIFIED_SINCE])) {
-            $mod_time = $_SERVER[self::HTTP_IF_MODIFIED_SINCE];
+            $modifiedSinceString = $_SERVER[self::HTTP_IF_MODIFIED_SINCE];
+        } elseif (!empty($_ENV[self::HTTP_IF_MODIFIED_SINCE])) {
+            $modifiedSinceString = $_ENV[self::HTTP_IF_MODIFIED_SINCE];
+        } else {
+            $modifiedSinceString = null;
+        }
+
+        if ($modifiedSinceString) {
             // Some versions of IE 6 append "; length=##"
-            if (($pos = strpos($mod_time, ';')) !== false) {
-                $mod_time = substr($mod_time, 0, $pos);
+            if (($pos = strpos($modifiedSinceString, ';')) !== false) {
+                $modifiedSinceString = substr($modifiedSinceString, 0, $pos);
             }
 
-            return strtotime($mod_time);
+            return strtotime($modifiedSinceString);
         }
 
         return false;
@@ -226,7 +246,8 @@ class HttpHeaders
     }
 
     /**
-     * @param $name
+     * @param string $name
+     *
      * @return mixed|null
      */
     private function detectResponseHeaderValue($name)
@@ -244,10 +265,7 @@ class HttpHeaders
     private function getResponseHeaders()
     {
         if (!$this->responseHeaders) {
-            /** @link http://php.net/manual/ru/function.headers-list.php#120539 */
-            $rawData = (PHP_SAPI === 'cli') ? xdebug_get_headers() : headers_list();
-
-            foreach ($rawData as $item) {
+            foreach ($this->getSentHeaders() as $item) {
                 list($key, $value) = explode(':', $item, 2);
 
                 $this->responseHeaders[$key] = trim($value);

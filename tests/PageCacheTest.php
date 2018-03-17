@@ -18,12 +18,11 @@ use PageCache\Config;
 use PageCache\Storage\CacheItemStorage;
 use PageCache\DefaultLogger;
 use PageCache\PageCache;
-use PageCache\PageCacheException;
 use PageCache\SessionHandler;
 use PageCache\Strategy\DefaultStrategy;
 use PageCache\Strategy\MobileStrategy;
 
-class PageCacheTest extends \PHPUnit_Framework_TestCase
+class PageCacheTest extends \PHPUnit\Framework\TestCase
 {
     /** @var  vfsStreamDirectory */
     private $root;
@@ -82,6 +81,7 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
         $this->assertAttributeInstanceOf(CacheItemStorage::class, 'itemStorage', $pc);
 
         $output = 'Testing output for testInit()';
+        $this->expectOutputString($output);
         echo $output;
 
         $this->assertFalse($pc->isCached());
@@ -97,6 +97,7 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
 
         $pc->init();
         $output = 'Testing output for InitWithHeaders() with Headers enabled';
+        $this->expectOutputString($output);
         echo $output;
         $this->assertFalse($pc->isCached());
         ob_end_flush();
@@ -117,12 +118,15 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
     public function testSetStrategyException()
     {
         $pc = new PageCache();
+        $this->expectException(\InvalidArgumentException::class);
+
         try {
             $pc->setStrategy(new \stdClass());
-            $this->expectException('PHPUnit_Framework_Error');
         } catch (\Throwable $e) {
+            throw new \InvalidArgumentException;
             // echo '~~~~As expected PHP7 throws Throwable.';
         } catch (\Exception $e) {
+            throw new \InvalidArgumentException;
             // echo '~~~~As expected PHP5 throws Exception.';
         }
     }
@@ -134,6 +138,7 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
 
         $pc->init();
         $output = 'Testing output for clearPageCache()';
+        $this->expectOutputString($output);
         echo $output;
         ob_end_flush();
         $this->assertTrue($pc->isCached(), 'cache does not exist');
@@ -155,6 +160,7 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
         $pc->config()->setCachePath($cachePath);
         $pc->init();
         $output = 'Testing output for getPageCache()';
+        $this->expectOutputString($output);
         echo $output;
         ob_end_flush();
         $this->assertSame($output, $pc->getPageCache());
@@ -171,6 +177,7 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
         //cache page
         $pc->init();
         $output = 'testIsCached() being test... this line is going to populate cache file for testing...';
+        $this->expectOutputString($output);
         echo $output;
 
         //manually end output buffering. file cache must exist
@@ -209,6 +216,7 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
         //During init logger is initialized
         $pc->init();
         $output = 'testLog() method testing, output testing.';
+        $this->expectOutputString($output);
         echo $output;
         ob_end_flush();
 
@@ -241,6 +249,10 @@ class PageCacheTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse(file_exists($defaultLogFile));
     }
 
+    /**
+     * @throws \Exception
+     * @doesNotPerformAssertions
+     */
     public function testDestroy()
     {
         $pc = new PageCache();

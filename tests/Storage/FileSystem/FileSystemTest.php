@@ -21,7 +21,7 @@ use org\bovigo\vfs\vfsStreamDirectory;
  * Class FileSystemTest
  * @package PageCache\Tests\Storage
  */
-class FileSystemTest extends \PHPUnit_Framework_TestCase
+class FileSystemTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var  vfsStreamDirectory

@@ -8,7 +8,4 @@ docs/
 !examples/log/.gitkeep
 /examples/cache/*
 !examples/cache/.gitkeep
-/tests/tmp/*
-!tests/tmp/.gitkeep
-!tests/tmp/cache/.gitkeep
 coverage/

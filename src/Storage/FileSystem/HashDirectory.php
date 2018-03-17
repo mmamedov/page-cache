@@ -2,7 +2,7 @@
 /**
  * This file is part of the PageCache package.
  *
- * @author Muhammed Mamedov <mm@turkmenweb.net>
+ * @author    Muhammed Mamedov <mm@turkmenweb.net>
  * @copyright 2016
  *
  * For the full copyright and license information, please view the LICENSE
@@ -26,7 +26,7 @@ class HashDirectory
      *
      * @var string|null
      */
-    private $file = null;
+    private $file;
 
     /**
      * Directory where filename will be stored.
@@ -34,33 +34,48 @@ class HashDirectory
      *
      * @var string|null
      */
-    private $dir = null;
+    private $dir;
+
+    /**
+     * Filesystem permissions in octal form
+     * Server umask must be configured properly to prevent data leakage
+     *
+     * @var int
+     */
+    private $directoryPermissions = 0777;
 
     /**
      * HashDirectory constructor.
      *
      * @param string|null $file
      * @param string|null $dir
-     * @throws \Exception
+     *
+     * @throws \PageCache\PageCacheException
      */
     public function __construct($file = null, $dir = null)
     {
         $this->setDir($dir);
-        $this->file = $file;
+        $this->setFile($file);
     }
 
     /**
      * Set directory
      *
      * @param string|null $dir
-     * @throws \Exception
+     *
+     * @throws \PageCache\PageCacheException
      */
     public function setDir($dir)
     {
         if (empty($dir) || !@is_dir($dir)) {
-            throw new PageCacheException(__METHOD__ . ': '
-                . strval($dir) . ' in constructor is not a directory');
+            throw new PageCacheException(__METHOD__ . ': ' . (string)$dir . ' in constructor is not a directory');
         }
+
+        // Check for trailing slash and add it if not exists
+        if (mb_substr($dir, -1, 1) !== DIRECTORY_SEPARATOR) {
+            $dir .= DIRECTORY_SEPARATOR;
+        }
+
         $this->dir = $dir;
     }
 
@@ -75,15 +90,16 @@ class HashDirectory
     }
 
     /**
-     * Get full file path for a key
+     * Get full file path for a provided filename
      *
-     * @param mixed $key cache key
+     * @param mixed $file cache key
+     *
      * @return string path
      */
-    public function getFullPath($key)
+    public function getFullPath($file)
     {
-        $this->setFile($key);
-        return $this->dir . $this->getHash() . $key;
+        $this->setFile($file);
+        return $this->dir . $this->getHash() . $file;
     }
 
     /**
@@ -100,39 +116,26 @@ class HashDirectory
             return null;
         }
 
-        $directories = $this->getDirectoryPathByHash($this->file);
-        $directories_array = explode('/', $directories);
+        $path = $this->getDirectoryPathByHash($this->file);
 
-        //create directories
-        $this->createSubDirs($directories_array[0], $directories_array[1]);
-
-        return $directories;
+        // Create directories
+        $this->createSubDirs($path);
+        return $path;
     }
 
     /**
      *  Inside $this->dir (Cache Directory), create 2 sub directories to store current cache file
      *
-     * @param $dir1 string directory
-     * @param $dir2 string directory
+     * @param string $path Relative directory path
      *
      * @throws \PageCache\PageCacheException directories not created
      */
-    private function createSubDirs($dir1, $dir2)
+    private function createSubDirs($path)
     {
-        //dir1 not exists, create both
-        if (!@is_dir($this->dir . $dir1)) {
-            mkdir($this->dir . $dir1);
-            mkdir($this->dir . $dir1 . '/' . $dir2);
-        } else {
-            //dir1 exists, create dir2
-            if (!@is_dir($this->dir . $dir1 . '/' . $dir2)) {
-                mkdir($this->dir . $dir1 . '/' . $dir2);
-            }
-        }
-        //check if directories are there
-        if (!@is_dir($this->dir . $dir1 . '/' . $dir2)) {
-            throw new PageCacheException(__CLASS__.'/'.__METHOD__.': ' . $dir1 . '/' . $dir2
-                . ' cache directory could not be created');
+        $fullPath = $this->dir . $path;
+
+        if (!\file_exists($fullPath) && !mkdir($fullPath, $this->directoryPermissions, true) && !is_dir($fullPath)) {
+            throw new PageCacheException(__METHOD__ . ': ' . $fullPath . ' cache directory could not be created');
         }
     }
 
@@ -165,7 +168,6 @@ class HashDirectory
         //normalize to 99
         $val1 %= 99;
         $val2 %= 99;
-
         return $val1 . '/' . $val2 . '/';
     }
 
@@ -174,6 +176,7 @@ class HashDirectory
      * Used for deleting all cache content.
      *
      * @param string $dir
+     *
      * @return bool
      */
     public function clearDirectory($dir)
@@ -187,10 +190,7 @@ class HashDirectory
             /** @var \SplFileInfo $current */
             $filename = $current->getBasename();
             // Check for files and dirs starting with "dot" (.gitignore, etc)
-            if ($filename && $filename[0] === '.') {
-                return false;
-            }
-            return true;
+            return !($filename && $filename[0] === '.');
         });
 
         /** @var \SplFileInfo[] $listing */
@@ -199,7 +199,6 @@ class HashDirectory
             $path = $item->getPathname();
             $item->isDir() ? rmdir($path) : unlink($path);
         }
-
         return true;
     }
 }
