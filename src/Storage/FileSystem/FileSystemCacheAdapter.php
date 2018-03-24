@@ -60,7 +60,7 @@ class FileSystemCacheAdapter implements CacheInterface
         $this->fileLock = $fileLock;
         $this->minFileSize = $minFileSize;
 
-        $this->hashDirectory = new HashDirectory(null, $this->path);
+        $this->hashDirectory = new HashDirectory($this->path);
     }
 
     /**
@@ -343,14 +343,14 @@ class FileSystemCacheAdapter implements CacheInterface
      *
      * @return string
      * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws \PageCache\PageCacheException
      */
     private function getKeyPath($key)
     {
         $this->validateKey($key);
-
         $file = sha1($key);
-
-        return $this->hashDirectory->getFullPath($file);
+        $this->hashDirectory->processFile($file);
+        return $this->hashDirectory->getFileStoragePath();
     }
 
     /**
@@ -363,8 +363,12 @@ class FileSystemCacheAdapter implements CacheInterface
     private function validateKey($key)
     {
         if (!\is_string($key)) {
-            throw new InvalidArgumentException(sprintf('Cache key must be string, "%s" given',
-                is_object($key) ? get_class($key) : gettype($key)));
+            throw new InvalidArgumentException(
+                sprintf(
+                    'Cache key must be string, "%s" given',
+                    is_object($key) ? get_class($key) : gettype($key)
+                )
+            );
         }
 
         if ($key === '') {

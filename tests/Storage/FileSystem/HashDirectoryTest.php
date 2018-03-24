@@ -37,7 +37,8 @@ class HashDirectoryTest extends \PHPUnit\Framework\TestCase
 
         //dummy file name for testing
         $this->filename = '18a3938de0087a87d3530084cd46edf4';
-        $this->hd = new HashDirectory($this->filename, $this->dir);
+        $this->hd = new HashDirectory($this->dir);
+        $this->hd->setFile($this->filename);
     }
 
     public function tearDown()
@@ -56,16 +57,17 @@ class HashDirectoryTest extends \PHPUnit\Framework\TestCase
 
         $returned = $val1 . '/' . $val2 . '/';
 
-        $this->assertEquals($returned, $this->hd->getHash());
+        $this->assertEquals($returned, $this->hd->createSubdirectoriesForFile());
         $this->assertFileExists($this->dir . '56/51');
         $this->assertEquals($returned, $this->hd->getLocation($this->filename));
 
         //new object
         $newFilename = '93f0938de0087a87d3530084cd46edf4';
-        $newHd = new HashDirectory($newFilename, $this->dir);
+        $newHd = new HashDirectory($this->dir);
+        $newHd->setFile($newFilename);
 
         $this->assertFileNotExists($this->dir . '51/48');
-        $this->assertEquals('51/48/', $newHd->getHash());
+        $this->assertEquals('51/48/', $newHd->createSubdirectoriesForFile());
         $this->assertAttributeEquals('93f0938de0087a87d3530084cd46edf4', 'file', $newHd);
         $this->assertFileExists($this->dir . '51/48');
     }
@@ -84,7 +86,7 @@ class HashDirectoryTest extends \PHPUnit\Framework\TestCase
     {
         //lets create first dir ->56, and leave 51 uncreated
         mkdir($this->dir.'56');
-        $this->assertNotEmpty($this->hd->getHash());
+        $this->assertNotEmpty($this->hd->createSubdirectoriesForFile());
     }
 
     /**
@@ -94,7 +96,7 @@ class HashDirectoryTest extends \PHPUnit\Framework\TestCase
     {
         //make cache directory non writable, this will prevent from them being created
         chmod($this->dir, '000');
-        $this->hd->getHash();
+        $this->hd->createSubdirectoriesForFile();
     }
 
     /**
@@ -102,28 +104,28 @@ class HashDirectoryTest extends \PHPUnit\Framework\TestCase
      */
     public function testConstructorException()
     {
-        new HashDirectory('false file', 'false directory');
+        new HashDirectory('false directory');
     }
 
     public function testClearDirectory()
     {
-        $dirContent = array(
-            '25' => array(
-                '59' => array(
+        $dirContent = [
+            '25' => [
+                '59' => [
                     'cacheFile' => 'file content goes here'
-                ),
-                '14'=>array()
-            ),
-            'Core' => array(
-                'AbstractFactory' => array(
+                ],
+                '14' => []
+            ],
+            'Core' => [
+                'AbstractFactory' => [
                     'test.php' => 'some text content',
                     'other.php' => 'Some more text content',
                     'Invalid.csv' => 'Something else',
-                ),
-                'AnEmptyFolder' => array(),
+                ],
+                'AnEmptyFolder' => [],
                 'badlocation.php' => 'some bad content',
-            )
-        );
+            ]
+        ];
 
         vfsStream::create($dirContent);
 
@@ -150,23 +152,23 @@ class HashDirectoryTest extends \PHPUnit\Framework\TestCase
 
     public function testClearDirectoryRoot()
     {
-        $dirContent = array(
-            '25' => array(
-                '59' => array(
+        $dirContent = [
+            '25' => [
+                '59' => [
                     'cacheFile' => 'file content goes here'
-                ),
-                '14' => array()
-            ),
-            'Core' => array(
-                'AbstractFactory' => array(
+                ],
+                '14' => []
+            ],
+            'Core' => [
+                'AbstractFactory' => [
                     'test.php' => 'some text content',
                     'other.php' => 'Some more text content',
                     'Invalid.csv' => 'Something else',
-                ),
-                'AnEmptyFolder' => array(),
+                ],
+                'AnEmptyFolder' => [],
                 'badlocation.php' => 'some bad content',
-            )
-        );
+            ]
+        ];
 
         vfsStream::create($dirContent);
 

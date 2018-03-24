@@ -25,7 +25,8 @@
         "guzzlehttp/guzzle": "^6.3",
         "cache/integration-tests": "dev-master",
         "symfony/cache": "^3.4 || ^4.0",
-        "symfony/process": "^3.4 || ^4.0"
+        "symfony/process": "^3.4 || ^4.0",
+        "phpunit/phpunit": "^5"
     },
     "suggest": {
         "monolog/monolog": "Allows using monolog for logging",

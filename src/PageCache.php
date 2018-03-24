@@ -135,9 +135,8 @@ class PageCache
         // Search for valid cache item for current request
         $item = $this->getCurrentItem();
 
+        // Display cache item if found (it might have empty contents, extra check is made inside displayItem)
         if ($item) {
-            // Display cache item if found
-            // If cache file not found or not valid, init() continues with cache generation(storePageContent())
             $this->displayItem($item);
         }
 
@@ -206,6 +205,12 @@ class PageCache
     private function displayItem(CacheItemInterface $item)
     {
         $isDryRun = $this->config()->isDryRunMode();
+        $itemContent = $item->getContent();
+
+        if (empty($itemContent)) {
+            $this->log(__METHOD__ . ' Empty cache item found, skipping cache.', print_r($item, true));
+            return;
+        }
 
         $this->httpHeaders
             ->setLastModified($item->getLastModified())
@@ -254,8 +259,7 @@ class PageCache
         $this->log(__METHOD__ . ' Response status: ' . http_response_code());
 
         if (!$isDryRun) {
-            // Echo content and stop execution
-            echo $item->getContent();
+            echo $itemContent;
             exit();
         }
     }
@@ -412,7 +416,7 @@ class PageCache
      *
      * @return \PageCache\Storage\CacheItemStorage
      */
-    private function getItemStorage()
+    public function getItemStorage()
     {
         // Hack for weird initialization logic
         if (!$this->itemStorage) {

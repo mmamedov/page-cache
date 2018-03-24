@@ -270,6 +270,54 @@ class PageCacheTest extends \PHPUnit\Framework\TestCase
         $this->assertInstanceOf(DefaultStrategy::class, $pc->getStrategy());
     }
 
+    /**
+     * Tests edge case when cache file might have an empty content.
+     * In this case existing cache file must be ignored and page content must be displayed.
+     *
+     * @throws \PageCache\PageCacheException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
+    public function testEmptyCacheContentToBeServed()
+    {
+        /**
+         * First hit on a page. Cache content.
+         */
+        $pc = new PageCache(__DIR__.'/config_test.php');
+        $pc->config()->setCachePath(vfsStream::url('tmpdir').'/');
+        $pc->init();
+        $output = 'testEmptyCacheContentToBeServed() is being tested. Line 1.';
+        echo $output;
+        ob_end_flush();
+
+        //echo 'Full contents:'.file_get_contents(vfsStream::url('tmpdir').'/48/2/709e95a30a05ae82a5b8ee166fb10fbf075ac0be');
+
+        /**
+         * Imitate a cache error.
+         * Update cached content with empty string.
+         */
+        $item = $pc->getItemStorage()->get($pc->getCurrentKey());
+        $item->setContent('');
+        $pc->getItemStorage()->set($item);
+        $pc::destroy();
+
+        //echo '\nEmpty contents:'.file_get_contents(vfsStream::url('tmpdir').'/48/2/709e95a30a05ae82a5b8ee166fb10fbf075ac0be');
+
+        /**
+         * Imitates a new hit on the same page
+         * Cached content of this page is empty: should ignore cache, and output new content.
+         */
+        $pc2 = new PageCache(__DIR__.'/config_test.php');
+        $pc2->config()->setCachePath(vfsStream::url('tmpdir').'/');
+        $pc2->init();
+        $output2 = 'New content. Line 2';
+        echo $output2;
+        ob_end_flush();
+
+        $this->assertEquals($pc2->getItemStorage()->get($pc2->getCurrentKey())->getContent(), $output2);
+        $this->expectOutputString($output . $output2);
+    }
+
+
     private function setServerParameters()
     {
         if (!isset($_SERVER['REQUEST_URI'])) {

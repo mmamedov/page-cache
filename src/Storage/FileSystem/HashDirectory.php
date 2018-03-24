@@ -45,17 +45,22 @@ class HashDirectory
     private $directoryPermissions = 0777;
 
     /**
+     * Subdirectories for storing file based on hash
+     *
+     * @var string
+     */
+    private $hashSubDirectories;
+
+    /**
      * HashDirectory constructor.
      *
-     * @param string|null $file
      * @param string|null $dir
      *
      * @throws \PageCache\PageCacheException
      */
-    public function __construct($file = null, $dir = null)
+    public function __construct($dir = null)
     {
         $this->setDir($dir);
-        $this->setFile($file);
     }
 
     /**
@@ -90,16 +95,25 @@ class HashDirectory
     }
 
     /**
-     * Get full file path for a provided filename
+     * Sets file parameter and creates needed subdirectories for storing it
      *
      * @param mixed $file cache key
      *
-     * @return string path
+     * @return void
+     * @throws PageCacheException
      */
-    public function getFullPath($file)
+    public function processFile($file)
     {
         $this->setFile($file);
-        return $this->dir . $this->getHash() . $file;
+        $this->hashSubDirectories = $this->createSubdirectoriesForFile();
+    }
+
+    /**
+     * @return string full file storage path
+     */
+    public function getFileStoragePath()
+    {
+        return $this->dir . $this->hashSubDirectories . $this->file;
     }
 
     /**
@@ -109,16 +123,18 @@ class HashDirectory
      * Returns null if $this->file or $this->dir is not set.
      *
      * @return string|null with two directory names like '10/55/', ready to be appended to cache_dir
+     * @throws PageCacheException
      */
-    public function getHash()
+    public function createSubdirectoriesForFile()
     {
         if (empty($this->file) || empty($this->dir)) {
-            return null;
+            throw new PageCacheException(
+                __METHOD__ . ': file or directory not set. file: ' . $this->file . ' , directory: ' . $this->dir
+            );
         }
 
         $path = $this->getDirectoryPathByHash($this->file);
 
-        // Create directories
         $this->createSubDirs($path);
         return $path;
     }
