@@ -77,6 +77,7 @@ class FileSystemCacheAdapter implements CacheInterface
      *
      * @throws \Psr\SimpleCache\InvalidArgumentException
      *       MUST be thrown if the $key string is not a legal value.
+     * @throws \PageCache\PageCacheException
      */
     public function has($key)
     {
@@ -354,7 +355,8 @@ class FileSystemCacheAdapter implements CacheInterface
     }
 
     /**
-     * Check the key is valid and throw an exception if not
+     * Check the key is valid and throw an exception if not.
+     * Accepted key characters: letters, numbers, underscores, dashes and dots
      *
      * @param string|mixed $key
      *
@@ -379,9 +381,9 @@ class FileSystemCacheAdapter implements CacheInterface
             throw new InvalidArgumentException(sprintf('Cache key "%s" contains reserved characters {}()/\@:', $key));
         }
 
-        if (preg_match('/[^A-Za-z0-9_\.]+/', $key)) {
+        if (preg_match('/[^A-Za-z0-9_\.\-]+/', $key)) {
             throw new InvalidArgumentException('Invalid PSR SimpleCache key: ' . $key .
-                ', must contain letters, numbers, underscores and dots only');
+                ', must contain letters, numbers, underscores, dashes and dots only');
         }
     }
 

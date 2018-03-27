@@ -37,6 +37,7 @@ use PageCache\Strategy\MobileStrategy;
 $config_file = __DIR__ . '/config.php';
 $cache = new PageCache($config_file);
 $cache->setStrategy(new MobileStrategy());
+$cache->config()->setEnableLog(true);
 //Enable session support if needed, check demos and README for details
 //uncomment for session support
 //$cache->config()->setUseSession(true);
@@ -52,8 +53,6 @@ $cache->init();
  */
 function isMobileDevice()
 {
-    $mobileDetect = null;
-
     $mobileDetect = new \Mobile_Detect();
 
     /**
@@ -61,14 +60,8 @@ function isMobileDevice()
      * If you need ALL mobile devices use this:   if($mobileDetect->isMobile())
      *
      */
-    if ($mobileDetect->isMobile() && !$mobileDetect->isTablet()) {
-        return true;
-    } else {
-        return false;
-    }
+    return $mobileDetect->isMobile() && !$mobileDetect->isTablet();
 }
-
-
 ?>
 <html>
 <body>
