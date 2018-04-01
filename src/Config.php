@@ -119,80 +119,57 @@ class Config
     private function setConfigValues()
     {
         if (isset($this->config['min_cache_file_size']) && is_numeric($this->config['min_cache_file_size'])) {
-            $this->minCacheFileSize = (int)$this->config['min_cache_file_size'];
+            $this->setMinCacheFileSize($this->config['min_cache_file_size']);
         }
 
         //Enable Log
         if (isset($this->config['enable_log']) && $this->isBool($this->config['enable_log'])) {
-            $this->enableLog = $this->config['enable_log'];
+            $this->setEnableLog($this->config['enable_log']);
         }
 
         //Cache Expiration Time
         if (isset($this->config['cache_expiration_in_seconds'])) {
-            if ($this->config['cache_expiration_in_seconds'] < 0) {
-                throw new PageCacheException('PageCache config: invalid expiration value, < 0.');
-            }
-            $this->cacheExpirationInSeconds = (int)$this->config['cache_expiration_in_seconds'];
+            $this->setCacheExpirationInSeconds($this->config['cache_expiration_in_seconds']);
         }
 
         // Path to store cache files
         if (isset($this->config['cache_path'])) {
-            // @codeCoverageIgnoreStart
-            if (substr($this->config['cache_path'], -1) !== '/') {
-                throw new PageCacheException(
-                    'PageCache config: / trailing slash is expected at the end of cache_path.'
-                );
-            }
-
-            //path writable?
-            if (empty($this->config['cache_path']) || !is_writable($this->config['cache_path'])) {
-                throw new PageCacheException('PageCache config: cache path not writable or empty');
-            }
-
-            $this->cachePath = $this->config['cache_path'];
-            // @codeCoverageIgnoreEnd
+            $this->setCachePath($this->config['cache_path']);
         }
 
         // Log file path
         if (isset($this->config['log_file_path']) && !empty($this->config['log_file_path'])) {
-            $this->logFilePath = $this->config['log_file_path'];
-            // Directory must exist. File doesn't have to exist, if not found it will be created on first log write
-            if (!$this->isParentDirectoryExists($this->logFilePath)) {
-                throw new PageCacheException('Log file directory does not exist for the path provided '
-                    . $this->logFilePath);
-            }
+            $this->setLogFilePath($this->config['log_file_path']);
         }
 
         // Use $_SESSION while caching or not
         if (isset($this->config['use_session']) && $this->isBool($this->config['use_session'])) {
-            $this->useSession = $this->config['use_session'];
+            $this->setUseSession($this->config['use_session']);
         }
 
         // Session exclude key
         if (isset($this->config['session_exclude_keys']) && is_array($this->config['session_exclude_keys'])) {
-            // @codeCoverageIgnoreStart
-            $this->sessionExcludeKeys = $this->config['session_exclude_keys'];
-            // @codeCoverageIgnoreEnd
+            $this->setSessionExcludeKeys($this->config['session_exclude_keys']);
         }
 
         // File Locking
         if (isset($this->config['file_lock']) && !empty($this->config['file_lock'])) {
-            $this->fileLock = $this->config['file_lock'];
+            $this->setFileLock($this->config['file_lock']);
         }
 
         // Send HTTP headers
         if (isset($this->config['send_headers']) && $this->isBool($this->config['send_headers'])) {
-            $this->sendHeaders = $this->config['send_headers'];
+            $this->setSendHeaders($this->config['send_headers']);
         }
 
         // Forward Last-Modified and ETag headers to cache item
         if (isset($this->config['forward_headers']) && $this->isBool($this->config['forward_headers'])) {
-            $this->forwardHeaders = $this->config['forward_headers'];
+            $this->setForwardHeaders($this->config['forward_headers']);
         }
 
         // Enable Dry run mode
         if (isset($this->config['dry_run_mode']) && $this->isBool($this->config['dry_run_mode'])) {
-            $this->dryRunMode = $this->config['dry_run_mode'];
+            $this->setDryRunMode($this->config['dry_run_mode']);
         }
     }
 
