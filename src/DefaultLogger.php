@@ -43,9 +43,14 @@ class DefaultLogger extends AbstractLogger
         $microTime = microtime(true);
         $micro = sprintf("%06d", ($microTime - floor($microTime)) * 1000000);
         $logTime = (new \DateTime(date('Y-m-d H:i:s.' . $micro, $microTime)))->format('Y-m-d H:i:s.u');
+        
+        $msg_line = ($exception instanceOf \Throwable)
+            ? $exception->getMessage()
+            : (is_string($exception) ? $exception : print_r($exception, (bool) "noecho"));
+
         error_log(
             '[' . $logTime . '] '
-            .$message.($exception ? ' {Exception: '.$exception->getMessage().'}' : '')."\n",
+            .$message.($exception ? ' {Exception: '.$msg_line.'}' : '')."\n",
             3,
             $this->file,
             null
