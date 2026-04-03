@@ -363,7 +363,7 @@ class PageCache
      * @throws \PageCache\PageCacheException
      * @throws \Psr\SimpleCache\InvalidArgumentException
      */
-    public function clearPageCache(CacheItemInterface $item = null)
+    public function clearPageCache(?CacheItemInterface $item = null)
     {
         // Use current item if not provided in arguments
         if (is_null($item)) {
@@ -400,7 +400,7 @@ class PageCache
      * @return bool Returns true if page has a valid cache file saved, false if not
      * @throws \Psr\SimpleCache\InvalidArgumentException
      */
-    public function isCached(CacheItemInterface $item = null)
+    public function isCached(?CacheItemInterface $item = null)
     {
         if (!$item) {
             $key = $this->getCurrentKey();

@@ -79,7 +79,7 @@ class FileSystemCacheAdapter implements CacheInterface
      *       MUST be thrown if the $key string is not a legal value.
      * @throws \PageCache\PageCacheException
      */
-    public function has($key)
+    public function has($key): bool
     {
         $path = $this->getKeyPath($key);
 
@@ -97,7 +97,7 @@ class FileSystemCacheAdapter implements CacheInterface
      * @throws \Psr\SimpleCache\InvalidArgumentException
      *       MUST be thrown if the $key string is not a legal value.
      */
-    public function get($key, $default = null)
+    public function get($key, mixed $default = null): mixed
     {
         $path = $this->getKeyPath($key);
 
@@ -145,7 +145,7 @@ class FileSystemCacheAdapter implements CacheInterface
      * @throws \PageCache\Storage\CacheAdapterException
      * @throws \Exception
      */
-    public function set($key, $value, $ttl = null)
+    public function set($key, mixed $value, $ttl = null): bool
     {
         $ttl = $this->normalizeTtl($ttl);
 
@@ -186,7 +186,7 @@ class FileSystemCacheAdapter implements CacheInterface
      * @throws \Psr\SimpleCache\InvalidArgumentException
      *   MUST be thrown if the $key string is not a legal value.
      */
-    public function delete($key)
+    public function delete($key): bool
     {
         $path = $this->getKeyPath($key);
 
@@ -210,7 +210,7 @@ class FileSystemCacheAdapter implements CacheInterface
      *
      * @return bool True on success and false on failure.
      */
-    public function clear()
+    public function clear(): bool
     {
         return $this->hashDirectory->clearDirectory($this->path);
     }
@@ -227,7 +227,7 @@ class FileSystemCacheAdapter implements CacheInterface
      *   MUST be thrown if $keys is neither an array nor a Traversable,
      *   or if any of the $keys are not a legal value.
      */
-    public function getMultiple($keys, $default = null)
+    public function getMultiple($keys, mixed $default = null): iterable
     {
         if (!$keys || (!\is_array($keys) && !$keys instanceof \Traversable)) {
             throw new InvalidArgumentException('Cache keys must be an array or Traversable');
@@ -257,7 +257,7 @@ class FileSystemCacheAdapter implements CacheInterface
      *   MUST be thrown if $values is neither an array nor a Traversable,
      *   or if any of the $values are not a legal value.
      */
-    public function setMultiple($values, $ttl = null)
+    public function setMultiple($values, $ttl = null): bool
     {
         if (!$values || (!\is_array($values) && !$values instanceof \Traversable)) {
             throw new InvalidArgumentException('Cache values must be an array or Traversable');
@@ -287,7 +287,7 @@ class FileSystemCacheAdapter implements CacheInterface
      *   MUST be thrown if $keys is neither an array nor a Traversable,
      *   or if any of the $keys are not a legal value.
      */
-    public function deleteMultiple($keys)
+    public function deleteMultiple($keys): bool
     {
         if (!\is_array($keys) && !$keys instanceof \Traversable) {
             throw new InvalidArgumentException('Cache keys must be an array or Traversable');

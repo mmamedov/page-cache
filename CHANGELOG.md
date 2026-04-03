@@ -13,6 +13,8 @@ PageCache ChangeLog
 * Fixed PHP 8.1 deprecation: implicit float-to-int conversion in `DefaultLogger` and `CacheItemStorage`.
 * Fixed PHP 8.1 deprecation: passing `null` for typed `int` parameter in `HttpHeaders::setHeader()`.
 * Replaced Travis CI with GitHub Actions; matrix now covers PHP 8.1, 8.2, 8.3, 8.4, and 8.5.
+* `psr/log` requirement upgraded from `^1.0` to `^3.0`.
+* `psr/simple-cache` requirement upgraded from `^1.0` to `^3.0`.
 
 ### WIP
 
