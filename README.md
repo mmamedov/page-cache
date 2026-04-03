@@ -13,23 +13,27 @@ Or manually add to your composer.json file:
 ```json
 {
   "require": {
-      "mmamedov/page-cache": "^2.0"
+      "mmamedov/page-cache": "^3.0"
   }
 }
 ```
 Once PageCache is installed, include Composer's autoload.php file, or implement your own autoloader. 
 Composer autoloader is recommended.
 
-Do not use `master` branch, as it may contain unstable code, use versioned branches instead.
+#### Upgrading to v3.*
+Version 3.0 requires **PHP 8.1+** (previously PHP 5.6+). This is a breaking change from v2.
 
-#### Upgrading to to v2.*
-Version 2.0 is not backwards compatible with versions starting with v1.0. Version 2.0 introduces new features and code
-was refactored to enable us deliver more features.
+When upgrading to version 3.0, please note the following:
+- PHP 8.1 or higher is now required.
+- `psr/log` upgraded to `^3.0` and `psr/simple-cache` upgraded to `^3.0`. Ensure your project's PSR dependencies are compatible.
+- No public API changes — existing code should work without modification.
 
-When upgrading to version 2.0, please note the followings:
-- PHP requirements >= 8.1.
-- Your config file must be like this `return [...]` and not `$config = array(...);` like in previous version.
-- Config `expiration` setting was renamed to `cache_expiration_in_seconds`
+#### Upgrading to v2.*
+Version 2.0 is not backwards compatible with versions starting with v1.0.
+
+When upgrading to version 2.0, please note the following:
+- Your config file must use `return [...]` and not `$config = array(...);` like in the previous version.
+- Config `expiration` setting was renamed to `cache_expiration_in_seconds`.
 - Use `try/catch` to ensure proper page load in case of PageCache error.
 
 If you find any other notable incompatibilities please let us know we will include them here.
