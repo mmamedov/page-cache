@@ -29,7 +29,7 @@ class HashDirectoryTest extends \PHPUnit\Framework\TestCase
     /** @var  HashDirectory */
     private $hd;
 
-    public function setUp()
+    public function setUp(): void
     {
         //setup virtual dir
         vfsStream::setup('tmpdir');
@@ -41,7 +41,7 @@ class HashDirectoryTest extends \PHPUnit\Framework\TestCase
         $this->hd->setFile($this->filename);
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         unset($this->hd);
     }

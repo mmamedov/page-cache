@@ -78,7 +78,7 @@ class IntegrationWebServerTest extends \PHPUnit\Framework\TestCase
         ],
     ];
 
-    protected function setUp()
+    protected function setUp(): void
     {
         if ($this->canConnectToServer()) {
             throw new \RuntimeException('Something is already running on '.$this->serverHost.':'.$this->serverPort.'. Aborting tests.');
@@ -117,7 +117,7 @@ class IntegrationWebServerTest extends \PHPUnit\Framework\TestCase
         $this->clearCacheDirectory();
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         $this->stopBuiltInServer();
 

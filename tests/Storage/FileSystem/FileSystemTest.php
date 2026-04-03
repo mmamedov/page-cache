@@ -28,7 +28,7 @@ class FileSystemTest extends \PHPUnit\Framework\TestCase
      */
     private $virtualRoot;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->virtualRoot = vfsStream::setup('fileSystemDir');
     }

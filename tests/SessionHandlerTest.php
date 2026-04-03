@@ -14,12 +14,12 @@ use PageCache\SessionHandler;
 
 class SessionHandlerTest extends \PHPUnit\Framework\TestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         SessionHandler::disable();
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         SessionHandler::disable();
     }

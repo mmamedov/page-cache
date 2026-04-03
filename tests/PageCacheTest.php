@@ -27,14 +27,14 @@ class PageCacheTest extends \PHPUnit\Framework\TestCase
     /** @var  vfsStreamDirectory */
     private $root;
 
-    public function setUp()
+    public function setUp(): void
     {
         date_default_timezone_set('UTC');
         $this->setServerParameters();
         $this->root = vfsStream::setup('tmpdir');
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         PageCache::destroy();
         SessionHandler::reset();
