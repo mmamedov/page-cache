@@ -43,4 +43,4 @@ jobs:
       run: composer install -o
 
     - name: Run test suite
-      run: ./vendor/bin/phpunit -v -c phpunit.xml
+      run: ./vendor/bin/phpunit -c phpunit.xml
