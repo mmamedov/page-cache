@@ -11,7 +11,8 @@ permissions:
 
 jobs:
   build:
-
+    env:
+      COMPOSER_NO_SECURITY_BLOCKING: 1
     runs-on: ubuntu-latest
 
     strategy:
@@ -40,7 +41,7 @@ jobs:
           ${{ runner.os }}-php-${{ matrix.php-version }}-
 
     - name: Install dependencies
-      run: composer install -o --ignore-platform-reqs --no-security-blocking
+      run: composer install -o --ignore-platform-reqs
 
     - name: Run test suite
       run: ./vendor/bin/phpunit -v -c phpunit.xml
