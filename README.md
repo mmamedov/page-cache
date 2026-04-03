@@ -1,4 +1,4 @@
-[![Latest Stable Version](http://img.shields.io/packagist/v/mmamedov/page-cache.svg)](https://packagist.org/packages/mmamedov/page-cache) [![License](https://img.shields.io/packagist/l/mmamedov/page-cache.svg)](https://packagist.org/packages/mmamedov/page-cache) 
+[![PHP Composer](https://github.com/mmamedov/page-cache/actions/workflows/php.yml/badge.svg?branch=master)](https://github.com/mmamedov/page-cache/actions/workflows/php.yml) [![Latest Stable Version](http://img.shields.io/packagist/v/mmamedov/page-cache.svg)](https://packagist.org/packages/mmamedov/page-cache) [![License](https://img.shields.io/packagist/l/mmamedov/page-cache.svg)](https://packagist.org/packages/mmamedov/page-cache) 
 
 Full-page PHP Caching library
 ----
