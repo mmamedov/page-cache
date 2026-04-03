@@ -40,11 +40,9 @@ class ConfigTest extends \PHPUnit\Framework\TestCase
         $this->assertSame($dir, $this->config->getCachePath());
     }
 
-    /**
-     * @expectedException \Exception
-     */
     public function testSetPath2()
     {
+        $this->expectException(\Exception::class);
         $this->config->setCachePath('nonexistant_dir');
     }
 
@@ -64,11 +62,11 @@ class ConfigTest extends \PHPUnit\Framework\TestCase
     public function testSetEnableLogIsEnableLog()
     {
         $this->config->setEnableLog(true);
-        $this->assertAttributeSame(true, 'enableLog', $this->config);
+        $this->assertSame(true, $this->config->isEnableLog());
         $this->assertTrue($this->config->isEnableLog());
 
         $this->config->setEnableLog(false);
-        $this->assertAttributeSame(false, 'enableLog', $this->config);
+        $this->assertSame(false, $this->config->isEnableLog());
         $this->assertFalse($this->config->isEnableLog());
     }
 
@@ -76,38 +74,35 @@ class ConfigTest extends \PHPUnit\Framework\TestCase
     public function testSetGetMinCacheFileSize()
     {
         $this->config->setMinCacheFileSize(0);
-        $this->assertAttributeSame(0, 'minCacheFileSize', $this->config);
         $this->assertSame(0, $this->config->getMinCacheFileSize());
 
         $this->config->setMinCacheFileSize(10000);
-        $this->assertAttributeSame(10000, 'minCacheFileSize', $this->config);
         $this->assertSame(10000, $this->config->getMinCacheFileSize());
     }
 
     public function testSetUseSessionIsUseSession()
     {
         //initially useSession is false
-        $this->assertAttributeSame(false, 'useSession', $this->config);
+        $this->assertSame(false, $this->config->isUseSession());
         $this->config->setUseSession(true);
-        $this->assertAttributeSame(true, 'useSession', $this->config);
+        $this->assertSame(true, $this->config->isUseSession());
         $this->assertTrue($this->config->isUseSession());
     }
 
     public function testSetGetSessionExclude()
     {
-        $this->assertAttributeSame([], 'sessionExcludeKeys', $this->config);
+        $this->assertSame([], $this->config->getSessionExcludeKeys());
         $this->config->setSessionExcludeKeys([1, 2, 3]);
-        $this->assertAttributeSame([1,2,3], 'sessionExcludeKeys', $this->config);
         $this->assertSame([1,2,3], $this->config->getSessionExcludeKeys());
     }
 
     public function testSetFileLock()
     {
         $this->config->setFileLock(LOCK_EX);
-        $this->assertAttributeEquals(LOCK_EX, 'fileLock', $this->config);
+        $this->assertEquals(LOCK_EX, $this->config->getFileLock());
 
         $this->config->setFileLock(LOCK_EX | LOCK_NB);
-        $this->assertAttributeEquals(LOCK_EX | LOCK_NB, 'fileLock', $this->config);
+        $this->assertEquals(LOCK_EX | LOCK_NB, $this->config->getFileLock());
     }
 
     public function testGetFileLock()
@@ -141,7 +136,7 @@ class ConfigTest extends \PHPUnit\Framework\TestCase
 
     public function testGetMinCacheFileSize()
     {
-        $this->assertAttributeSame(10, 'minCacheFileSize', $this->config);
+        $this->assertSame(10, $this->config->getMinCacheFileSize());
         $this->config->setMinCacheFileSize(10240);
         $this->assertSame(10240, $this->config->getMinCacheFileSize());
     }
@@ -150,15 +145,15 @@ class ConfigTest extends \PHPUnit\Framework\TestCase
     {
         $config = new Config(__DIR__.'/config_test.php');
 
-        $this->assertAttributeSame(1, 'minCacheFileSize', $config);
-        $this->assertAttributeSame(false, 'enableLog', $config);
-        $this->assertAttributeSame(600, 'cacheExpirationInSeconds', $config);
-        $this->assertAttributeContains('/tmp/cache/', 'cachePath', $config);
-        $this->assertAttributeContains('/tmp', 'logFilePath', $config);
+        $this->assertSame(1, $config->getMinCacheFileSize());
+        $this->assertSame(false, $config->isEnableLog());
+        $this->assertSame(600, $config->getCacheExpirationInSeconds());
+        $this->assertStringContainsString('/tmp/cache/', $config->getCachePath());
+        $this->assertStringContainsString('/tmp', $config->getLogFilePath());
         $this->assertSame(false, $config->isUseSession());
         $this->assertSame([], $config->getSessionExcludeKeys());
-        $this->assertAttributeSame(LOCK_EX | LOCK_NB, 'fileLock', $config);
-        $this->assertAttributeSame(false, 'forwardHeaders', $config);
+        $this->assertSame(LOCK_EX | LOCK_NB, $config->getFileLock());
+        $this->assertSame(false, $config->isForwardHeaders());
     }
 
     /**

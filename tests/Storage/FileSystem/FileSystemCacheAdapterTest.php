@@ -26,11 +26,10 @@ class FileSystemCacheAdapterTest extends \PHPUnit\Framework\TestCase
      * @throws \Psr\SimpleCache\InvalidArgumentException
      *
      * @dataProvider invalidKeys
-     *
-     * @expectedException \Psr\SimpleCache\InvalidArgumentException
      */
     public function testInvalidCacheKey($key)
     {
+        $this->expectException(\Psr\SimpleCache\InvalidArgumentException::class);
         $fileAdapter = new FileSystemCacheAdapter(__DIR__ . '/../../tmp', LOCK_EX, 0);
         $fileAdapter->set($key, '1');
     }

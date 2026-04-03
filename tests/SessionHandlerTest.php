@@ -36,30 +36,25 @@ class SessionHandlerTest extends \PHPUnit\Framework\TestCase
     {
         SessionHandler::enable();
         $this->assertTrue(SessionHandler::getStatus());
-        $this->assertAttributeEquals(true, 'status', SessionHandler::class);
 
         SessionHandler::disable();
         $this->assertFalse(SessionHandler::getStatus());
-        $this->assertAttributeEquals(false, 'status', SessionHandler::class);
 
         SessionHandler::setStatus(true);
         $this->assertTrue(SessionHandler::getStatus());
-        $this->assertAttributeEquals(true, 'status', SessionHandler::class);
 
         SessionHandler::setStatus(false);
         $this->assertFalse(SessionHandler::getStatus());
-        $this->assertAttributeEquals(false, 'status', SessionHandler::class);
     }
 
     public function testExcludeKeys()
     {
         SessionHandler::excludeKeys(array('count'));
         $this->assertEquals(array('count'), SessionHandler::getExcludeKeys());
-        $this->assertAttributeEquals(array('count'), 'exclude_keys', SessionHandler::class);
 
         SessionHandler::excludeKeys(array('1', '2', 'another'));
         $this->assertCount(3, SessionHandler::getExcludeKeys());
-        $this->assertAttributeEquals(array('1', '2', 'another'), 'exclude_keys', SessionHandler::class);
+        $this->assertEquals(array('1', '2', 'another'), SessionHandler::getExcludeKeys());
     }
 
     /**

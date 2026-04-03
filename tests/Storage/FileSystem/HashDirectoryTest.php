@@ -46,6 +46,13 @@ class HashDirectoryTest extends \PHPUnit\Framework\TestCase
         unset($this->hd);
     }
 
+    private function getPrivateProperty(object $obj, string $property): mixed
+    {
+        $ref = new \ReflectionProperty($obj, $property);
+        $ref->setAccessible(true);
+        return $ref->getValue($obj);
+    }
+
     public function testGetHash()
     {
         $val1 = ord('8'); //56
@@ -68,7 +75,7 @@ class HashDirectoryTest extends \PHPUnit\Framework\TestCase
 
         $this->assertFileDoesNotExist($this->dir . '51/48');
         $this->assertEquals('51/48/', $newHd->createSubdirectoriesForFile());
-        $this->assertAttributeEquals('93f0938de0087a87d3530084cd46edf4', 'file', $newHd);
+        $this->assertEquals('93f0938de0087a87d3530084cd46edf4', $this->getPrivateProperty($newHd, 'file'));
         $this->assertFileExists($this->dir . '51/48');
     }
 
@@ -89,21 +96,17 @@ class HashDirectoryTest extends \PHPUnit\Framework\TestCase
         $this->assertNotEmpty($this->hd->createSubdirectoriesForFile());
     }
 
-    /**
-     * @expectedException \Exception
-     */
     public function testCreateSubDirsWithException()
     {
+        $this->expectException(\Exception::class);
         //make cache directory non writable, this will prevent from them being created
         chmod($this->dir, '000');
         $this->hd->createSubdirectoriesForFile();
     }
 
-    /**
-     * @expectedException \Exception
-     */
     public function testConstructorException()
     {
+        $this->expectException(\Exception::class);
         new HashDirectory('false directory');
     }
 
