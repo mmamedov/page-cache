@@ -30,9 +30,6 @@ jobs:
     - name: Validate composer.json and composer.lock
       run: composer validate --strict
 
-    - name: Require PHPUnit
-      run: composer require phpunit/phpunit ^5
-
     - name: Cache Composer packages
       id: composer-cache
       uses: actions/cache@v3
@@ -43,7 +40,7 @@ jobs:
           ${{ runner.os }}-php-${{ matrix.php-version }}-
 
     - name: Install dependencies
-      run: composer install -o
+      run: composer install -o --ignore-platform-reqs
 
     - name: Run test suite
       run: ./vendor/bin/phpunit -v -c phpunit.xml
