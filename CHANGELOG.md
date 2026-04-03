@@ -1,6 +1,19 @@
 PageCache ChangeLog
 ===================
 
+### 3.0.0 (2026-04-03)
+
+**Breaking change: PHP 8.1+ required.**
+
+* PHP requirement raised from `>=5.6` to `>=8.1`.
+* PHPUnit upgraded from `^5` to `^10.0` (dev dependency).
+* `monolog/monolog` dev dependency upgraded from `^1.23` to `^2.0 || ^3.0`.
+* `guzzlehttp/guzzle` dev dependency upgraded from `^6.3` to `^7.0`.
+* `symfony/cache` and `symfony/process` dev dependencies upgraded from `^3.4 || ^4.0` to `^6.0 || ^7.0`.
+* Fixed PHP 8.1 deprecation: implicit float-to-int conversion in `DefaultLogger` and `CacheItemStorage`.
+* Fixed PHP 8.1 deprecation: passing `null` for typed `int` parameter in `HttpHeaders::setHeader()`.
+* Replaced Travis CI with GitHub Actions; matrix now covers PHP 8.1, 8.2, 8.3, 8.4, and 8.5.
+
 ### WIP
 
 * Dry Run mode introduced
