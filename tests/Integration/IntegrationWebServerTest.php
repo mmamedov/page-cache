@@ -349,7 +349,7 @@ class IntegrationWebServerTest extends \PHPUnit\Framework\TestCase
     private function startBuiltInServer()
     {
         // Build the command
-         $this->serverProcess = new Process([
+        $this->serverProcess = new Process([
             PHP_BINARY,
             '-S',
             $this->serverHost.':'.$this->serverPort,
@@ -357,6 +357,7 @@ class IntegrationWebServerTest extends \PHPUnit\Framework\TestCase
             $this->documentRoot,
             $this->documentRoot.DIRECTORY_SEPARATOR.'index.php',
         ]);
+        $this->serverProcess->disableOutput();
         $this->serverProcess->start();
 
         if (!$this->serverProcess->isRunning()) {
