@@ -350,20 +350,14 @@ class IntegrationWebServerTest extends \PHPUnit\Framework\TestCase
     private function startBuiltInServer()
     {
         // Build the command
-        $command = sprintf('%s -S %s:%d -t %s %s', // >/dev/null 2>&1
+         $this->serverProcess = new Process([
             PHP_BINARY,
-            $this->serverHost,
-            $this->serverPort,
+            '-S',
+            $this->serverHost.':'.$this->serverPort,
+            '-t',
             $this->documentRoot,
-            $this->documentRoot.DIRECTORY_SEPARATOR.'index.php'
-        );
-
-        if ('\\' !== DIRECTORY_SEPARATOR) {
-            // exec is mandatory to deal with sending a signal to the process
-            $command = 'exec '.$command;
-        }
-
-        $this->serverProcess = new Process($command);
+            $this->documentRoot.DIRECTORY_SEPARATOR.'index.php',
+        ]);
         $this->serverProcess->start();
 
         if (!$this->serverProcess->isRunning()) {
