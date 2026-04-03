@@ -19,7 +19,6 @@ use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\Uri;
 use PHPUnit\Framework\ExpectationFailedException;
 use Symfony\Component\Process\Process;
-use function GuzzleHttp\Psr7\build_query;
 
 /**
  * Class IntegrationWebServerTest
@@ -434,7 +433,7 @@ class IntegrationWebServerTest extends \PHPUnit\Framework\TestCase
             self::REDIRECT_KEY    => false,
         ], $queryParams ?: []);
 
-        $uri = $uri->withQuery(build_query($queryParams));
+        $uri = $uri->withQuery(\GuzzleHttp\Psr7\Query::build($queryParams));
 
         return new Request('GET', $uri);
     }

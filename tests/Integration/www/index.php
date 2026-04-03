@@ -5,7 +5,8 @@ use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use PageCache\PageCache;
 use PageCache\Tests\Integration\IntegrationWebServerTest;
-use Symfony\Component\Cache\Simple\FilesystemCache;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Component\Cache\Psr16Cache;
 
 ini_set('display_errors', 1);
 
@@ -97,7 +98,7 @@ function setCacheImplementation(PageCache $pc, $name, $cacheDirectory)
         case IntegrationWebServerTest::CACHE_TYPE_SYMFONY_FILESYSTEM:
             // Using basic symfony/cache
             $ttl          = $pc->config()->getCacheExpirationInSeconds() * 2;
-            $cacheAdapter = new FilesystemCache('symfony-cache', $ttl, $cacheDirectory);
+            $cacheAdapter = new Psr16Cache(new FilesystemAdapter('symfony-cache', $ttl, $cacheDirectory));
             $pc->setCacheAdapter($cacheAdapter);
             break;
 

@@ -143,7 +143,11 @@ class HttpHeaders
      */
     private function setHeader($name, $value = null, $httpResponseCode = null)
     {
-        header($name . ($value ? ': ' . $value : ''), true, $httpResponseCode);
+        if ($httpResponseCode !== null) {
+            header($name . ($value ? ': ' . $value : ''), true, $httpResponseCode);
+        } else {
+            header($name . ($value ? ': ' . $value : ''), true);
+        }
     }
 
     /**
