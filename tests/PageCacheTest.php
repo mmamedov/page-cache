@@ -221,8 +221,8 @@ class PageCacheTest extends \PHPUnit\Framework\TestCase
         ob_end_flush();
 
         $this->assertAttributeInstanceOf(DefaultLogger::class, 'logger', $pc);
-        $this->assertContains('PageCache\PageCache::init', file_get_contents($tmpFile));
-        $this->assertContains('PageCache\PageCache::storePageContent', file_get_contents($tmpFile));
+        $this->assertStringContainsString('PageCache\PageCache::init', file_get_contents($tmpFile));
+        $this->assertStringContainsString('PageCache\PageCache::storePageContent', file_get_contents($tmpFile));
     }
 
     public function testLogWithMonolog()
@@ -242,7 +242,7 @@ class PageCacheTest extends \PHPUnit\Framework\TestCase
 
         $pc->init();
         ob_end_flush();
-        $this->assertContains(
+        $this->assertStringContainsString(
             'PageCache\PageCache::init',
             file_get_contents($monologLogFile)
         );

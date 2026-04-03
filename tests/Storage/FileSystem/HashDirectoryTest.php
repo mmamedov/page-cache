@@ -66,7 +66,7 @@ class HashDirectoryTest extends \PHPUnit\Framework\TestCase
         $newHd = new HashDirectory($this->dir);
         $newHd->setFile($newFilename);
 
-        $this->assertFileNotExists($this->dir . '51/48');
+        $this->assertFileDoesNotExist($this->dir . '51/48');
         $this->assertEquals('51/48/', $newHd->createSubdirectoriesForFile());
         $this->assertAttributeEquals('93f0938de0087a87d3530084cd46edf4', 'file', $newHd);
         $this->assertFileExists($this->dir . '51/48');
@@ -137,8 +137,8 @@ class HashDirectoryTest extends \PHPUnit\Framework\TestCase
 
         //remove directory contents
         $this->hd->clearDirectory($this->dir . '25');
-        $this->assertFileNotExists($this->dir . '25/59/cacheFile');
-        $this->assertFileNotExists($this->dir . '25/14');
+        $this->assertFileDoesNotExist($this->dir . '25/59/cacheFile');
+        $this->assertFileDoesNotExist($this->dir . '25/14');
         $this->assertFileExists($this->dir . 'Core/AbstractFactory/test.php');
 
         //remove empty directory contents, make sure root directory is there
@@ -147,7 +147,7 @@ class HashDirectoryTest extends \PHPUnit\Framework\TestCase
 
         $this->assertFileExists($this->dir . 'Core/AbstractFactory/test.php');
         $this->hd->clearDirectory($this->dir . 'Core/AbstractFactory/');
-        $this->assertFileNotExists($this->dir . 'Core/AbstractFactory/test.php');
+        $this->assertFileDoesNotExist($this->dir . 'Core/AbstractFactory/test.php');
     }
 
     public function testClearDirectoryRoot()
@@ -177,9 +177,9 @@ class HashDirectoryTest extends \PHPUnit\Framework\TestCase
 
         //Delete starting from root directory
         $this->hd->clearDirectory($this->dir);
-        $this->assertFileNotExists($this->dir . '25');
-        $this->assertFileNotExists($this->dir . '25/59/cacheFile');
-        $this->assertFileNotExists($this->dir . 'Core');
-        $this->assertFileNotExists($this->dir . 'Core/AnEmptyFolder');
+        $this->assertFileDoesNotExist($this->dir . '25');
+        $this->assertFileDoesNotExist($this->dir . '25/59/cacheFile');
+        $this->assertFileDoesNotExist($this->dir . 'Core');
+        $this->assertFileDoesNotExist($this->dir . 'Core/AnEmptyFolder');
     }
 }

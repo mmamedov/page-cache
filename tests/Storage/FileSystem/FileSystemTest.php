@@ -135,7 +135,7 @@ class FileSystemTest extends \PHPUnit\Framework\TestCase
         //no filepath, error
         $this->assertEquals(FileSystem::ERROR, $result);
 
-        $this->assertFileNotExists($fpath);
+        $this->assertFileDoesNotExist($fpath);
         $fs->setFilePath($fpath);
         $result = $fs->writeAttempt();
         $this->assertEquals(FileSystem::OK, $result);
@@ -151,7 +151,7 @@ class FileSystemTest extends \PHPUnit\Framework\TestCase
         $fs->setFilePath($fpath);
         $fs->setFileLock(LOCK_EX | LOCK_NB);
 
-        $this->assertFileNotExists($fpath);
+        $this->assertFileDoesNotExist($fpath);
         $result = $fs->writeAttempt();
         $this->assertEquals(FileSystem::OK, $result);
         $this->assertFileExists($fpath);

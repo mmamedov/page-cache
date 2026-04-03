@@ -74,7 +74,7 @@ class SessionHandlerTest extends \PHPUnit\Framework\TestCase
         $this->assertNull(SessionHandler::process());
 
         SessionHandler::enable();
-        $this->assertContains('somevar', SessionHandler::process());
+        $this->assertStringContainsString('somevar', SessionHandler::process());
         $this->assertEquals(serialize($_SESSION), SessionHandler::process());
 
         $_SESSION['process'] = 'ignorethis';
