@@ -19,7 +19,6 @@ use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\Uri;
 use PHPUnit\Framework\ExpectationFailedException;
 use Symfony\Component\Process\Process;
-use function GuzzleHttp\Psr7\build_query;
 
 /**
  * Class IntegrationWebServerTest
@@ -78,7 +77,7 @@ class IntegrationWebServerTest extends \PHPUnit\Framework\TestCase
         ],
     ];
 
-    protected function setUp()
+    protected function setUp(): void
     {
         if ($this->canConnectToServer()) {
             throw new \RuntimeException('Something is already running on '.$this->serverHost.':'.$this->serverPort.'. Aborting tests.');
@@ -117,7 +116,7 @@ class IntegrationWebServerTest extends \PHPUnit\Framework\TestCase
         $this->clearCacheDirectory();
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         $this->stopBuiltInServer();
 
@@ -350,20 +349,15 @@ class IntegrationWebServerTest extends \PHPUnit\Framework\TestCase
     private function startBuiltInServer()
     {
         // Build the command
-        $command = sprintf('%s -S %s:%d -t %s %s', // >/dev/null 2>&1
+        $this->serverProcess = new Process([
             PHP_BINARY,
-            $this->serverHost,
-            $this->serverPort,
+            '-S',
+            $this->serverHost.':'.$this->serverPort,
+            '-t',
             $this->documentRoot,
-            $this->documentRoot.DIRECTORY_SEPARATOR.'index.php'
-        );
-
-        if ('\\' !== DIRECTORY_SEPARATOR) {
-            // exec is mandatory to deal with sending a signal to the process
-            $command = 'exec '.$command;
-        }
-
-        $this->serverProcess = new Process($command);
+            $this->documentRoot.DIRECTORY_SEPARATOR.'index.php',
+        ]);
+        $this->serverProcess->disableOutput();
         $this->serverProcess->start();
 
         if (!$this->serverProcess->isRunning()) {
@@ -440,7 +434,7 @@ class IntegrationWebServerTest extends \PHPUnit\Framework\TestCase
             self::REDIRECT_KEY    => false,
         ], $queryParams ?: []);
 
-        $uri = $uri->withQuery(build_query($queryParams));
+        $uri = $uri->withQuery(\GuzzleHttp\Psr7\Query::build($queryParams));
 
         return new Request('GET', $uri);
     }

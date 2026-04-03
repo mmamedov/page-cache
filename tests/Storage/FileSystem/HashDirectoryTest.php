@@ -29,7 +29,7 @@ class HashDirectoryTest extends \PHPUnit\Framework\TestCase
     /** @var  HashDirectory */
     private $hd;
 
-    public function setUp()
+    public function setUp(): void
     {
         //setup virtual dir
         vfsStream::setup('tmpdir');
@@ -41,9 +41,16 @@ class HashDirectoryTest extends \PHPUnit\Framework\TestCase
         $this->hd->setFile($this->filename);
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         unset($this->hd);
+    }
+
+    private function getPrivateProperty(object $obj, string $property): mixed
+    {
+        $ref = new \ReflectionProperty($obj, $property);
+        $ref->setAccessible(true);
+        return $ref->getValue($obj);
     }
 
     public function testGetHash()
@@ -66,9 +73,9 @@ class HashDirectoryTest extends \PHPUnit\Framework\TestCase
         $newHd = new HashDirectory($this->dir);
         $newHd->setFile($newFilename);
 
-        $this->assertFileNotExists($this->dir . '51/48');
+        $this->assertFileDoesNotExist($this->dir . '51/48');
         $this->assertEquals('51/48/', $newHd->createSubdirectoriesForFile());
-        $this->assertAttributeEquals('93f0938de0087a87d3530084cd46edf4', 'file', $newHd);
+        $this->assertEquals('93f0938de0087a87d3530084cd46edf4', $this->getPrivateProperty($newHd, 'file'));
         $this->assertFileExists($this->dir . '51/48');
     }
 
@@ -89,21 +96,17 @@ class HashDirectoryTest extends \PHPUnit\Framework\TestCase
         $this->assertNotEmpty($this->hd->createSubdirectoriesForFile());
     }
 
-    /**
-     * @expectedException \Exception
-     */
     public function testCreateSubDirsWithException()
     {
+        $this->expectException(\Exception::class);
         //make cache directory non writable, this will prevent from them being created
         chmod($this->dir, '000');
         $this->hd->createSubdirectoriesForFile();
     }
 
-    /**
-     * @expectedException \Exception
-     */
     public function testConstructorException()
     {
+        $this->expectException(\Exception::class);
         new HashDirectory('false directory');
     }
 
@@ -137,8 +140,8 @@ class HashDirectoryTest extends \PHPUnit\Framework\TestCase
 
         //remove directory contents
         $this->hd->clearDirectory($this->dir . '25');
-        $this->assertFileNotExists($this->dir . '25/59/cacheFile');
-        $this->assertFileNotExists($this->dir . '25/14');
+        $this->assertFileDoesNotExist($this->dir . '25/59/cacheFile');
+        $this->assertFileDoesNotExist($this->dir . '25/14');
         $this->assertFileExists($this->dir . 'Core/AbstractFactory/test.php');
 
         //remove empty directory contents, make sure root directory is there
@@ -147,7 +150,7 @@ class HashDirectoryTest extends \PHPUnit\Framework\TestCase
 
         $this->assertFileExists($this->dir . 'Core/AbstractFactory/test.php');
         $this->hd->clearDirectory($this->dir . 'Core/AbstractFactory/');
-        $this->assertFileNotExists($this->dir . 'Core/AbstractFactory/test.php');
+        $this->assertFileDoesNotExist($this->dir . 'Core/AbstractFactory/test.php');
     }
 
     public function testClearDirectoryRoot()
@@ -177,9 +180,9 @@ class HashDirectoryTest extends \PHPUnit\Framework\TestCase
 
         //Delete starting from root directory
         $this->hd->clearDirectory($this->dir);
-        $this->assertFileNotExists($this->dir . '25');
-        $this->assertFileNotExists($this->dir . '25/59/cacheFile');
-        $this->assertFileNotExists($this->dir . 'Core');
-        $this->assertFileNotExists($this->dir . 'Core/AnEmptyFolder');
+        $this->assertFileDoesNotExist($this->dir . '25');
+        $this->assertFileDoesNotExist($this->dir . '25/59/cacheFile');
+        $this->assertFileDoesNotExist($this->dir . 'Core');
+        $this->assertFileDoesNotExist($this->dir . 'Core/AnEmptyFolder');
     }
 }

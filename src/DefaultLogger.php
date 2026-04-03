@@ -42,7 +42,7 @@ class DefaultLogger extends AbstractLogger
         $exception = isset($context['exception']) ? $context['exception'] : null;
         $microTime = microtime(true);
         $micro = sprintf("%06d", ($microTime - floor($microTime)) * 1000000);
-        $logTime = (new \DateTime(date('Y-m-d H:i:s.' . $micro, $microTime)))->format('Y-m-d H:i:s.u');
+        $logTime = (new \DateTime(date('Y-m-d H:i:s.' . $micro, (int)$microTime)))->format('Y-m-d H:i:s.u');
         error_log(
             '[' . $logTime . '] '
             .$message.($exception ? ' {Exception: '.$exception->getMessage().'}' : '')."\n",

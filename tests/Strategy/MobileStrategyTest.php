@@ -19,7 +19,7 @@ class MobileStrategyTest extends \PHPUnit\Framework\TestCase
     {
         //MobileDetection stub, to simulate a mobile device
         $mobilestub = $this->getMockBuilder('Mobile_Detect')
-            ->setMethods(array('isMobile', 'isTablet'))
+            ->onlyMethods(array('isMobile', 'isTablet'))
             ->getMock();
 
         $mobilestub->method('isMobile')

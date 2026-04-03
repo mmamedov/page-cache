@@ -4,12 +4,9 @@
             <directory>tests</directory>
         </testsuite>
     </testsuites>
-    <filter>
-        <whitelist processUncoveredFilesFromWhitelist="true">
+    <source>
+        <include>
             <directory suffix=".php">src</directory>
-            <exclude>
-                <file>examples/config.php</file>
-            </exclude>
-        </whitelist>
-    </filter>
+        </include>
+    </source>
 </phpunit>

@@ -28,9 +28,16 @@ class FileSystemTest extends \PHPUnit\Framework\TestCase
      */
     private $virtualRoot;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->virtualRoot = vfsStream::setup('fileSystemDir');
+    }
+
+    private function getPrivateProperty(object $obj, string $property): mixed
+    {
+        $ref = new \ReflectionProperty($obj, $property);
+        $ref->setAccessible(true);
+        return $ref->getValue($obj);
     }
 
     private function getVirtualDirectory()
@@ -42,8 +49,8 @@ class FileSystemTest extends \PHPUnit\Framework\TestCase
     public function testConstructor()
     {
         $fs = new FileSystem('somevalue');
-        $this->assertAttributeEquals('somevalue', 'content', $fs);
-        $this->assertAttributeEquals(null, 'file_lock', $fs);
+        $this->assertEquals('somevalue', $this->getPrivateProperty($fs, 'content'));
+        $this->assertNull($fs->getFileLock());
     }
 
     public function testConst()
@@ -59,20 +66,18 @@ class FileSystemTest extends \PHPUnit\Framework\TestCase
     {
         $content = 'some content';
         $fs = new FileSystem($content);
-        $this->assertAttributeEmpty('file_lock', $fs);
+        $this->assertNull($fs->getFileLock());
 
         $fs->setFileLock(LOCK_EX);
-        $this->assertAttributeEquals(LOCK_EX, 'file_lock', $fs);
+        $this->assertEquals(LOCK_EX, $fs->getFileLock());
 
         $fs->setFileLock(LOCK_EX | LOCK_NB);
-        $this->assertAttributeEquals(LOCK_EX | LOCK_NB, 'file_lock', $fs);
+        $this->assertEquals(LOCK_EX | LOCK_NB, $fs->getFileLock());
     }
 
-    /**
-     * @expectedException \Exception
-     */
     public function testSetFileLockException()
     {
+        $this->expectException(\Exception::class);
         $fs = new FileSystem('a');
         $fs->setFileLock('');
     }
@@ -81,18 +86,16 @@ class FileSystemTest extends \PHPUnit\Framework\TestCase
     {
         $content = 'some content';
         $fs = new FileSystem($content);
-        $this->assertAttributeEmpty('filepath', $fs);
+        $this->assertNull($fs->getFilepath());
 
         $path = '/some/path/to/cache/file/74bf6b958564c606d2672751fc82b8e6';
         $fs->setFilePath($path);
-        $this->assertAttributeEquals($path, 'filepath', $fs);
+        $this->assertEquals($path, $fs->getFilepath());
     }
 
-    /**
-     * @expectedException \Exception
-     */
     public function testSetFilePathException()
     {
+        $this->expectException(\Exception::class);
         $fs = new FileSystem('a');
         $fs->setFilePath('');
     }
@@ -135,7 +138,7 @@ class FileSystemTest extends \PHPUnit\Framework\TestCase
         //no filepath, error
         $this->assertEquals(FileSystem::ERROR, $result);
 
-        $this->assertFileNotExists($fpath);
+        $this->assertFileDoesNotExist($fpath);
         $fs->setFilePath($fpath);
         $result = $fs->writeAttempt();
         $this->assertEquals(FileSystem::OK, $result);
@@ -151,7 +154,7 @@ class FileSystemTest extends \PHPUnit\Framework\TestCase
         $fs->setFilePath($fpath);
         $fs->setFileLock(LOCK_EX | LOCK_NB);
 
-        $this->assertFileNotExists($fpath);
+        $this->assertFileDoesNotExist($fpath);
         $result = $fs->writeAttempt();
         $this->assertEquals(FileSystem::OK, $result);
         $this->assertFileExists($fpath);

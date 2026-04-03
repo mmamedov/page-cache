@@ -9,3 +9,5 @@ docs/
 /examples/cache/*
 !examples/cache/.gitkeep
 coverage/
+.phpunit.result.cache
+.claude/

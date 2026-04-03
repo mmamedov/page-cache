@@ -26,11 +26,10 @@ class FileSystemCacheAdapterTest extends \PHPUnit\Framework\TestCase
      * @throws \Psr\SimpleCache\InvalidArgumentException
      *
      * @dataProvider invalidKeys
-     *
-     * @expectedException \Psr\SimpleCache\InvalidArgumentException
      */
     public function testInvalidCacheKey($key)
     {
+        $this->expectException(\Psr\SimpleCache\InvalidArgumentException::class);
         $fileAdapter = new FileSystemCacheAdapter(__DIR__ . '/../../tmp', LOCK_EX, 0);
         $fileAdapter->set($key, '1');
     }
@@ -42,7 +41,7 @@ class FileSystemCacheAdapterTest extends \PHPUnit\Framework\TestCase
      * @throws \Psr\SimpleCache\InvalidArgumentException
      *
      * @dataProvider validKeys
-     *
+     * @doesNotPerformAssertions
      */
     public function testValidCacheKey($key)
     {
@@ -84,7 +83,7 @@ class FileSystemCacheAdapterTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('RandomValue', $fileAdapter->get($key));
     }
 
-    public function invalidKeys()
+    public static function invalidKeys()
     {
         return [
             ['**Dasf'],
@@ -95,7 +94,7 @@ class FileSystemCacheAdapterTest extends \PHPUnit\Framework\TestCase
         ];
     }
 
-    public function validKeys()
+    public static function validKeys()
     {
         return [
             ['asdfasdfasdf'],

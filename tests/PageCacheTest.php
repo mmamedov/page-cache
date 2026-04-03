@@ -27,14 +27,14 @@ class PageCacheTest extends \PHPUnit\Framework\TestCase
     /** @var  vfsStreamDirectory */
     private $root;
 
-    public function setUp()
+    public function setUp(): void
     {
         date_default_timezone_set('UTC');
         $this->setServerParameters();
         $this->root = vfsStream::setup('tmpdir');
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         PageCache::destroy();
         SessionHandler::reset();
@@ -42,11 +42,10 @@ class PageCacheTest extends \PHPUnit\Framework\TestCase
 
     /**
      * Multiple Instances
-     *
-     * @expectedException \PageCache\PageCacheException
      */
     public function testSingleton()
     {
+        $this->expectException(\PageCache\PageCacheException::class);
         $pc      = new PageCache();
         $another = new PageCache();
     }
@@ -59,9 +58,9 @@ class PageCacheTest extends \PHPUnit\Framework\TestCase
         $pc = new PageCache();
         $this->assertFalse(SessionHandler::getStatus());
 
-        $this->assertAttributeInstanceOf(\PageCache\HttpHeaders::class, 'httpHeaders', $pc);
-        $this->assertAttributeInstanceOf(DefaultStrategy::class, 'strategy', $pc);
-        $this->assertAttributeInstanceOf(Config::class, 'config', $pc);
+        $this->assertInstanceOf(\PageCache\HttpHeaders::class, $this->getPrivateProperty($pc, 'httpHeaders'));
+        $this->assertInstanceOf(DefaultStrategy::class, $pc->getStrategy());
+        $this->assertInstanceOf(Config::class, $pc->config());
     }
 
     /**
@@ -73,12 +72,12 @@ class PageCacheTest extends \PHPUnit\Framework\TestCase
         $pc->config()->setCachePath(vfsStream::url('tmpdir').'/');
 
         // No CacheItemStorage before init()
-        $this->assertAttributeEquals(null, 'itemStorage', $pc);
+        $this->assertNull($this->getPrivateProperty($pc, 'itemStorage'));
 
         $pc->init();
 
         // CacheItemStorage created
-        $this->assertAttributeInstanceOf(CacheItemStorage::class, 'itemStorage', $pc);
+        $this->assertInstanceOf(CacheItemStorage::class, $pc->getItemStorage());
 
         $output = 'Testing output for testInit()';
         $this->expectOutputString($output);
@@ -109,10 +108,10 @@ class PageCacheTest extends \PHPUnit\Framework\TestCase
         $pc = new PageCache();
 
         $pc->setStrategy(new MobileStrategy());
-        $this->assertAttributeInstanceOf(MobileStrategy::class, 'strategy', $pc);
+        $this->assertInstanceOf(MobileStrategy::class, $pc->getStrategy());
 
         $pc->setStrategy(new DefaultStrategy());
-        $this->assertAttributeInstanceOf(DefaultStrategy::class, 'strategy', $pc);
+        $this->assertInstanceOf(DefaultStrategy::class, $pc->getStrategy());
     }
 
     public function testSetStrategyException()
@@ -194,10 +193,10 @@ class PageCacheTest extends \PHPUnit\Framework\TestCase
     public function testSetLogger()
     {
         $pc = new PageCache();
-        $this->assertAttributeEmpty('logger', $pc);
+        $this->assertNull($this->getPrivateProperty($pc, 'logger'));
         $logger = new Logger('testmonolog');
         $pc->setLogger($logger);
-        $this->assertAttributeEquals($logger, 'logger', $pc);
+        $this->assertSame($logger, $this->getPrivateProperty($pc, 'logger'));
     }
 
     public function testDefaultLogger()
@@ -211,7 +210,7 @@ class PageCacheTest extends \PHPUnit\Framework\TestCase
                      ->setLogFilePath($tmpFile);
 
         // No logger
-        $this->assertAttributeEquals(null, 'logger', $pc);
+        $this->assertNull($this->getPrivateProperty($pc, 'logger'));
 
         //During init logger is initialized
         $pc->init();
@@ -220,9 +219,9 @@ class PageCacheTest extends \PHPUnit\Framework\TestCase
         echo $output;
         ob_end_flush();
 
-        $this->assertAttributeInstanceOf(DefaultLogger::class, 'logger', $pc);
-        $this->assertContains('PageCache\PageCache::init', file_get_contents($tmpFile));
-        $this->assertContains('PageCache\PageCache::storePageContent', file_get_contents($tmpFile));
+        $this->assertInstanceOf(DefaultLogger::class, $this->getPrivateProperty($pc, 'logger'));
+        $this->assertStringContainsString('PageCache\PageCache::init', file_get_contents($tmpFile));
+        $this->assertStringContainsString('PageCache\PageCache::storePageContent', file_get_contents($tmpFile));
     }
 
     public function testLogWithMonolog()
@@ -242,7 +241,7 @@ class PageCacheTest extends \PHPUnit\Framework\TestCase
 
         $pc->init();
         ob_end_flush();
-        $this->assertContains(
+        $this->assertStringContainsString(
             'PageCache\PageCache::init',
             file_get_contents($monologLogFile)
         );
@@ -317,6 +316,13 @@ class PageCacheTest extends \PHPUnit\Framework\TestCase
         $this->expectOutputString($output . $output2);
     }
 
+
+    private function getPrivateProperty(object $obj, string $property): mixed
+    {
+        $ref = new \ReflectionProperty($obj, $property);
+        $ref->setAccessible(true);
+        return $ref->getValue($obj);
+    }
 
     private function setServerParameters()
     {

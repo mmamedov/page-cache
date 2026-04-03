@@ -131,6 +131,6 @@ class CacheItemStorage
 
         // Slightly random offset
         $offset = log10(mt_rand(10, 1000)) * mt_rand(-2, 2);
-        $item->setExpiresAt((new DateTime())->setTimestamp($expiresAtTimestamp + $offset));
+        $item->setExpiresAt((new DateTime())->setTimestamp((int)round($expiresAtTimestamp + $offset)));
     }
 }
