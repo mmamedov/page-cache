@@ -27,7 +27,7 @@ Version 2.0 is not backwards compatible with versions starting with v1.0. Versio
 was refactored to enable us deliver more features.
 
 When upgrading to version 2.0, please note the followings:
-- PHP requirements >= 5.6.
+- PHP requirements >= 8.1.
 - Your config file must be like this `return [...]` and not `$config = array(...);` like in previous version.
 - Config `expiration` setting was renamed to `cache_expiration_in_seconds`
 - Use `try/catch` to ensure proper page load in case of PageCache error.
