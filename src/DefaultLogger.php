@@ -37,7 +37,7 @@ class DefaultLogger extends AbstractLogger
      *
      * @return void
      */
-    public function log($level, $message, array $context = [])
+    public function log($level, string|\Stringable $message, array $context = []): void
     {
         $exception = isset($context['exception']) ? $context['exception'] : null;
         $microTime = microtime(true);

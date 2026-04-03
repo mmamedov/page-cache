@@ -103,7 +103,7 @@ class CacheItemStorage
      *
      * @return bool
      */
-    private function isExpired(CacheItemInterface $item, DateTime $time = null)
+    private function isExpired(CacheItemInterface $item, ?DateTime $time = null)
     {
         $time = $time ?: new DateTime();
         return ($time > $item->getExpiresAt());

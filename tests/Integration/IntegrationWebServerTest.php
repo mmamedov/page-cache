@@ -422,7 +422,7 @@ class IntegrationWebServerTest extends \PHPUnit\Framework\TestCase
      *
      * @return \GuzzleHttp\Psr7\Request
      */
-    private function makeRequest($contentFileName, array $queryParams = null)
+    private function makeRequest($contentFileName, ?array $queryParams = null)
     {
         $uri = new Uri('/'.$contentFileName);
 
