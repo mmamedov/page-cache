@@ -196,7 +196,33 @@ class PageCache
 
         return $this->currentKey;
     }
-
+    
+    /**
+     * Function to get the date of the cached page
+     * By default it returns an epoch timestamp
+     *
+     * @param string $method the date object method to use
+     * @param string $parameter the date object method's parameter to use
+     * @return string according to what date method is used
+     */
+    public function getLastModified($method = 'getTimestamp',$parameter = null)
+    {
+        $item = $this->getCurrentItem();
+        // Display cache item if found (it might have empty contents, extra check is made inside displayItem)
+        if ($item) {
+            $dateObj = $item->getLastModified();
+            $methodVariable = array($dateObj, $method);
+            if(is_object($dateObj) && is_callable($methodVariable)){
+                if($parameter){
+                    return $dateObj->$method($parameter);
+                } else {
+                    return $dateObj->$method();
+                }
+            }
+        }
+        return false;
+    }
+    
     /**
      * Display cache item, send headers if necessary.
      *
